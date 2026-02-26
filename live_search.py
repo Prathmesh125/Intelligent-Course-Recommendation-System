@@ -220,59 +220,75 @@ def search_courses_live(
     top_n: int = 15,
     difficulty_filter: str = "All",
     progress_callback=None,
-) -> list[dict]:
+) -> tuple[list[dict], dict]:
     """
     Search the entire internet for courses matching `query`.
+
+    The query is first passed through query_engine.understand_query() which:
+      - Fixes spelling errors (pythn → python, mchine → machine)
+      - Expands abbreviations  (ML → machine learning, FE → frontend)
+      - Removes slang / filler (bro, wanna, literally, just, etc.)
+      - Extracts intent & difficulty level signals
+      - Returns enriched search queries for better coverage
 
     Parameters
     ----------
     query : str
-        The user's free-text query — can be anything at all.
+        The user's raw free-text query — any spelling, any wording.
     top_n : int
-        How many results to return (after dedup + ranking).
+        How many results to return after dedup + NLP ranking.
     difficulty_filter : str
         'All', 'Beginner', 'Intermediate', or 'Advanced'.
+        If 'All', auto-inferred difficulty from query_engine is used
+        to bias search query suffixes (but not hard-filter results).
     progress_callback : callable(message, pct) | None
-        Optional progress hook for Streamlit UI.
 
     Returns
     -------
-    list[dict]  — each dict has:
-        course_title, description, url, source (platform), difficulty,
-        similarity_score, rank, skills
+    (list[dict], query_info dict)
+        list[dict]: ranked course results
+        query_info: from understand_query() — includes corrected text, topic, difficulty
     """
     try:
         from ddgs import DDGS
     except ImportError:
-        from duckduckgo_search import DDGS  # fallback old name
+        from duckduckgo_search import DDGS
+
+    from query_engine import understand_query
 
     def _prog(msg, pct):
         log.info(f"[LiveSearch {pct}%] {msg}")
         if progress_callback:
             progress_callback(msg, pct)
 
-    _prog(f'Searching internet for: "{query}" ...', 5)
+    # ── Step 1: Understand the query ───────────────────────────────────────
+    _prog("Understanding your query ...", 3)
+    query_info = understand_query(query)
+    topic      = query_info["topic"]
+    inferred_diff = query_info["difficulty"]
+    # Respect explicit user filter; fall back to inferred
+    diff_to_use = difficulty_filter if difficulty_filter != "All" else inferred_diff
+    effective_search_queries = query_info["search_queries"]
+
+    _prog(f'Searching internet for: "{topic}" ...', 5)
 
     raw: list[dict] = []
     seen_urls: set[str] = set()
 
-    # ── Search passes ──────────────────────────────────────────────────────
-    # We run several targeted queries to maximise coverage across the web.
-    search_queries = [
-        f"{query} course",
-        f"{query} tutorial learn online",
-        f"best {query} course free certificate",
-        f"{query} course site:coursera.org OR site:udemy.com OR site:edx.org",
-        f"{query} tutorial site:youtube.com OR site:freecodecamp.org OR site:khanacademy.org",
-        f"{query} course site:datacamp.com OR site:pluralsight.com OR site:linkedin.com/learning",
+    # ── Step 2: Search passes using enriched queries from query_engine ─────
+    # Plus 3 fixed site-targeted passes for high-quality platforms
+    site_passes = [
+        f"{topic} course site:coursera.org OR site:udemy.com OR site:edx.org",
+        f"{topic} tutorial site:youtube.com OR site:freecodecamp.org OR site:khanacademy.org",
+        f"{topic} course site:datacamp.com OR site:pluralsight.com OR site:linkedin.com/learning",
     ]
+    all_search_passes = effective_search_queries + site_passes
+    per_query = max(8, (top_n * 3) // len(all_search_passes))
 
     ddgs = DDGS()
-    per_query = max(8, (top_n * 2) // len(search_queries))
-
-    for i, sq in enumerate(search_queries):
-        pct = 5 + int((i / len(search_queries)) * 55)
-        _prog(f"Scanning: {sq[:60]} …", pct)
+    for i, sq in enumerate(all_search_passes):
+        pct = 5 + int((i / len(all_search_passes)) * 55)
+        _prog(f"Scanning: {sq[:65]} ...", pct)
         try:
             hits = ddgs.text(sq, max_results=per_query)
             for h in (hits or []):
@@ -290,12 +306,12 @@ def search_courses_live(
                 seen_urls.add(url)
                 raw.append({"_title": title, "_body": body, "_url": url})
         except Exception as e:
-            log.warning(f"Search pass failed for «{sq[:40]}»: {e}")
-        time.sleep(0.3)  # be polite, avoid rate-limit
+            log.warning(f"Search pass failed for '{sq[:40]}': {e}")
+        time.sleep(0.25)
 
-    _prog(f"Found {len(raw)} raw results — filtering & ranking …", 62)
+    _prog(f"Found {len(raw)} raw results — filtering & ranking ...", 62)
 
-    # ── Build structured course dicts ────────────────────────────────────
+    # ── Step 3: Build structured course dicts ─────────────────────────────
     courses = []
     for item in raw:
         title = item["_title"]
@@ -303,33 +319,31 @@ def search_courses_live(
         url   = item["_url"]
         platform   = _infer_platform(url)
         difficulty = _infer_difficulty(f"{title} {body}")
-        # Skills: extract meaningful noun phrases from body (simple heuristic)
-        skills = _extract_skills(f"{title} {body}", query)
+        skills     = _extract_skills(f"{title} {body}", topic)
 
         courses.append({
             "course_title":     title,
-            "description":      body if body else f"{title} — learn {query} online.",
+            "description":      body if body else f"{title} — learn {topic} online.",
             "url":              url,
             "source":           platform,
             "difficulty":       difficulty,
-            "rating":           0.0,   # live results don't have ratings
+            "rating":           0.0,
             "skills":           skills,
             "similarity_score": 0.0,
             "rank":             0,
         })
 
-    # ── Difficulty filter ────────────────────────────────────────────────
+    # ── Step 4: Difficulty filter ─────────────────────────────────────────
     if difficulty_filter and difficulty_filter != "All":
         courses = [c for c in courses if c["difficulty"] == difficulty_filter]
 
-    # ── NLP re-ranking ───────────────────────────────────────────────────
-    _prog("Ranking with NLP cosine similarity …", 75)
-    courses = _rerank(query, courses)
+    # ── Step 5: NLP re-ranking using the cleaned topic as reference ────────
+    _prog("Ranking by relevance ...", 75)
+    courses = _rerank(topic, courses)
 
-    # ── Return top N ─────────────────────────────────────────────────────
     final = courses[:top_n]
-    _prog(f"Done — returning top {len(final)} courses.", 100)
-    return final
+    _prog(f"Done — {len(final)} courses found.", 100)
+    return final, query_info
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -106,8 +106,8 @@ def _init_session():
         st.session_state.scrape_log = []
     if "live_results" not in st.session_state:
         st.session_state.live_results = pd.DataFrame()
-    if "live_mode" not in st.session_state:
-        st.session_state.live_mode = True
+    if "live_query_info" not in st.session_state:
+        st.session_state.live_query_info = {}
 
 _init_session()
 
@@ -340,72 +340,41 @@ tab_rec, tab_compare, tab_eval, tab_saved, tab_about = st.tabs([
 # ── TAB 1: Recommendations ────────────────────────────────────────────────────
 with tab_rec:
 
-    # ── Mode toggle  ──────────────────────────────────────────────────────
-    mode_col, _ = st.columns([2, 3])
-    with mode_col:
-        search_mode = st.radio(
-            "Search mode",
-            ["🌐 Live Internet Search", "🤖 Offline NLP Model"],
-            index=0 if st.session_state.live_mode else 1,
-            horizontal=True,
-            label_visibility="collapsed",
-        )
-    st.session_state.live_mode = (search_mode == "🌐 Live Internet Search")
-    live_mode = st.session_state.live_mode
-
-    if live_mode:
-        st.markdown(
-            "### 🌐 Real-Time Internet Course Search"
-        )
-        st.caption(
-            "Scans the entire internet — Coursera, Udemy, YouTube, edX, "
-            "LinkedIn Learning, DataCamp, freeCodeCamp, MIT OCW, Harvard, "
-            "Stanford, Pluralsight, Codecademy … and any site that teaches your topic."
-        )
-    else:
-        st.markdown("### 🤖 NLP-Powered Recommendation (Offline)")
-        st.caption("Searches the locally cached course dataset using TF-IDF cosine similarity.")
+    st.markdown("### 🌐 Real-Time Internet Course Search")
+    st.caption(
+        "Scans the entire internet — Coursera, Udemy, YouTube, edX, "
+        "LinkedIn Learning, DataCamp, freeCodeCamp, MIT OCW, Harvard, "
+        "Stanford, Pluralsight, Codecademy … and any site that teaches your topic. "
+        "Handles typos, abbreviations, and natural language automatically."
+    )
 
     query = st.text_area(
         "Ask about anything you want to learn",
         placeholder=(
-            "e.g.  how to build a mobile game in Unity  |  "
-            "blockchain smart contracts  |  "
-            "I want to improve my public speaking"
-        ) if live_mode else
-        "e.g.  I want to enter AI but I am weak at math and am a beginner",
+            "e.g.  mchine lerning for beginers  |  "
+            "bro i wanna build web apps  |  "
+            "pythn django REST api  |  "
+            "learn guitar from scratch"
+        ),
         height=100,
         key="main_query",
     )
 
     col_btn, col_hint = st.columns([1, 3])
     with col_btn:
-        btn_label  = "🌐 Search Internet" if live_mode else "🔍 Get Recommendations"
-        search_clicked = st.button(btn_label, type="primary", use_container_width=True)
+        search_clicked = st.button("🌐 Search Internet", type="primary", use_container_width=True)
     with col_hint:
-        if live_mode:
-            st.caption("💡 Enter ANY topic — gaming, cooking, finance, music, coding, medicine …")
-        else:
-            st.caption("💡 The more descriptive your query, the better the results!")
+        st.caption("💡 Enter ANY topic — type naturally, with or without typos, slang, or abbreviations.")
 
     # Quick-prompt chips
     st.markdown("**Try these:**")
     q_cols = st.columns(4)
-    presets = (
-        [
-            "how to make a game in Unity",
-            "blockchain and Web3 development",
-            "machine learning without math background",
-            "learn guitar from scratch",
-        ]
-        if live_mode else
-        [
-            "I am a beginner and want to learn Python",
-            "data science without any math background",
-            "advanced deep learning for research",
-            "build websites from scratch",
-        ]
-    )
+    presets = [
+        "how to make a game in Unity",
+        "blockchain and Web3 development",
+        "machine learning without math background",
+        "learn guitar from scratch",
+    ]
     triggered_preset = None
     for i, preset in enumerate(presets):
         with q_cols[i]:
@@ -414,87 +383,62 @@ with tab_rec:
 
     effective_query = triggered_preset if triggered_preset else query
 
-    # ── LIVE INTERNET SEARCH MODE ──────────────────────────────────────────
-    if live_mode:
-        if search_clicked or triggered_preset:
-            if not effective_query.strip():
-                st.warning("Please enter a topic before searching.")
-            else:
-                profile = st.session_state.profile
-                prog_bar   = st.progress(0)
-                status_txt = st.empty()
+    # ── Execute search ─────────────────────────────────────────────────────
+    if search_clicked or triggered_preset:
+        if not effective_query.strip():
+            st.warning("Please enter a topic before searching.")
+        else:
+            profile    = st.session_state.profile
+            prog_bar   = st.progress(0)
+            status_txt = st.empty()
 
-                def _live_prog(msg, pct):
-                    prog_bar.progress(pct / 100)
-                    status_txt.caption(f"⏳ {msg}")
+            def _live_prog(msg, pct):
+                prog_bar.progress(pct / 100)
+                status_txt.caption(f"⏳ {msg}")
 
-                try:
-                    raw_results = search_courses_live(
-                        effective_query,
-                        top_n=top_n,
-                        difficulty_filter=difficulty,
-                        progress_callback=_live_prog,
-                    )
-                    df_live = results_to_df(raw_results)
-                    prog_bar.progress(1.0)
-                    status_txt.empty()
-
-                    profile = log_search(profile, effective_query, difficulty)
-                    save_profile(profile)
-                    st.session_state.profile    = profile
-                    st.session_state.live_results = df_live
-
-                except Exception as e:
-                    prog_bar.empty()
-                    status_txt.empty()
-                    st.error(f"Live search failed: {e}")
-                    df_live = pd.DataFrame()
-                    st.session_state.live_results = df_live
-
-        df_live = st.session_state.live_results
-        if not df_live.empty:
-            st.success(
-                f"Found **{len(df_live)}** courses from across the internet  "
-                f"— ranked by relevance to your query."
-            )
-            saved_titles = st.session_state.profile.get("saved_courses", [])
-            for _, row in df_live.iterrows():
-                render_course_card(row, int(row["rank"]), saved_titles)
-        elif search_clicked or triggered_preset:
-            st.info("No results found. Try rephrasing your query.")
-
-    # ── OFFLINE NLP MODEL MODE ─────────────────────────────────────────────
-    else:
-        if search_clicked or triggered_preset:
-            if not effective_query.strip():
-                st.warning("Please enter a query before searching.")
-            else:
-                profile = st.session_state.profile
-                search_query = enrich_query(profile, effective_query) if personalize else effective_query
-
-                with st.spinner("Finding the best courses for you …"):
-                    results = recommend(
-                        search_query,
-                        top_n=top_n,
-                        difficulty_filter=difficulty,
-                        min_rating=min_rating,
-                        source_filter=source_filter,
-                    )
+            try:
+                raw_results, query_info = search_courses_live(
+                    effective_query,
+                    top_n=top_n,
+                    difficulty_filter=difficulty,
+                    progress_callback=_live_prog,
+                )
+                df_live = results_to_df(raw_results)
+                prog_bar.progress(1.0)
+                status_txt.empty()
 
                 profile = log_search(profile, effective_query, difficulty)
                 save_profile(profile)
-                st.session_state.profile          = profile
-                st.session_state.last_results_nlp = results
+                st.session_state.profile       = profile
+                st.session_state.live_results  = df_live
+                st.session_state.live_query_info = query_info
 
-        results = st.session_state.last_results_nlp
-        if not results.empty:
-            if search_clicked or triggered_preset:
-                st.success(f"Found **{len(results)}** relevant courses for you!")
-            saved_titles = st.session_state.profile.get("saved_courses", [])
-            for _, row in results.iterrows():
-                render_course_card(row, int(row["rank"]), saved_titles)
-        elif search_clicked or triggered_preset:
-            st.info("No courses found for your filters. Try broadening the difficulty or rating.")
+            except Exception as e:
+                prog_bar.empty()
+                status_txt.empty()
+                st.error(f"Live search failed: {e}")
+                st.session_state.live_results    = pd.DataFrame()
+                st.session_state.live_query_info = {}
+
+    # ── Display results ────────────────────────────────────────────────────
+    df_live    = st.session_state.live_results
+    query_info = st.session_state.live_query_info
+
+    # "Did you mean / Interpreted as" banner
+    correction = query_info.get("display_correction")
+    if correction:
+        st.info(f"🔍 **Interpreted as:** {correction}", icon="💡")
+
+    if not df_live.empty:
+        st.success(
+            f"Found **{len(df_live)}** courses from across the internet  "
+            f"— ranked by relevance to your query."
+        )
+        saved_titles = st.session_state.profile.get("saved_courses", [])
+        for _, row in df_live.iterrows():
+            render_course_card(row, int(row["rank"]), saved_titles)
+    elif search_clicked or triggered_preset:
+        st.info("No results found. Try rephrasing your query.")
 
 
 # ── TAB 2: NLP vs Keyword Comparison ─────────────────────────────────────────
