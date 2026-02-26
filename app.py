@@ -38,57 +38,274 @@ import time
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* Main title */
+    /* -------------------------------------------------------------------------- */
+    /*                                 VARIABLES                                  */
+    /* -------------------------------------------------------------------------- */
+    :root {
+        --primary: #818CF8;
+        --primary-light: #A5B4FC;
+        --secondary: #F472B6;
+        --bg-color: #0F172A;
+        --surface-color: #1E293B;
+        --text-color: #E2E8F0;
+        --text-light: #94A3B8;
+        --border-color: #334155;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+        --radius: 16px;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                GLOBAL RESET                                */
+    /* -------------------------------------------------------------------------- */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+    }
+    /* Force main container to respect dark mode */
+    .stApp {
+        background-color: var(--bg-color);
+    }
+    
+    /* Streamlit structure overrides */
+    .block-container {
+        padding-top: 3rem;
+        padding-bottom: 5rem;
+        max-width: 1200px;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                COMPONENTS                                  */
+    /* -------------------------------------------------------------------------- */
+    
+    /* HERO SECTION */
+    .hero-container {
+        text-align: center;
+        padding: 4rem 0 3rem 0;
+        background: radial-gradient(circle at top center, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
+        margin-bottom: 2rem;
+        border-radius: var(--radius);
+        animation: fadeIn 0.8s ease-out;
+    }
     .main-title {
-        font-size: 2.6rem;
+        font-size: 4rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 0;
+        margin-bottom: 1rem;
+        line-height: 1.1;
     }
     .subtitle {
-        color: #6c757d;
-        font-size: 1.05rem;
-        margin-top: 0;
+        color: var(--text-light);
+        font-size: 1.25rem;
+        font-weight: 400;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
     }
-    /* Course cards */
+
+    /* CARDS */
     .course-card {
-        background: #f8f9ff;
-        border-left: 5px solid #667eea;
-        border-radius: 8px;
-        padding: 14px 18px;
-        margin-bottom: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
     }
+    .course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-light);
+    }
+    /* Accent line on left */
+    .course-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .course-card:hover::before {
+        opacity: 1;
+    }
+
     .course-title {
-        font-size: 1.1rem;
+        font-size: 1.35rem;
         font-weight: 700;
-        color: #1a1a2e;
+        color: var(--text-color);
+        margin-bottom: 0.75rem;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
     }
+
+    .course-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .course-desc {
+        color: var(--text-light);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+    }
+    
+    .course-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* BADGES */
     .badge {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
         font-weight: 600;
-        margin-right: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: background-color 0.2s;
     }
-    .badge-beginner     { background: #d4edda; color: #155724; }
-    .badge-intermediate { background: #fff3cd; color: #856404; }
-    .badge-advanced     { background: #f8d7da; color: #721c24; }
-    .similarity-bar-fill {
+    .badge-beginner     { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-intermediate { background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-advanced     { background: rgba(239, 68, 68, 0.2);  color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    
+    /* PROGRESS BARS */
+    .similarity-bar-bg {
+        background: #334155;
+        border-radius: 9999px;
         height: 8px;
-        border-radius: 4px;
-        background: linear-gradient(90deg, #667eea, #764ba2);
+        margin: 0.75rem 0;
+        overflow: hidden;
     }
-    /* Sidebar */
-    .sidebar-section { 
-        background: #f0f2ff; 
-        padding: 12px; 
-        border-radius: 8px; 
-        margin-bottom: 12px;
+    .similarity-bar-fill {
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* BUTTONS & INPUTS */
+    div.stButton > button {
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s;
+    }
+    div.stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    /* Primary buttons */
+    div.stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%);
+        color: white;
+    }
+
+    /* SIDEBAR */
+    section[data-testid="stSidebar"] {
+        background-color: var(--bg-color); /* Match global background instead of forcing white */
+        border-right: 1px solid var(--border-color);
+    }
+    .sidebar-header {
+        text-align: center;
+        padding: 2rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        margin: -1rem -1rem 1.5rem -1rem;
+        background: transparent;
+    }
+    /* Ensure text visibility in sidebar regardless of theme */
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3, 
+    section[data-testid="stSidebar"] h4, 
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] li,
+    section[data-testid="stSidebar"] div,
+    section[data-testid="stSidebar"] span {
+        color: var(--text-color);
+    }
+    /* Fix specific contrast issues for headers if they are too light */
+    section[data-testid="stSidebar"] h4 {
+        color: var(--primary);
+        font-weight: 700;
+    }
+
+    /* TABS */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 3.5rem;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 8px 8px 0 0;
+        color: var(--text-light);
+        font-weight: 500;
+        padding: 0 1rem;
+        border: none;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: var(--primary);
+        background-color: #EEF2FF;
+    }
+    .stTabs [aria-selected="true"] {
+        color: var(--primary) !important;
+        background-color: transparent !important;
+        border-bottom: 2px solid var(--primary) !important;
+        font-weight: 700;
+    }
+    
+    /* METRICS */
+    div[data-testid="stMetricValue"] {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+    div[data-testid="stMetricLabel"] {
+        color: var(--text-light);
+        font-weight: 500;
+    }
+    
+    /* TOASTS */
+    div[data-baseweb="toast"] {
+        border-radius: 12px;
+        box-shadow: var(--shadow-lg);
+        background: white;
+        border: 1px solid var(--border-color);
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+```
+    
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -141,6 +358,7 @@ st.session_state["last_heartbeat_ts"] = _now
 
 # ── Difficulty badge helper ────────────────────────────────────────────────────
 def _difficulty_badge(level: str) -> str:
+    level = (level or "Beginner").strip()
     cls = {
         "Beginner":     "badge-beginner",
         "Intermediate": "badge-intermediate",
@@ -150,25 +368,28 @@ def _difficulty_badge(level: str) -> str:
 
 
 # ── Source badge helper ────────────────────────────────────────────────────────
+# Use cleaner colors for the refresh (Dark Mode Adjusted)
 _SOURCE_COLORS = {
-    "Coursera":     ("#0056D2", "#fff"),
-    "MIT OCW":      ("#8A0000", "#fff"),
-    "freeCodeCamp": ("#0a0a23", "#99c9ff"),
-    "Khan Academy": ("#14BF96", "#fff"),
+    "Coursera":     ("rgba(59, 130, 246, 0.2)", "#93C5FD"),  # Blue-500/20% bg, Blue-300 text
+    "MIT OCW":      ("rgba(239, 68, 68, 0.2)",  "#FCA5A5"),  # Red-500/20% bg, Red-300 text
+    "freeCodeCamp": ("rgba(17, 24, 39, 0.8)",   "#F3F4F6"),  # Gray-900/80% bg, Gray-100 text
+    "Khan Academy": ("rgba(16, 185, 129, 0.2)", "#6EE7B7"),  # Emerald-500/20% bg, Emerald-300 text
+    "Udemy":        ("rgba(168, 85, 247, 0.2)", "#D8B4FE"),  # Purple-500/20% bg, Purple-300 text
+    "YouTube":      ("rgba(220, 38, 38, 0.2)",  "#FCA5A5"),  # Red-600/20% bg, Red-300 text
+    "edX":          ("rgba(79, 70, 229, 0.2)",  "#A5B4FC"),  # Indigo-600/20% bg, Indigo-300 text
 }
-# Merge in live-search platform colours (live_search has 30+ platforms)
-_ALL_SOURCE_COLORS = {**_LIVE_PLATFORM_COLORS, **_SOURCE_COLORS}
-
+# Fallback to existing logic but preferring above
 def _source_badge(source: str) -> str:
-    pair = _ALL_SOURCE_COLORS.get(source)
-    if pair:
-        bg, fg = pair
+    if source in _SOURCE_COLORS:
+        bg, fg = _SOURCE_COLORS[source]
     else:
-        bg, fg = "#6c757d", "#fff"
+        # Try to find in imported map, else gray
+        pair = _LIVE_PLATFORM_COLORS.get(source)
+        bg, fg = pair if pair else ("rgba(75, 85, 99, 0.3)", "#D1D5DB") # Default gray
+
     return (
-        f'<span style="background:{bg};color:{fg};padding:2px 9px;'
-        f'border-radius:10px;font-size:0.73rem;font-weight:600;'
-        f'margin-right:5px">{source}</span>'
+        f'<span class="badge" style="background:{bg};color:{fg};'
+        f'border:1px solid {fg}40;">{source}</span>'
     )
 
 
@@ -179,239 +400,249 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     src_badge  = _source_badge(row.get("source", "")) if row.get("source") else ""
     rating_val = float(row.get("rating", 0) or 0)
     stars      = "★" * int(rating_val) + "☆" * (5 - int(rating_val))
-    rating_str = f"({rating_val}/5)" if rating_val > 0 else "(unrated)"
+    rating_str = f"({rating_val}/5)" if rating_val > 0 else ""
+
+    desc = str(row['description'])
+    if len(desc) > 240:
+        desc = desc[:240].rsplit(' ', 1)[0] + "…"
 
     st.markdown(f"""
     <div class="course-card">
-        <div class="course-title">#{index} &nbsp; {row['course_title']}</div>
-        <div style="margin:6px 0">
-            {src_badge}{diff_badge}
-            <span style="color:#f59e0b; font-size:0.9rem">{stars}</span>
-            <span style="color:#6c757d; font-size:0.85rem"> &nbsp;{rating_str}</span>
-            &nbsp;&nbsp;
-            <span style="color:#667eea; font-size:0.85rem; font-weight:600">
-                Similarity: {row['similarity_score']:.4f}
+        <div class="course-title">
+            <span style="color:#A5B4FC; margin-right:6px; font-weight:400;">#{index}</span>
+            {row['course_title']}
+        </div>
+        
+        <div class="course-meta">
+            {src_badge}
+            {diff_badge}
+            <span style="display:inline-flex; align-items:center; gap:4px; margin-left: 8px;">
+                <span style="color:#F59E0B; letter-spacing:1px; font-size:1rem;">{stars}</span>
+                <span style="color:#94A3B8; font-size:0.85rem;">{rating_str}</span>
+            </span>
+            <span style="margin-left: auto; color:#C7D2FE; font-size:0.85rem; font-weight:700; background: rgba(79, 70, 229, 0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(79, 70, 229, 0.4);">
+                Match: {int(score_pct)}%
             </span>
         </div>
-        <div style="background:#e9ecef; border-radius:4px; height:8px; margin:6px 0 8px 0">
+        
+        <div class="similarity-bar-bg">
             <div class="similarity-bar-fill" style="width:{score_pct}%"></div>
         </div>
-        <div style="color:#495057; font-size:0.88rem; margin-bottom:6px">
-            {row['description'][:220]}{'…' if len(str(row['description'])) > 220 else ''}
+        
+        <div class="course-desc">
+            {desc}
         </div>
-        <div style="color:#6c757d; font-size:0.82rem">
-            <b>Skills:</b> {row['skills']}
+        
+        <div style="font-size:0.85rem; color:var(--text-light); background: rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+            <b style="color:var(--text-color);">Skills:</b> {row['skills']}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1, 5])
+    col1, col2 = st.columns([1, 4])
     with col1:
         if show_save:
             is_saved = row["course_title"] in saved_titles
-            btn_label = "★ Saved" if is_saved else "☆ Save"
-            if st.button(btn_label, key=f"save_{index}_{row['course_title'][:15]}"):
-                profile = st.session_state.profile
-                if is_saved:
+            # Use distinct visual for saved state
+            if is_saved:
+                if st.button("★ Saved", key=f"save_{index}_{row['course_title'][:15]}", type="primary"):
+                    profile = st.session_state.profile
                     profile = remove_course(profile, row["course_title"])
-                    st.toast(f"Removed: {row['course_title']}")
-                else:
+                    save_profile(profile)
+                    st.session_state.profile = profile
+                    st.rerun()
+            else:
+                if st.button("☆ Save", key=f"save_{index}_{row['course_title'][:15]}"):
+                    profile = st.session_state.profile
                     profile = save_course(profile, row["course_title"])
                     bt.log_save(profile["username"], row["course_title"])
-                    st.toast(f"Saved: {row['course_title']}")
-                save_profile(profile)
-                st.session_state.profile = profile
-                st.rerun()
+                    save_profile(profile)
+                    st.session_state.profile = profile
+                    st.rerun()
     with col2:
-        st.markdown(f"[🔗 View Course]({row['url']})", unsafe_allow_html=False)
+        st.markdown(
+            f"""<a href="{row['url']}" target="_blank" style="text-decoration:none;">
+            <div style="display:inline-block; background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%); color:white; padding:8px 20px; border-radius:8px; font-weight:600; font-size:0.9rem; transition:all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">
+            Go to Course ↗
+            </div></a>""", 
+            unsafe_allow_html=True
+        )
 
 
 # ════════════════════════════════════════════════════════════════════════════════
 # SIDEBAR
 # ════════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
-    st.markdown("## 🎓 NLPRec")
-    st.markdown("*Intelligent Course Recommendations*")
-    st.divider()
-
-    # ── Live Data Section ─────────────────────────────────────────────────────
-    st.markdown("### 🌐 Live Course Data")
-
-    scrape_info = get_last_scrape_info()
-    if scrape_info["exists"]:
-        st.success(
-            f"**{scrape_info['count']} courses** loaded  \n"
-            f"Updated: {scrape_info['last_updated']}"
-        )
-        if scrape_info["sources"]:
-            for src, cnt in scrape_info["sources"].items():
-                src_bg, src_fg = _SOURCE_COLORS.get(src, ("#6c757d", "#fff"))
-                st.markdown(
-                    f'<span style="background:{src_bg};color:{src_fg};'
-                    f'padding:1px 8px;border-radius:8px;font-size:0.75rem'
-                    f';font-weight:600">{src}</span> {cnt} courses',
-                    unsafe_allow_html=True,
-                )
-    else:
-        st.warning("No course data yet. Fetch live courses below.")
-
-    st.markdown("**Fetch Settings:**")
-    coursera_lim  = st.slider("Coursera courses",   50, 300, 100, 50)
-    mit_ocw_lim  = st.slider("MIT OCW courses",    20, 200,  80, 20)
-    include_fcc  = st.checkbox("Include freeCodeCamp", value=True)
-    include_khan = st.checkbox("Include Khan Academy", value=True)
-
-    fetch_btn = st.button("🔄 Fetch Live Courses", type="primary", use_container_width=True)
-
-    if fetch_btn:
-        prog_bar    = st.progress(0)
-        status_txt  = st.empty()
-        log_area    = st.empty()
-        scrape_log  = []
-
-        def _progress_cb(msg, pct):
-            prog_bar.progress(pct / 100)
-            status_txt.caption(f"⏳ {msg}")
-            scrape_log.append(f"[{pct:3d}%] {msg}")
-            log_area.code("\n".join(scrape_log[-6:]), language=None)
-
-        with st.spinner("Scraping live courses …"):
-            try:
-                df_new = scrape_all(
-                    coursera_limit=coursera_lim,
-                    mit_ocw_limit=mit_ocw_lim,
-                    include_fcc=include_fcc,
-                    include_khan=include_khan,
-                    progress_callback=_progress_cb,
-                )
-
-                if df_new.empty:
-                    st.error("Scraper returned no courses. Check your internet connection.")
-                else:
-                    # Rebuild TF-IDF with fresh data
-                    _progress_cb("Building NLP model on fresh data …", 95)
-                    build_and_save_tfidf(df_new)
-                    invalidate_cache()          # clear in-memory model cache
-                    st.session_state.scrape_log = scrape_log
-                    prog_bar.progress(1.0)
-                    status_txt.success(
-                        f"✅ Done! {len(df_new)} courses fetched & NLP model rebuilt."
-                    )
-                    st.rerun()
-            except Exception as e:
-                st.error(f"Scraper error: {e}")
-
-    if st.session_state.scrape_log:
-        with st.expander("Last fetch log"):
-            st.code("\n".join(st.session_state.scrape_log), language=None)
-
-    st.divider()
-
-    # ── User section ──────────────────────────────────────────────────────────
-    username = st.text_input("Your name (to save history)", value="guest", key="username_input")
+    st.markdown("""
+    <div class="sidebar-header">
+        <h2 style="margin:0; color:var(--primary); font-weight:800; font-size:1.8rem;">NLPRec</h2>
+        <p style="color:var(--text-light); margin:4px 0 0 0; font-size:0.9rem;">Course Intelligence Engine</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # ── User Profile ──────────────────────────────────────────────────────────
+    st.markdown("#### 👤 User Profile")
+    username = st.text_input("Username", value="guest", key="username_input")
     if username != st.session_state.profile.get("username"):
         st.session_state.profile = load_profile(username)
-
+    
     profile = st.session_state.profile
     stats   = get_stats(profile)
+        
+    st.divider()
 
-    st.markdown("### ⚙️ Preferences")
+    # ── Live Data Status ──────────────────────────────────────────────────────
+    st.markdown("#### 🌐 Live Data Index")
+    scrape_info = get_last_scrape_info()
+    
+    if scrape_info["exists"]:
+        st.markdown(
+            f"""<div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.2); padding:12px; border-radius:12px; margin-bottom:16px;">
+                <div style="color:#34D399; font-weight:700; font-size:1.1rem;">{scrape_info['count']} Courses</div>
+                <div style="color:#6EE7B7; font-size:0.8rem;">Updated: {scrape_info['last_updated']}</div>
+            </div>""", 
+            unsafe_allow_html=True
+        )
+    else:
+        st.warning("No course data yet.")
+
+    with st.expander("⚙️ Scraper Settings"):
+        coursera_lim  = st.slider("Coursera",   50, 300, 100, 50)
+        mit_ocw_lim   = st.slider("MIT OCW",    20, 200,  80, 20)
+        include_fcc   = st.checkbox("Include freeCodeCamp", value=True)
+        include_khan  = st.checkbox("Include Khan Academy", value=True)
+        
+        if st.button("🔄 Fetch New Data", use_container_width=True):
+            prog_bar    = st.progress(0)
+            status_txt  = st.empty()
+            log_area    = st.empty()
+            scrape_log  = []
+
+            def _progress_cb(msg, pct):
+                prog_bar.progress(pct / 100)
+                status_txt.caption(f"⏳ {msg}")
+                scrape_log.append(f"[{pct:3d}%] {msg}")
+                log_area.code("\n".join(scrape_log[-6:]), language=None)
+
+            with st.spinner("Scraping live courses …"):
+                try:
+                    df_new = scrape_all(
+                        coursera_limit=coursera_lim,
+                        mit_ocw_limit=mit_ocw_lim,
+                        include_fcc=include_fcc,
+                        include_khan=include_khan,
+                        progress_callback=_progress_cb,
+                    )
+
+                    if df_new.empty:
+                        st.error("Scraper returned no courses.")
+                    else:
+                        _progress_cb("Rebuilding NLP Model...", 95)
+                        build_and_save_tfidf(df_new)
+                        invalidate_cache()
+                        st.session_state.scrape_log = scrape_log
+                        prog_bar.progress(1.0)
+                        status_txt.success("✅ Database Updated!")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+    st.divider()
+
+    # ── Search Preferences ────────────────────────────────────────────────────
+    st.markdown("#### ⚡ Filters")
+    
     difficulties = get_difficulties()
     default_diff = profile.get("preferred_difficulty", "All")
     diff_idx     = difficulties.index(default_diff) if default_diff in difficulties else 0
-    difficulty   = st.selectbox("Difficulty Level", difficulties, index=diff_idx)
+    difficulty   = st.selectbox("Max Difficulty", difficulties, index=diff_idx)
 
     sources_list = get_sources()
-    source_filter = st.selectbox("Platform", sources_list, index=0)
+    source_filter = st.selectbox("Platform Preference", sources_list, index=0)
 
-    min_rating   = st.slider("Minimum Rating ★", 0.0, 5.0, 0.0, 0.1)
-    top_n        = st.select_slider("Results to fetch", options=[10, 20, 30, 40, 50], value=30)
-    personalize  = st.toggle("Personalize with history", value=True)
+    with st.expander("Advanced Options"):
+        min_rating   = st.slider("Min Rating", 0.0, 5.0, 0.0, 0.5)
+        top_n        = st.select_slider("Results Count", options=[10, 20, 30, 40, 50], value=30)
+        personalize  = st.toggle("Personalize Results", value=True)
 
     st.divider()
-    st.markdown("### 📊 Your Stats")
-    st.metric("Total Searches",  stats["total_searches"])
-    st.metric("Saved Courses",   stats["saved_courses"])
-    if stats["last_search"]:
-        st.caption(f"Last: *{stats['last_search'][:40]}…*" if len(stats["last_search"]) > 40
-                   else f"Last: *{stats['last_search']}*")
+    
+    # ── Stats & Trends ────────────────────────────────────────────────────────
+    st.markdown("#### 📊 Insights")
+    c1, c2 = st.columns(2)
+    c1.metric("Searches", stats["total_searches"])
+    c2.metric("Saved",   stats["saved_courses"])
 
-    # ── v2: behavioral learning metrics ──────────────────────────────────
     behavior = bt.get_user_behavior_summary(username)
     if behavior["session_count"] > 0:
-        with st.expander("🧠 My Learning Behavior", expanded=False):
-            c1b, c2b = st.columns(2)
-            c1b.metric("Sessions", behavior["session_count"])
-            c2b.metric("Avg Time", f"{behavior['avg_retention_mins']}m")
-            c1b.metric("Clicks",   behavior["click_count"])
-            c2b.metric("Saves",    behavior["save_count"])
+        with st.expander("My Activity Analysis", expanded=False):
+            st.caption(f"Avg Session: {behavior['avg_retention_mins']}m")
+            st.caption(f"Engagement Score: {behavior['click_count'] + behavior['save_count']*2}")
             if behavior["top_topics"]:
-                st.markdown("**Your focus areas:**")
-                st.markdown("  ".join(f"`{t}`" for t in behavior["top_topics"][:6]))
+                st.markdown("**Top Topics:**")
+                for t in behavior["top_topics"][:3]:
+                    st.markdown(f"- {t}")
 
-    # ── v2: global trending topics ────────────────────────────────────────
-    trending_topics = bt.get_trending_topics(6, days=7)
-    if trending_topics:
-        st.markdown("### 🔥 Trending Now")
-        st.markdown("  ".join(f"`{t}`" for t in trending_topics))
-
-    st.divider()
-    if st.button("🗑 Clear History"):
+    st.markdown("---")
+    if st.button("🗑 Clear All History", use_container_width=True):
         profile = clear_history(profile)
         save_profile(profile)
         st.session_state.profile = profile
-        st.success("History cleared!")
         st.rerun()
-
-    if stats["top_interests"]:
-        st.markdown("**Top Interests:**")
-        st.markdown(" · ".join(f"`{i}`" for i in stats["top_interests"][-8:]))
 
 
 # ════════════════════════════════════════════════════════════════════════════════
 # MAIN CONTENT — Tabs
 # ════════════════════════════════════════════════════════════════════════════════
-st.markdown('<p class="main-title">🎓 NLPRec</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Intelligent Course Recommendation using Natural Language Processing</p>',
-            unsafe_allow_html=True)
-st.divider()
+st.markdown('''
+<div class="hero-container">
+    <h1 class="main-title">NLPRec</h1>
+    <p class="subtitle">Intelligent Course Intelligence & Recommendation Engine</p>
+</div>
+''', unsafe_allow_html=True)
 
 tab_rec, tab_compare, tab_eval, tab_saved, tab_about = st.tabs([
-    "🔍 Recommend",
-    "⚖️ NLP vs Keyword",
-    "📊 Evaluation",
-    "🔖 Saved Courses",
+    "🔍 Discover",
+    "⚖️ Model Compare",
+    "📊 Performance",
+    "🔖 Saved",
     "ℹ️ About",
 ])
 
 # ── TAB 1: Recommendations ────────────────────────────────────────────────────
 with tab_rec:
 
-    st.markdown("### 🌐 Real-Time Internet Course Search")
+    st.markdown("### 🌐 What do you want to learn today?")
     st.caption(
-        "Scans the entire internet — Coursera, Udemy, YouTube, edX, "
-        "LinkedIn Learning, DataCamp, freeCodeCamp, MIT OCW, Harvard, "
-        "Stanford, Pluralsight, Codecademy … and any site that teaches your topic. "
-        "Handles typos, abbreviations, and natural language automatically."
+        "Search across **Coursera, Udemy, YouTube, MIT OCW, Harvard, Stanford** and 30+ other platforms concurrently. "
+        "Our AI understands natural language, slangs, and context."
     )
+    
+    st.markdown('<div style="margin-bottom: 8px;"></div>', unsafe_allow_html=True)
 
     query = st.text_area(
-        "Ask about anything you want to learn",
+        "Search Query",
         placeholder=(
-            "e.g.  mchine lerning for beginers  |  "
-            "bro i wanna build web apps  |  "
-            "pythn django REST api  |  "
-            "learn guitar from scratch"
+            "e.g.  'machine learning for absolute beginners'  or  "
+            "'how to build a react native app'  or  "
+            "'python data science bootcamp'"
         ),
-        height=100,
+        height=68,
+        label_visibility="collapsed",
         key="main_query",
     )
 
-    col_btn, col_hint = st.columns([1, 3])
+    col_btn, col_hint = st.columns([1.5, 4])
     with col_btn:
-        search_clicked = st.button("🌐 Search Internet", type="primary", use_container_width=True)
+        search_clicked = st.button("🔎 Find Courses", type="primary", use_container_width=True)
     with col_hint:
-        st.caption("💡 Enter ANY topic — type naturally, with or without typos, slang, or abbreviations.")
+        st.markdown(
+            "<div style='padding-top:10px; color:#6B7280; font-size:0.9rem;'> "
+            "<i>💡 Type naturally. We handle typos & context.</i></div>", 
+            unsafe_allow_html=True
+        )
+
+    st.divider()
 
     # ── Dynamic query suggestions (context-aware, change per query) ────────
     # Re-generate whenever the query changes so chips are always connected
@@ -613,10 +844,10 @@ with tab_rec:
                 src_badge   = _source_badge(row.get("source", "")) if row.get("source") else ""
                 price_val   = row.get("price", "Free*")
                 price_color = {
-                    "Free":  ("#d4edda", "#155724"),
-                    "Free*": ("#cce5ff", "#004085"),
-                    "Paid":  ("#ffe8cc", "#7a3e00"),
-                }.get(price_val, ("#e2e3e5", "#383d41"))
+                    "Free":  ("#DCFCE7", "#166534"),
+                    "Free*": ("#E0F2FE", "#075985"),
+                    "Paid":  ("#FEF3C7", "#92400E"),
+                }.get(price_val, ("#F3F4F6", "#4B5563"))
                 price_label = {
                     "Free":  "✓ Free",
                     "Free*": "◑ Free to Audit",
@@ -624,24 +855,28 @@ with tab_rec:
                 }.get(price_val, price_val)
                 price_badge = (
                     f'<span class="badge" style="background:{price_color[0]};color:{price_color[1]};'
-                    f'border:1px solid {price_color[1]}22">{price_label}</span>'
+                    f'border:1px solid {price_color[1]}40">{price_label}</span>'
                 )
                 score      = float(row.get("similarity_score", 0))
                 title_disp = str(row["course_title"])[:90] + ("…" if len(str(row["course_title"])) > 90 else "")
-                desc_disp  = str(row["description"])[:150] + ("…" if len(str(row["description"])) > 150 else "")
+                desc_disp  = str(row["description"])[:200] + ("…" if len(str(row["description"])) > 200 else "")
 
                 st.markdown(
                     f"""
-                    <div class="course-card" style="padding:10px 16px;margin-bottom:8px">
-                        <div style="display:flex;align-items:baseline;gap:10px">
-                            <span style="font-size:1.15rem;font-weight:800;color:#667eea;min-width:32px">#{pos}</span>
-                            <span class="course-title" style="font-size:1rem">{title_disp}</span>
+                    <div class="course-card">
+                        <div class="course-title">
+                            <span style="color:#A5B4FC; margin-right:6px; font-weight:400;">#{pos}</span>
+                            {title_disp}
                         </div>
-                        <div style="margin:5px 0 4px 42px">
+                        <div class="course-meta">
                             {price_badge}{src_badge}{diff_badge}
-                            <span style="color:#667eea;font-size:0.8rem;font-weight:600;margin-left:8px">Score: {score:.4f}</span>
+                            <span style="margin-left: auto; color:#C7D2FE; font-size:0.85rem; font-weight:700; background: rgba(79, 70, 229, 0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(79, 70, 229, 0.4);">
+                                Match: {int(score * 100)}%
+                            </span>
                         </div>
-                        <div style="color:#495057;font-size:0.85rem;margin:0 0 4px 42px">{desc_disp}</div>
+                        <div class="course-desc">
+                            {desc_disp}
+                        </div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -725,10 +960,18 @@ with tab_compare:
                 for _, row in nlp_res.iterrows():
                     diff_badge = _difficulty_badge(row["difficulty"])
                     st.markdown(
-                        f'<div class="course-card"><div class="course-title">'
-                        f'#{int(row["rank"])} {row["course_title"]}</div>'
-                        f'{diff_badge} &nbsp; Sim: <b>{row["similarity_score"]:.4f}</b> &nbsp; '
-                        f'★{row["rating"]}</div>',
+                        f"""<div class="course-card" style="padding: 1.25rem;">
+                            <div class="course-title" style="font-size: 1.1rem; margin-bottom: 0.5rem;">
+                                <span style="color:#A5B4FC; margin-right:4px;">#{int(row["rank"])}</span> {row["course_title"]}
+                            </div>
+                            <div class="course-meta" style="margin-bottom:0;">
+                                {diff_badge} 
+                                <span style="color:var(--primary); font-weight:700; font-size:0.85rem; background:#EEF2FF; padding:2px 8px; border-radius:4px;">
+                                    Sim: {row["similarity_score"]:.4f}
+                                </span>
+                                <span style="color:#F59E0B; font-size:0.9rem;">★{row["rating"]}</span>
+                            </div>
+                        </div>""",
                         unsafe_allow_html=True
                     )
 
@@ -741,10 +984,18 @@ with tab_compare:
                 for _, row in kw_res.iterrows():
                     diff_badge = _difficulty_badge(row["difficulty"])
                     st.markdown(
-                        f'<div class="course-card" style="border-left-color:#DD8452">'
-                        f'<div class="course-title">#{int(row["rank"])} {row["course_title"]}</div>'
-                        f'{diff_badge} &nbsp; Matches: <b>{int(row["similarity_score"])}</b> &nbsp; '
-                        f'★{row["rating"]}</div>',
+                        f"""<div class="course-card" style="padding: 1.25rem; border-left: 3px solid #F59E0B;">
+                            <div class="course-title" style="font-size: 1.1rem; margin-bottom: 0.5rem;">
+                                <span style="color:#FCD34D; margin-right:4px;">#{int(row["rank"])}</span> {row["course_title"]}
+                            </div>
+                            <div class="course-meta" style="margin-bottom:0;">
+                                {diff_badge}
+                                <span style="color:#B45309; font-weight:700; font-size:0.85rem; background:#FEF3C7; padding:2px 8px; border-radius:4px;">
+                                    Matches: {int(row["similarity_score"])}
+                                </span>
+                                <span style="color:#F59E0B; font-size:0.9rem;">★{row["rating"]}</span>
+                            </div>
+                        </div>""",
                         unsafe_allow_html=True
                     )
 
@@ -841,9 +1092,12 @@ with tab_saved:
             row = row.iloc[0]
             badge = _difficulty_badge(row["difficulty"])
             st.markdown(
-                f'<div class="course-card"><div class="course-title">{row["course_title"]}</div>'
-                f'{badge} &nbsp; ★{row["rating"]}<br>'
-                f'<span style="font-size:0.85rem;color:#495057">{row["description"][:150]}…</span>'
+                f'<div class="course-card" style="padding: 16px;">'
+                f'<div class="course-title" style="font-size: 1.15rem;">{row["course_title"]}</div>'
+                f'<div style="margin: 8px 0; display: flex; align-items: center; gap: 8px;">'
+                f'{badge} <span style="color:#F59E0B; font-size:0.9rem;">★{row["rating"]}</span>'
+                f'</div>'
+                f'<div style="font-size:0.9rem; color:#4B5563; line-height: 1.5;">{row["description"][:150]}…</div>'
                 f'</div>',
                 unsafe_allow_html=True
             )
@@ -857,48 +1111,60 @@ with tab_saved:
 # ── TAB 5: About ──────────────────────────────────────────────────────────────
 with tab_about:
     st.markdown("""
-## NLPRec — Intelligent Course Recommendation System
+    <div style="padding: 20px; background: #ffffff; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <h2 style="color: #111827; margin-top: 0;">NLPRec — Intelligent Course Recommendation System</h2>
+        <p style="color: #4B5563; font-size: 1.05rem; line-height: 1.6;">
+            NLPRec is an AI-powered course recommendation engine that understands <b>natural language queries</b>
+            and matches them semantically to course descriptions using NLP techniques.
+        </p>
+        
+        <h3 style="color: #374151; margin-top: 24px;">How It Works</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+            <tr style="background: #F9FAFB; border-bottom: 2px solid #E5E7EB;">
+                <th style="padding: 12px; text-align: left; color: #374151;">Step</th>
+                <th style="padding: 12px; text-align: left; color: #374151;">Module</th>
+                <th style="padding: 12px; text-align: left; color: #374151;">What Happens</th>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 12px; color: #4B5563;">1</td>
+                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">text_preprocessing.py</td>
+                <td style="padding: 12px; color: #4B5563;">Lowercasing → Tokenization → Stopword removal → Lemmatization</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 12px; color: #4B5563;">2</td>
+                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">vectorizer.py</td>
+                <td style="padding: 12px; color: #4B5563;">TF-IDF vectorization of corpus (courses)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 12px; color: #4B5563;">3</td>
+                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">recommender.py</td>
+                <td style="padding: 12px; color: #4B5563;">Cosine similarity between user query and course vectors</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 12px; color: #4B5563;">4</td>
+                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">user_profile.py</td>
+                <td style="padding: 12px; color: #4B5563;">Query logging + personalization enrichment</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; color: #4B5563;">5</td>
+                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">evaluation.py</td>
+                <td style="padding: 12px; color: #4B5563;">Precision@K, Recall@K, F1@K vs keyword baseline</td>
+            </tr>
+        </table>
 
-### What is NLPRec?
-NLPRec is an AI-powered course recommendation engine that understands **natural language queries**
-and matches them semantically to course descriptions using NLP techniques.
+        <h3 style="color: #374151;">Tech Stack</h3>
+        <ul style="color: #4B5563; line-height: 1.6;">
+            <li><b>Python 3.10+</b></li>
+            <li><b>scikit-learn</b> — TF-IDF, cosine similarity</li>
+            <li><b>NLTK</b> — tokenization, stopwords, lemmatization</li>
+            <li><b>pandas / numpy</b> — data processing</li>
+            <li><b>Streamlit</b> — web interface</li>
+            <li><b>matplotlib / seaborn / plotly</b> — evaluation charts</li>
+        </ul>
 
-### How It Works
-
-| Step | Module | What Happens |
-|------|--------|-------------|
-| 1 | `text_preprocessing.py` | Lowercasing → Tokenization → Stopword removal → Lemmatization |
-| 2 | `vectorizer.py` | TF-IDF vectorization of corpus (courses) |
-| 3 | `recommender.py` | Cosine similarity between user query and course vectors |
-| 4 | `user_profile.py` | Query logging + personalization enrichment |
-| 5 | `evaluation.py` | Precision@K, Recall@K, F1@K vs keyword baseline |
-
-### NLP Pipeline
-```
-User Query
-   ↓ Lowercase
-   ↓ Remove punctuation/numbers
-   ↓ Tokenize (NLTK punkt)
-   ↓ Remove stopwords
-   ↓ Lemmatize (WordNetLemmatizer)
-   ↓ TF-IDF Vector
-   ↓ Cosine Similarity with Course Corpus
-   ↓ Ranked Recommendations
-```
-
-### Tech Stack
-- **Python 3.10+**
-- **scikit-learn** — TF-IDF, cosine similarity
-- **NLTK** — tokenization, stopwords, lemmatization
-- **pandas / numpy** — data processing
-- **Streamlit** — web interface
-- **matplotlib / seaborn / plotly** — evaluation charts
-
-### Research Contribution
-The evaluation module compares this NLP semantic approach against a keyword-matching baseline,
-producing measurable improvements in **Precision@K**, **Recall@K**, and **F1@K** — the exact
-comparison required for conference / journal publication.
-
----
-*Built as part of Final Year Project — B.E. Computer Engineering*
-""")
+        <hr style="border: 0; border-top: 1px solid #E5E7EB; margin: 24px 0;">
+        <p style="color: #6B7280; font-size: 0.9rem; text-align: center; margin: 0;">
+            <i>Built as part of Final Year Project — B.E. Computer Engineering</i>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)

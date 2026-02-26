@@ -17,6 +17,11 @@
       "query": "natural language processing NLP",
       "difficulty": "All",
       "timestamp": "2026-02-27T00:36:07.173094"
+    },
+    {
+      "query": "natural language processing NLP",
+      "difficulty": "All",
+      "timestamp": "2026-02-27T01:07:48.379338"
     }
   ],
   "saved_courses": [],
@@ -34,17 +39,23 @@
     "learn",
     "guitar"
   ],
-  "total_retention_secs": 23.966293811798096,
-  "session_count": 1,
-  "last_active": "2026-02-27T00:36:07.173148",
+  "total_retention_secs": 335.84145975112915,
+  "session_count": 3,
+  "last_active": "2026-02-27T01:10:54.421848",
   "difficulty_counts": {
     "Beginner": 0,
     "Intermediate": 0,
     "Advanced": 0
   },
   "topic_frequency": {
-    "natural": 1.0,
-    "language": 1.0,
-    "processing": 1.0
-  }
+    "natural": 1.5,
+    "language": 1.5,
+    "processing": 1.5
+  },
+  "click_history": [
+    {
+      "course_title": "NLP - Natural Language Processing with Python - Udemy UCx: Text Analytics 1: Introduction to Natural Language ... - edX Top Natural Language Processing (NLP) Courses Online - Updated Best Online Natural Language Processing Courses & Programs | edX Natural Language Processing | Coursera Natural Language Processing | Coursera Natural Language Processing in TensorFlow - Coursera",
+      "timestamp": "2026-02-27T01:10:54.421841"
+    }
+  ]
 }
