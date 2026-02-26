@@ -62,19 +62,44 @@
       "query": "im new in web3, i want to learn",
       "difficulty": "All",
       "timestamp": "2026-02-26T23:13:14.506445"
+    },
+    {
+      "query": "im new in kubernetes, i want to learn",
+      "difficulty": "All",
+      "timestamp": "2026-02-26T23:15:36.636368"
+    },
+    {
+      "query": "i m weak in cooking",
+      "difficulty": "All",
+      "timestamp": "2026-02-26T23:18:21.509978"
+    },
+    {
+      "query": "i want to learn eccomerce\n",
+      "difficulty": "All",
+      "timestamp": "2026-02-26T23:27:26.659369"
+    },
+    {
+      "query": "i want to learn digtel markatang\n",
+      "difficulty": "All",
+      "timestamp": "2026-02-26T23:28:47.332327"
     }
   ],
   "saved_courses": [],
   "interests": [
-    "learn",
+    "hgyyufyvyh",
+    "eccomerce",
+    "web3",
+    "kubernetes,",
     "machine",
     "want",
-    "enter",
-    "jhfuhdjf",
-    "learning",
-    "hgyyufyvyh",
-    "web3,",
     "weak",
-    "web3"
+    "cooking",
+    "learning",
+    "digtel",
+    "web3,",
+    "jhfuhdjf",
+    "markatang",
+    "enter",
+    "learn"
   ]
 }
