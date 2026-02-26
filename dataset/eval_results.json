@@ -1,0 +1,386 @@
+{
+  "nlp": {
+    "label": "NLP Semantic (TF-IDF + Cosine)",
+    "k": 5,
+    "precision_mean": 0.5,
+    "recall_mean": 0.7717,
+    "f1_mean": 0.5983,
+    "per_query": [
+      {
+        "query": "learn python programming basics for beginners",
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1": 0.75,
+        "predicted": [
+          "Python for Everybody",
+          "Introduction to Programming with Java",
+          "R Programming for Statistics",
+          "C++ for Competitive Programming",
+          "Introduction to Computer Science with Python"
+        ],
+        "relevant": [
+          "Python for Everybody",
+          "Introduction to Computer Science with Python",
+          "Introduction to Programming with Java"
+        ]
+      },
+      {
+        "query": "I want to enter AI but I am weak at math beginner",
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6667,
+        "predicted": [
+          "Ethics in Artificial Intelligence",
+          "Introduction to Cybersecurity for Kids and Beginners",
+          "Mathematics for Computer Science",
+          "Introduction to Artificial Intelligence",
+          "Prompt Engineering for AI Applications"
+        ],
+        "relevant": [
+          "Introduction to Artificial Intelligence",
+          "Python for Everybody",
+          "Ethics in Artificial Intelligence",
+          "Prompt Engineering for AI Applications"
+        ]
+      },
+      {
+        "query": "data science with python statistics machine learning",
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8,
+        "predicted": [
+          "Data Science with Python",
+          "Introduction to Computer Science with Python",
+          "Statistics for Data Science",
+          "Machine Learning by Andrew Ng",
+          "Applied Machine Learning"
+        ],
+        "relevant": [
+          "Data Science with Python",
+          "Machine Learning by Andrew Ng",
+          "Statistics for Data Science",
+          "Applied Machine Learning",
+          "Feature Engineering for Machine Learning"
+        ]
+      },
+      {
+        "query": "advanced deep learning neural networks convolutional",
+        "precision": 0.4,
+        "recall": 0.6667,
+        "f1": 0.5,
+        "predicted": [
+          "Deep Learning Specialization",
+          "Introduction to Neural Networks",
+          "Machine Learning by Andrew Ng",
+          "Graph Neural Networks",
+          "Speech Recognition and Audio Processing"
+        ],
+        "relevant": [
+          "Deep Learning Specialization",
+          "Introduction to Neural Networks",
+          "Computer Vision with OpenCV"
+        ]
+      },
+      {
+        "query": "web development HTML CSS JavaScript front end",
+        "precision": 0.4,
+        "recall": 1.0,
+        "f1": 0.5714,
+        "predicted": [
+          "Web Development Bootcamp",
+          "React.js Front-End Development",
+          "FastAPI and Python Backend Development",
+          "Data Science with Python",
+          "Game Development with Unity"
+        ],
+        "relevant": [
+          "Web Development Bootcamp",
+          "React.js Front-End Development"
+        ]
+      },
+      {
+        "query": "database SQL queries data analysis",
+        "precision": 0.4,
+        "recall": 0.6667,
+        "f1": 0.5,
+        "predicted": [
+          "SQL for Data Analysis",
+          "Excel for Data Analysis",
+          "Statistics for Data Science",
+          "Natural Language Processing with Python",
+          "Data Cleaning and Preprocessing"
+        ],
+        "relevant": [
+          "SQL for Data Analysis",
+          "Data Visualization with Tableau",
+          "Excel for Data Analysis"
+        ]
+      },
+      {
+        "query": "natural language processing text classification sentiment",
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1": 0.75,
+        "predicted": [
+          "Natural Language Processing with Python",
+          "Speech Recognition and Audio Processing",
+          "Computer Vision with OpenCV",
+          "Machine Learning by Andrew Ng",
+          "Generative AI with Large Language Models"
+        ],
+        "relevant": [
+          "Natural Language Processing with Python",
+          "Generative AI with Large Language Models",
+          "Speech Recognition and Audio Processing"
+        ]
+      },
+      {
+        "query": "cloud computing aws deployment devops docker",
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1": 0.75,
+        "predicted": [
+          "Cloud Computing on AWS",
+          "Docker and Kubernetes",
+          "Introduction to Big Data",
+          "Introduction to Quantum Computing",
+          "FastAPI and Python Backend Development"
+        ],
+        "relevant": [
+          "Cloud Computing on AWS",
+          "Docker and Kubernetes",
+          "FastAPI and Python Backend Development"
+        ]
+      },
+      {
+        "query": "mathematics for machine learning linear algebra calculus",
+        "precision": 0.4,
+        "recall": 0.5,
+        "f1": 0.4444,
+        "predicted": [
+          "Linear Algebra for Machine Learning",
+          "Machine Learning by Andrew Ng",
+          "Calculus for Machine Learning",
+          "Applied Machine Learning",
+          "Bayesian Machine Learning"
+        ],
+        "relevant": [
+          "Linear Algebra for Machine Learning",
+          "Calculus for Machine Learning",
+          "Mathematics for Computer Science",
+          "Probability and Statistics"
+        ]
+      },
+      {
+        "query": "recommendation systems collaborative filtering",
+        "precision": 0.2,
+        "recall": 0.3333,
+        "f1": 0.25,
+        "predicted": [
+          "Recommender Systems",
+          "Introduction to Robotics",
+          "Speech Recognition and Audio Processing",
+          "Machine Learning by Andrew Ng",
+          "Deep Learning Specialization"
+        ],
+        "relevant": [
+          "Recommender Systems",
+          "Applied Machine Learning",
+          "Natural Language Processing with Python"
+        ]
+      }
+    ]
+  },
+  "baseline": {
+    "label": "Baseline (Keyword Matching)",
+    "k": 5,
+    "precision_mean": 0.34,
+    "recall_mean": 0.54,
+    "f1_mean": 0.411,
+    "per_query": [
+      {
+        "query": "learn python programming basics for beginners",
+        "precision": 0.2,
+        "recall": 0.3333,
+        "f1": 0.25,
+        "predicted": [
+          "Python for Everybody",
+          "Deep Learning Specialization",
+          "R Programming for Statistics",
+          "Reinforcement Learning",
+          "Linear Algebra for Machine Learning"
+        ],
+        "relevant": [
+          "Python for Everybody",
+          "Introduction to Computer Science with Python",
+          "Introduction to Programming with Java"
+        ]
+      },
+      {
+        "query": "I want to enter AI but I am weak at math beginner",
+        "precision": 0.4,
+        "recall": 0.5,
+        "f1": 0.4444,
+        "predicted": [
+          "Introduction to Neural Networks",
+          "Introduction to Artificial Intelligence",
+          "Cybersecurity Fundamentals",
+          "Python for Everybody",
+          "Introduction to Computer Science with Python"
+        ],
+        "relevant": [
+          "Introduction to Artificial Intelligence",
+          "Python for Everybody",
+          "Ethics in Artificial Intelligence",
+          "Prompt Engineering for AI Applications"
+        ]
+      },
+      {
+        "query": "data science with python statistics machine learning",
+        "precision": 0.4,
+        "recall": 0.4,
+        "f1": 0.4,
+        "predicted": [
+          "Data Science with Python",
+          "Introduction to Computer Science with Python",
+          "Python for Everybody",
+          "FastAPI and Python Backend Development",
+          "Statistics for Data Science"
+        ],
+        "relevant": [
+          "Data Science with Python",
+          "Machine Learning by Andrew Ng",
+          "Statistics for Data Science",
+          "Applied Machine Learning",
+          "Feature Engineering for Machine Learning"
+        ]
+      },
+      {
+        "query": "advanced deep learning neural networks convolutional",
+        "precision": 0.4,
+        "recall": 0.6667,
+        "f1": 0.5,
+        "predicted": [
+          "Deep Learning Specialization",
+          "Graph Neural Networks",
+          "Introduction to Neural Networks",
+          "Machine Learning by Andrew Ng",
+          "Reinforcement Learning"
+        ],
+        "relevant": [
+          "Deep Learning Specialization",
+          "Introduction to Neural Networks",
+          "Computer Vision with OpenCV"
+        ]
+      },
+      {
+        "query": "web development HTML CSS JavaScript front end",
+        "precision": 0.4,
+        "recall": 1.0,
+        "f1": 0.5714,
+        "predicted": [
+          "Web Development Bootcamp",
+          "React.js Front-End Development",
+          "FastAPI and Python Backend Development",
+          "Recommender Systems",
+          "Ethics in Artificial Intelligence"
+        ],
+        "relevant": [
+          "Web Development Bootcamp",
+          "React.js Front-End Development"
+        ]
+      },
+      {
+        "query": "database SQL queries data analysis",
+        "precision": 0.4,
+        "recall": 0.6667,
+        "f1": 0.5,
+        "predicted": [
+          "SQL for Data Analysis",
+          "Excel for Data Analysis",
+          "FastAPI and Python Backend Development",
+          "Statistics for Data Science",
+          "Web Development Bootcamp"
+        ],
+        "relevant": [
+          "SQL for Data Analysis",
+          "Data Visualization with Tableau",
+          "Excel for Data Analysis"
+        ]
+      },
+      {
+        "query": "natural language processing text classification sentiment",
+        "precision": 0.2,
+        "recall": 0.3333,
+        "f1": 0.25,
+        "predicted": [
+          "Natural Language Processing with Python",
+          "Computer Vision with OpenCV",
+          "Machine Learning by Andrew Ng",
+          "Feature Engineering for Machine Learning",
+          "Introduction to Big Data"
+        ],
+        "relevant": [
+          "Natural Language Processing with Python",
+          "Generative AI with Large Language Models",
+          "Speech Recognition and Audio Processing"
+        ]
+      },
+      {
+        "query": "cloud computing aws deployment devops docker",
+        "precision": 0.4,
+        "recall": 0.6667,
+        "f1": 0.5,
+        "predicted": [
+          "Cloud Computing on AWS",
+          "Docker and Kubernetes",
+          "Introduction to Data Engineering",
+          "Introduction to Big Data",
+          "Deep Learning Specialization"
+        ],
+        "relevant": [
+          "Cloud Computing on AWS",
+          "Docker and Kubernetes",
+          "FastAPI and Python Backend Development"
+        ]
+      },
+      {
+        "query": "mathematics for machine learning linear algebra calculus",
+        "precision": 0.4,
+        "recall": 0.5,
+        "f1": 0.4444,
+        "predicted": [
+          "Linear Algebra for Machine Learning",
+          "Calculus for Machine Learning",
+          "Machine Learning by Andrew Ng",
+          "Feature Engineering for Machine Learning",
+          "Bayesian Machine Learning"
+        ],
+        "relevant": [
+          "Linear Algebra for Machine Learning",
+          "Calculus for Machine Learning",
+          "Mathematics for Computer Science",
+          "Probability and Statistics"
+        ]
+      },
+      {
+        "query": "recommendation systems collaborative filtering",
+        "precision": 0.2,
+        "recall": 0.3333,
+        "f1": 0.25,
+        "predicted": [
+          "Recommender Systems",
+          "Introduction to Robotics",
+          "Speech Recognition and Audio Processing",
+          "Python for Everybody",
+          "Generative AI with Large Language Models"
+        ],
+        "relevant": [
+          "Recommender Systems",
+          "Applied Machine Learning",
+          "Natural Language Processing with Python"
+        ]
+      }
+    ]
+  }
+}
