@@ -295,6 +295,15 @@ with st.sidebar:
     diff_idx     = difficulties.index(default_diff) if default_diff in difficulties else 0
     difficulty   = st.selectbox("Difficulty Level", difficulties, index=diff_idx)
 
+    st.markdown("**💰 Price**")
+    price_filter = st.radio(
+        "price_filter",
+        ["All", "Free", "Paid"],
+        index=0,
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+
     sources_list = get_sources()
     source_filter = st.selectbox("Platform", sources_list, index=0)
 
@@ -403,6 +412,7 @@ with tab_rec:
                     effective_query,
                     top_n=top_n,
                     difficulty_filter=difficulty,
+                    price_filter=price_filter,
                     progress_callback=_live_prog,
                 )
                 df_live = results_to_df(raw_results)
@@ -471,8 +481,20 @@ with tab_rec:
         saved_titles = st.session_state.profile.get("saved_courses", [])
 
         for pos, (_, row) in enumerate(page_df.iterrows(), start=start_idx + 1):
-            diff_badge = _difficulty_badge(row["difficulty"])
-            src_badge  = _source_badge(row.get("source", "")) if row.get("source") else ""
+            diff_badge  = _difficulty_badge(row["difficulty"])
+            src_badge   = _source_badge(row.get("source", "")) if row.get("source") else ""
+            price_val   = row.get("price", "Free*")
+            price_color = {
+                "Free":  ("#d4edda", "#155724"),
+                "Free*": ("#cce5ff", "#004085"),
+                "Paid":  ("#ffe8cc", "#7a3e00"),
+            }.get(price_val, ("#e2e3e5", "#383d41"))
+            price_label = {"Free": "✓ Free", "Free*": "◑ Free to Audit", "Paid": "$ Paid"}.get(price_val, price_val)
+            price_badge = (
+                f'<span class="badge" style="background:{price_color[0]};color:{price_color[1]};'
+                f'border:1px solid {price_color[1]}22">'
+                f'{price_label}</span>'
+            )
             score      = float(row.get("similarity_score", 0))
             score_pct  = min(int(score * 100 / max(score, 0.001)), 100)
             title_disp = str(row["course_title"])[:90] + ("…" if len(str(row["course_title"])) > 90 else "")
@@ -486,7 +508,7 @@ with tab_rec:
                         <span class="course-title" style="font-size:1rem">{title_disp}</span>
                     </div>
                     <div style="margin:5px 0 4px 42px">
-                        {src_badge}{diff_badge}
+                        {price_badge}{src_badge}{diff_badge}
                         <span style="color:#667eea;font-size:0.8rem;font-weight:600;margin-left:8px">Score: {score:.4f}</span>
                     </div>
                     <div style="color:#495057;font-size:0.85rem;margin:0 0 4px 42px">{desc_disp}</div>

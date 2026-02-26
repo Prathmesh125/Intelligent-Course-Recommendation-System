@@ -139,6 +139,86 @@ def _infer_difficulty(text: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Price inference — Free vs Paid
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Platforms that are always (or predominantly) free
+_FREE_DOMAINS = {
+    "youtube.com", "youtu.be",
+    "freecodecamp.org",
+    "khanacademy.org",
+    "ocw.mit.edu",
+    "open.mit.edu",
+    "openlearning.com",
+    "w3schools.com",
+    "developer.mozilla.org",
+    "theodinproject.com",
+    "cs50.harvard.edu",
+    "open.edu",
+    "saylor.org",
+    "alison.com",
+    "nptel.ac.in",
+    "swayam.gov.in",
+}
+
+# Platforms that are always (or predominantly) paid
+_PAID_DOMAINS = {
+    "udemy.com",
+    "linkedin.com",
+    "pluralsight.com",
+    "datacamp.com",
+    "skillshare.com",
+    "masterclass.com",
+    "treehouse.io",
+    "teamtreehouse.com",
+    "acloud.guru",
+    "whizlabs.com",
+    "udacity.com",
+}
+
+_FREE_SIGNALS  = re.compile(
+    r"\b(free|no[- ]cost|open[- ]source|audit|freely available|gratis|"
+    r"free certificate|100%\s*free|free access|free online)\b",
+    re.I,
+)
+_PAID_SIGNALS  = re.compile(
+    r"(\$\d|\d+\.\d{2}|\bpaid\b|\bpremium\b|\bsubscription\b|\bpurchase\b|"
+    r"\benroll\s+now\b|\bbuy\s+now\b|\bprice\b|\bcost\b)",
+    re.I,
+)
+
+
+def _infer_price(url: str, text: str) -> str:
+    """Return 'Free', 'Paid', or 'Free*' (Coursera/edX — free to audit, paid cert)."""
+    try:
+        netloc = urlparse(url).netloc.lower().lstrip("www.")
+    except Exception:
+        netloc = ""
+
+    # Hard-coded free platforms
+    for domain in _FREE_DOMAINS:
+        if netloc == domain or netloc.endswith("." + domain):
+            return "Free"
+
+    # Hard-coded paid platforms
+    for domain in _PAID_DOMAINS:
+        if netloc == domain or netloc.endswith("." + domain):
+            return "Paid"
+
+    # Coursera / edX — free to audit, paid certificate
+    if any(d in netloc for d in ("coursera.org", "edx.org")):
+        return "Free*"
+
+    # Text signals as fallback
+    if _FREE_SIGNALS.search(text):
+        return "Free"
+    if _PAID_SIGNALS.search(text):
+        return "Paid"
+
+    return "Free*"   # unknown → assume possibly free
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Platform inference from URL
 # ═══════════════════════════════════════════════════════════════════════════════
 def _infer_platform(url: str) -> str:
@@ -243,6 +323,7 @@ def search_courses_live(
     query: str,
     top_n: int = 15,
     difficulty_filter: str = "All",
+    price_filter: str = "All",
     progress_callback=None,
 ) -> tuple[list[dict], dict]:
     """
@@ -344,6 +425,7 @@ def search_courses_live(
         platform   = _infer_platform(url)
         difficulty = _infer_difficulty(f"{title} {body}")
         skills     = _extract_skills(f"{title} {body}", topic)
+        price      = _infer_price(url, f"{title} {body}")
 
         courses.append({
             "course_title":     title,
@@ -351,6 +433,7 @@ def search_courses_live(
             "url":              url,
             "source":           platform,
             "difficulty":       difficulty,
+            "price":            price,
             "rating":           0.0,
             "skills":           skills,
             "similarity_score": 0.0,
@@ -360,6 +443,14 @@ def search_courses_live(
     # ── Step 4: Difficulty filter ─────────────────────────────────────────
     if difficulty_filter and difficulty_filter != "All":
         courses = [c for c in courses if c["difficulty"] == difficulty_filter]
+
+    # ── Step 4b: Price filter ─────────────────────────────────────────────
+    if price_filter and price_filter != "All":
+        if price_filter == "Free":
+            # "Free" matches both fully-free and free-to-audit (Free*)
+            courses = [c for c in courses if c["price"] in ("Free", "Free*")]
+        else:  # Paid
+            courses = [c for c in courses if c["price"] == "Paid"]
 
     # ── Step 5: NLP re-ranking using the cleaned topic as reference ────────
     _prog("Ranking by relevance ...", 75)
