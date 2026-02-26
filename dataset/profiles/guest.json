@@ -12,18 +12,39 @@
       "query": "learn guitar from scratch",
       "difficulty": "All",
       "timestamp": "2026-02-27T00:07:59.819381"
+    },
+    {
+      "query": "natural language processing NLP",
+      "difficulty": "All",
+      "timestamp": "2026-02-27T00:36:07.173094"
     }
   ],
   "saved_courses": [],
   "interests": [
-    "scratch",
+    "language",
     "learning",
-    "machine",
-    "guitar",
-    "background",
-    "from",
-    "without",
     "math",
-    "learn"
-  ]
+    "natural",
+    "without",
+    "processing",
+    "from",
+    "machine",
+    "scratch",
+    "background",
+    "learn",
+    "guitar"
+  ],
+  "total_retention_secs": 23.966293811798096,
+  "session_count": 1,
+  "last_active": "2026-02-27T00:36:07.173148",
+  "difficulty_counts": {
+    "Beginner": 0,
+    "Intermediate": 0,
+    "Advanced": 0
+  },
+  "topic_frequency": {
+    "natural": 1.0,
+    "language": 1.0,
+    "processing": 1.0
+  }
 }

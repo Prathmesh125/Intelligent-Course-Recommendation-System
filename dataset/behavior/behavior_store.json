@@ -1,0 +1,73 @@
+{
+  "query_log": [
+    {
+      "username": "test_user",
+      "query": "machine learning for beginners",
+      "difficulty": "All",
+      "ts": "2026-02-27T00:24:22.340984",
+      "topics": [
+        "machine",
+        "learning"
+      ]
+    },
+    {
+      "username": "test_user",
+      "query": "machine learning for beginners",
+      "difficulty": "All",
+      "ts": "2026-02-27T00:26:06.929111",
+      "topics": [
+        "machine",
+        "learning"
+      ]
+    },
+    {
+      "username": "guest",
+      "query": "natural language processing NLP",
+      "difficulty": "All",
+      "ts": "2026-02-27T00:36:07.171810",
+      "topics": [
+        "natural",
+        "language",
+        "processing"
+      ]
+    }
+  ],
+  "course_engagement": {
+    "Python for Everybody": {
+      "clicks": 0,
+      "saves": 2,
+      "last_interacted": "2026-02-27T00:26:06.929822"
+    }
+  },
+  "user_stats": {
+    "test_user": {
+      "session_count": 0,
+      "total_retention_secs": 0,
+      "last_seen": "2026-02-27T00:26:06.929826",
+      "query_count": 2,
+      "click_count": 0,
+      "save_count": 2,
+      "recent_topics": [
+        "machine",
+        "learning",
+        "machine",
+        "learning"
+      ]
+    },
+    "guest": {
+      "session_count": 1,
+      "total_retention_secs": 23.966311931610107,
+      "last_seen": "2026-02-27T00:36:07.172012",
+      "query_count": 1,
+      "click_count": 0,
+      "save_count": 0,
+      "recent_topics": [
+        "natural",
+        "language",
+        "processing"
+      ]
+    }
+  },
+  "created_at": "2026-02-27T00:24:22.340977",
+  "last_updated": "2026-02-27T00:36:07.172075"
+}
