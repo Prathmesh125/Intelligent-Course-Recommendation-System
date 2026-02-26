@@ -429,6 +429,11 @@ with tab_rec:
     df_live    = st.session_state.live_results
     query_info = st.session_state.live_query_info
 
+    # Back-compat: old cached results may not have a 'price' column
+    if not df_live.empty and "price" not in df_live.columns:
+        df_live["price"] = "Free*"
+        st.session_state.live_results = df_live
+
     # "Did you mean / Interpreted as" banner
     correction = query_info.get("display_correction")
     if correction:

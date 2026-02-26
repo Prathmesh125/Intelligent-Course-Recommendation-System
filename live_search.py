@@ -489,24 +489,27 @@ def _extract_skills(text: str, query: str) -> str:
 def results_to_df(results: list[dict]):
     """Convert list[dict] from search_courses_live into a DataFrame."""
     import pandas as pd
-    if not results:
-        return pd.DataFrame(columns=[
-            "rank", "course_title", "description", "skills",
-            "difficulty", "rating", "url", "source", "similarity_score",
-        ])
-    return pd.DataFrame(results)[[
+    _COLS = [
         "rank", "course_title", "description", "skills",
-        "difficulty", "rating", "url", "source", "similarity_score",
-    ]]
+        "difficulty", "price", "rating", "url", "source", "similarity_score",
+    ]
+    if not results:
+        return pd.DataFrame(columns=_COLS)
+    df = pd.DataFrame(results)
+    # Ensure every expected column exists (guard against old cached results)
+    for col in _COLS:
+        if col not in df.columns:
+            df[col] = "Free*" if col == "price" else ""
+    return df[_COLS]
 
 
 if __name__ == "__main__":
     import sys
     q = " ".join(sys.argv[1:]) or "machine learning for beginners"
     print(f"\n[LiveSearch] Searching internet for: '{q}'\n")
-    hits = search_courses_live(q, top_n=10)
+    hits, info = search_courses_live(q, top_n=10)
     for r in hits:
-        print(f"  #{r['rank']:2d} [{r['source']:20s}] [{r['difficulty']:12s}] {r['course_title']}")
+        print(f"  #{r['rank']:2d} [{r['source']:20s}] [{r['difficulty']:12s}] [{r['price']:14s}] {r['course_title']}")
         print(f"       {r['url']}")
         print(f"       sim={r['similarity_score']:.4f}  desc: {r['description'][:80]}...")
         print()
