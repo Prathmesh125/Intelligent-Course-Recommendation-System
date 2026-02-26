@@ -52,18 +52,29 @@
       "query": "im new in web3 ,i want to learn",
       "difficulty": "All",
       "timestamp": "2026-02-26T23:00:16.446811"
+    },
+    {
+      "query": "im new in web3, i want to learn",
+      "difficulty": "All",
+      "timestamp": "2026-02-26T23:11:36.112860"
+    },
+    {
+      "query": "im new in web3, i want to learn",
+      "difficulty": "All",
+      "timestamp": "2026-02-26T23:13:14.506445"
     }
   ],
   "saved_courses": [],
   "interests": [
-    "web3",
-    "hgyyufyvyh",
-    "weak",
-    "machine",
     "learn",
+    "machine",
     "want",
-    "jhfuhdjf",
     "enter",
-    "learning"
+    "jhfuhdjf",
+    "learning",
+    "hgyyufyvyh",
+    "web3,",
+    "weak",
+    "web3"
   ]
 }
