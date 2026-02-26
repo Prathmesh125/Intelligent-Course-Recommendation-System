@@ -203,12 +203,36 @@ _COURSE_SIGNALS = re.compile(
     re.I,
 )
 
+# Patterns that indicate a listicle/review article, NOT an actual course page
+_LISTICLE_TITLE = re.compile(
+    r"(?:^|\b)"
+    r"(\d+\s+(?:best|top|free|paid|great|must.?take|must.?have)\s+(?:online\s+)?(?:courses?|tutorials?|resources?|websites?|platforms?)|"
+    r"(?:best|top|free)\s+\d+\s+(?:courses?|tutorials?|resources?)|"
+    r"(?:best|top|greatest|ultimate|complete|comprehensive)\s+(?:list\s+of\s+)?(?:online\s+)?(?:courses?|tutorials?|resources?|websites?)\s+(?:for|to|in|on)|"
+    r"(?:courses?|tutorials?)\s+(?:ranked|reviewed|compared|vs\.?)|"
+    r"where\s+to\s+learn|how\s+to\s+learn\s+.*\s+(?:free|online)\s*$)",
+    re.I,
+)
+# Article/blog URL path patterns
+_LISTICLE_URL = re.compile(
+    r"/(?:blog|article|articles|post|posts|news|guide|guides|resources|roundup|lists?|rankings?)/"
+    r"|\.(?:medium|substack|hashnode|dev\.to|towards?data|analyticsvidhya|towardsdatascience)\.com"
+    r"|/(?:top|best|\d+)-",
+    re.I,
+)
+
 
 def _is_course_like(title: str, body: str, url: str) -> bool:
-    """Return True if the result looks like an actual course/tutorial rather than noise."""
-    text = f"{title} {body} {url}"
+    """Return True only if the result is an actual course/tutorial page, not an article about courses."""
     if _SKIP_DOMAINS.search(url):
         return False
+    # Reject listicle titles: "10 best Python courses", "Top courses for ..."
+    if _LISTICLE_TITLE.search(title):
+        return False
+    # Reject blog/article URLs
+    if _LISTICLE_URL.search(url):
+        return False
+    text = f"{title} {body} {url}"
     return bool(_COURSE_SIGNALS.search(text))
 
 

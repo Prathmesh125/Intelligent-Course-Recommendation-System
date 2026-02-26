@@ -108,6 +108,8 @@ def _init_session():
         st.session_state.live_results = pd.DataFrame()
     if "live_query_info" not in st.session_state:
         st.session_state.live_query_info = {}
+    if "live_page" not in st.session_state:
+        st.session_state.live_page = 0
 
 _init_session()
 
@@ -297,7 +299,7 @@ with st.sidebar:
     source_filter = st.selectbox("Platform", sources_list, index=0)
 
     min_rating   = st.slider("Minimum Rating ★", 0.0, 5.0, 0.0, 0.1)
-    top_n        = st.slider("Number of Recommendations", 3, 15, 5)
+    top_n        = st.select_slider("Results to fetch", options=[10, 20, 30, 40, 50], value=30)
     personalize  = st.toggle("Personalize with history", value=True)
 
     st.divider()
@@ -409,9 +411,10 @@ with tab_rec:
 
                 profile = log_search(profile, effective_query, difficulty)
                 save_profile(profile)
-                st.session_state.profile       = profile
-                st.session_state.live_results  = df_live
+                st.session_state.profile         = profile
+                st.session_state.live_results    = df_live
                 st.session_state.live_query_info = query_info
+                st.session_state.live_page       = 0  # reset to page 1 on new search
 
             except Exception as e:
                 prog_bar.empty()
@@ -430,13 +433,97 @@ with tab_rec:
         st.info(f"🔍 **Interpreted as:** {correction}", icon="💡")
 
     if not df_live.empty:
+        PAGE_SIZE   = 10
+        total       = len(df_live)
+        total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+        current_pg  = st.session_state.live_page  # 0-indexed
+
         st.success(
-            f"Found **{len(df_live)}** courses from across the internet  "
-            f"— ranked by relevance to your query."
+            f"Found **{total}** courses — Page **{current_pg + 1}** of **{total_pages}**"
         )
+
+        # ── Pagination controls (top) ──────────────────────────────────────
+        pg_cols = st.columns([1, 6, 1])
+        with pg_cols[0]:
+            if st.button("◀ Prev", disabled=(current_pg == 0), use_container_width=True):
+                st.session_state.live_page -= 1
+                st.rerun()
+        with pg_cols[1]:
+            # Page number pills
+            pill_cols = st.columns(min(total_pages, 8))
+            for pg_i in range(min(total_pages, 8)):
+                with pill_cols[pg_i]:
+                    label = f"**{pg_i+1}**" if pg_i == current_pg else str(pg_i + 1)
+                    if st.button(label, key=f"pgbtn_{pg_i}", use_container_width=True):
+                        st.session_state.live_page = pg_i
+                        st.rerun()
+        with pg_cols[2]:
+            if st.button("Next ▶", disabled=(current_pg >= total_pages - 1), use_container_width=True):
+                st.session_state.live_page += 1
+                st.rerun()
+
+        st.divider()
+
+        # ── Courses for this page ─────────────────────────────────────────
+        start_idx = current_pg * PAGE_SIZE
+        end_idx   = start_idx + PAGE_SIZE
+        page_df   = df_live.iloc[start_idx:end_idx]
         saved_titles = st.session_state.profile.get("saved_courses", [])
-        for _, row in df_live.iterrows():
-            render_course_card(row, int(row["rank"]), saved_titles)
+
+        for pos, (_, row) in enumerate(page_df.iterrows(), start=start_idx + 1):
+            diff_badge = _difficulty_badge(row["difficulty"])
+            src_badge  = _source_badge(row.get("source", "")) if row.get("source") else ""
+            score      = float(row.get("similarity_score", 0))
+            score_pct  = min(int(score * 100 / max(score, 0.001)), 100)
+            title_disp = str(row["course_title"])[:90] + ("…" if len(str(row["course_title"])) > 90 else "")
+            desc_disp  = str(row["description"])[:150] + ("…" if len(str(row["description"])) > 150 else "")
+
+            st.markdown(
+                f"""
+                <div class="course-card" style="padding:10px 16px;margin-bottom:8px">
+                    <div style="display:flex;align-items:baseline;gap:10px">
+                        <span style="font-size:1.15rem;font-weight:800;color:#667eea;min-width:32px">#{pos}</span>
+                        <span class="course-title" style="font-size:1rem">{title_disp}</span>
+                    </div>
+                    <div style="margin:5px 0 4px 42px">
+                        {src_badge}{diff_badge}
+                        <span style="color:#667eea;font-size:0.8rem;font-weight:600;margin-left:8px">Score: {score:.4f}</span>
+                    </div>
+                    <div style="color:#495057;font-size:0.85rem;margin:0 0 4px 42px">{desc_disp}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            lnk_col, save_col = st.columns([5, 1])
+            with lnk_col:
+                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[🔗 Open Course]({row['url']})")
+            with save_col:
+                is_saved   = row["course_title"] in saved_titles
+                btn_label  = "★ Saved" if is_saved else "☆ Save"
+                if st.button(btn_label, key=f"save_live_{pos}_{str(row['course_title'])[:10]}"):
+                    profile = st.session_state.profile
+                    if is_saved:
+                        profile = remove_course(profile, row["course_title"])
+                        st.toast(f"Removed: {row['course_title'][:40]}")
+                    else:
+                        profile = save_course(profile, row["course_title"])
+                        st.toast(f"Saved: {row['course_title'][:40]}")
+                    save_profile(profile)
+                    st.session_state.profile = profile
+                    st.rerun()
+
+        # ── Pagination controls (bottom) ───────────────────────────────────
+        st.divider()
+        bt_cols = st.columns([1, 6, 1])
+        with bt_cols[0]:
+            if st.button("◀ Prev ", disabled=(current_pg == 0), use_container_width=True):
+                st.session_state.live_page -= 1
+                st.rerun()
+        with bt_cols[2]:
+            if st.button(" Next ▶", disabled=(current_pg >= total_pages - 1), use_container_width=True):
+                st.session_state.live_page += 1
+                st.rerun()
+
     elif search_clicked or triggered_preset:
         st.info("No results found. Try rephrasing your query.")
 
