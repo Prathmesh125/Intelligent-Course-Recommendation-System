@@ -22,7 +22,7 @@ st.set_page_config(
 
 # ── Project imports ───────────────────────────────────────────────────────────
 from recommender   import recommend, keyword_search, get_difficulties, get_sources, invalidate_cache
-from user_profile  import (load_profile, save_profile, log_search,
+from user_profile  import (load_profile, save_profile, log_search, log_click, record_session,
                             save_course, remove_course, enrich_query,
                             get_stats, clear_history)
 from evaluation    import (run_evaluation, plot_comparison,
@@ -31,6 +31,9 @@ from evaluation    import (run_evaluation, plot_comparison,
 from scraper       import scrape_all, get_last_scrape_info
 from vectorizer    import build_and_save_tfidf
 from live_search   import search_courses_live, results_to_df, PLATFORM_COLORS as _LIVE_PLATFORM_COLORS
+import behavior_tracker as bt
+from query_suggestions import generate_suggestions, get_trending_chips
+import time
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -112,8 +115,28 @@ def _init_session():
         st.session_state.live_page = 0
     if "live_price_filter" not in st.session_state:
         st.session_state.live_price_filter = "All"
+    # ── v2: session start + last query for dynamic suggestions ───────────────
+    if "session_start_ts" not in st.session_state:
+        st.session_state.session_start_ts = time.time()
+    if "last_query" not in st.session_state:
+        st.session_state.last_query = ""
+    if "dynamic_suggestions" not in st.session_state:
+        st.session_state.dynamic_suggestions = []
 
 _init_session()
+
+# ── Retention tracking (accumulate time on every meaningful page interaction) ─
+_now = time.time()
+_last_hb = st.session_state.get("last_heartbeat_ts", _now)
+_elapsed  = _now - _last_hb
+# Count only gaps > 10 s (real reading time) and < 30 min (not idle overnight)
+if 10 < _elapsed < 1800:
+    _uname = st.session_state.profile.get("username", "guest")
+    bt.log_session_end(_uname, _now - _elapsed)               # global tracker
+    _prof = record_session(st.session_state.profile, _elapsed) # per-user profile
+    save_profile(_prof)
+    st.session_state.profile = _prof
+st.session_state["last_heartbeat_ts"] = _now
 
 
 # ── Difficulty badge helper ────────────────────────────────────────────────────
@@ -194,6 +217,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
                     st.toast(f"Removed: {row['course_title']}")
                 else:
                     profile = save_course(profile, row["course_title"])
+                    bt.log_save(profile["username"], row["course_title"])
                     st.toast(f"Saved: {row['course_title']}")
                 save_profile(profile)
                 st.session_state.profile = profile
@@ -312,6 +336,25 @@ with st.sidebar:
         st.caption(f"Last: *{stats['last_search'][:40]}…*" if len(stats["last_search"]) > 40
                    else f"Last: *{stats['last_search']}*")
 
+    # ── v2: behavioral learning metrics ──────────────────────────────────
+    behavior = bt.get_user_behavior_summary(username)
+    if behavior["session_count"] > 0:
+        with st.expander("🧠 My Learning Behavior", expanded=False):
+            c1b, c2b = st.columns(2)
+            c1b.metric("Sessions", behavior["session_count"])
+            c2b.metric("Avg Time", f"{behavior['avg_retention_mins']}m")
+            c1b.metric("Clicks",   behavior["click_count"])
+            c2b.metric("Saves",    behavior["save_count"])
+            if behavior["top_topics"]:
+                st.markdown("**Your focus areas:**")
+                st.markdown("  ".join(f"`{t}`" for t in behavior["top_topics"][:6]))
+
+    # ── v2: global trending topics ────────────────────────────────────────
+    trending_topics = bt.get_trending_topics(6, days=7)
+    if trending_topics:
+        st.markdown("### 🔥 Trending Now")
+        st.markdown("  ".join(f"`{t}`" for t in trending_topics))
+
     st.divider()
     if st.button("🗑 Clear History"):
         profile = clear_history(profile)
@@ -370,20 +413,42 @@ with tab_rec:
     with col_hint:
         st.caption("💡 Enter ANY topic — type naturally, with or without typos, slang, or abbreviations.")
 
-    # Quick-prompt chips
+    # ── Dynamic query suggestions (context-aware, change per query) ────────
+    # Re-generate whenever the query changes so chips are always connected
+    current_q = st.session_state.get("main_query", "") or ""
+    if current_q != st.session_state.get("last_query", ""):
+        st.session_state.last_query = current_q
+        st.session_state.dynamic_suggestions = generate_suggestions(
+            current_q or "machine learning",
+            st.session_state.profile,
+            n=4,
+        )
+
+    suggestions = st.session_state.dynamic_suggestions
+    if not suggestions:
+        suggestions = generate_suggestions("machine learning", st.session_state.profile, n=4)
+
     st.markdown("**Try these:**")
     q_cols = st.columns(4)
-    presets = [
-        "how to make a game in Unity",
-        "blockchain and Web3 development",
-        "machine learning without math background",
-        "learn guitar from scratch",
-    ]
     triggered_preset = None
-    for i, preset in enumerate(presets):
+    for i, preset in enumerate(suggestions[:4]):
         with q_cols[i]:
-            if st.button(preset, key=f"preset_{i}", use_container_width=True):
+            if st.button(preset[:48] + ("…" if len(preset) > 48 else ""),
+                         key=f"preset_{i}", use_container_width=True,
+                         help=preset):
                 triggered_preset = preset
+
+    # ── Trending row (based on real multi-user data) ──────────────────────
+    trending_chips = get_trending_chips(4)
+    if any(c.lower() not in {s.lower() for s in suggestions} for c in trending_chips):
+        st.markdown("🔥 **Trending:**")
+        t_cols = st.columns(4)
+        for i, chip in enumerate(trending_chips[:4]):
+            with t_cols[i]:
+                if st.button(chip[:48] + ("…" if len(chip) > 48 else ""),
+                             key=f"trend_{i}", use_container_width=True,
+                             help=chip):
+                    triggered_preset = chip
 
     effective_query = triggered_preset if triggered_preset else query
 
@@ -411,9 +476,18 @@ with tab_rec:
                 prog_bar.progress(1.0)
                 status_txt.empty()
 
+                # ── Log to behavior tracker + user profile ─────────────────
+                bt.log_query(profile["username"], effective_query, difficulty)
                 profile = log_search(profile, effective_query, difficulty)
                 save_profile(profile)
                 st.session_state.profile         = profile
+
+                # ── Evolve suggestions immediately for the new query ────────
+                st.session_state.dynamic_suggestions = generate_suggestions(
+                    effective_query, profile, n=4
+                )
+                st.session_state.last_query = effective_query
+
                 st.session_state.live_results    = df_live
                 st.session_state.live_query_info = query_info
                 st.session_state.live_page       = 0  # reset to page 1 on new search
@@ -572,9 +646,18 @@ with tab_rec:
                     """,
                     unsafe_allow_html=True,
                 )
-                lnk_col, save_col = st.columns([5, 1])
+                lnk_col, track_col, save_col = st.columns([4, 1, 1])
                 with lnk_col:
                     st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[🔗 Open Course]({row['url']})")
+                with track_col:
+                    if st.button("👁", key=f"track_live_{pos}_{str(row['course_title'])[:8]}",
+                                 help="Mark as opened — trains your recommendations"):
+                        _p = st.session_state.profile
+                        bt.log_click(_p["username"], row["course_title"])
+                        _p = log_click(_p, row["course_title"])
+                        save_profile(_p)
+                        st.session_state.profile = _p
+                        st.toast("📚 Marked! Recommendations will learn from this.")
                 with save_col:
                     is_saved  = row["course_title"] in saved_titles
                     btn_label = "★ Saved" if is_saved else "☆ Save"
@@ -585,6 +668,7 @@ with tab_rec:
                             st.toast(f"Removed: {row['course_title'][:40]}")
                         else:
                             profile = save_course(profile, row["course_title"])
+                            bt.log_save(profile["username"], row["course_title"])
                             st.toast(f"Saved: {row['course_title'][:40]}")
                         save_profile(profile)
                         st.session_state.profile = profile

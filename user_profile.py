@@ -1,14 +1,23 @@
 """
 user_profile.py
 ---------------
-Phase 6: Personalization Module
+Phase 6: Personalization Module  (v2 — Adaptive Learning)
 Persists user search history and preferred difficulty level across sessions.
 Builds a cumulative interest profile that enriches future queries.
+
+v2 additions
+------------
+• session_start / last_active timestamps for retention analytics
+• difficulty_counts — tracks how often each level is picked (drift detection)
+• topic_frequency   — weighted frequency of topics searched (auto-learning)
+• click_history     — which courses the user actually opened (implicit feedback)
 """
 
 import os
 import json
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
+from collections import Counter
 
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
 PROFILES_DIR = os.path.join(BASE_DIR, "dataset", "profiles")
@@ -32,12 +41,19 @@ def load_profile(username: str) -> dict:
 
 def _default_profile(username: str) -> dict:
     return {
-        "username":          username,
-        "created_at":        datetime.now().isoformat(),
+        "username":             username,
+        "created_at":           datetime.now().isoformat(),
         "preferred_difficulty": "All",
-        "search_history":    [],      # list of {query, difficulty, timestamp}
-        "saved_courses":     [],      # list of course_titles user bookmarked
-        "interests":         [],      # accumulated keywords from all queries
+        "search_history":       [],   # list of {query, difficulty, timestamp}
+        "saved_courses":        [],   # list of course_titles user bookmarked
+        "interests":            [],   # accumulated keywords from all queries
+        # ── v2 adaptive fields ──────────────────────────────────────────────
+        "difficulty_counts":    {"Beginner": 0, "Intermediate": 0, "Advanced": 0},
+        "topic_frequency":      {},   # topic → cumulative weighted count
+        "click_history":        [],   # list of {course_title, timestamp}
+        "session_count":        0,
+        "total_retention_secs": 0,    # total time spent across all sessions
+        "last_active":          None,
     }
 
 
@@ -52,6 +68,7 @@ def save_profile(profile: dict):
 def log_search(profile: dict, query: str, difficulty: str = "All") -> dict:
     """
     Appends query to search_history and extracts keywords into interests.
+    Also updates v2 adaptive fields (topic_frequency, difficulty_counts).
     Call save_profile() afterwards to persist.
     """
     entry = {
@@ -60,19 +77,69 @@ def log_search(profile: dict, query: str, difficulty: str = "All") -> dict:
         "timestamp":  datetime.now().isoformat(),
     }
     profile["search_history"].append(entry)
-
-    # Keep last 20 searches only
-    profile["search_history"] = profile["search_history"][-20:]
+    # Keep last 50 searches (up from 20 — richer history for suggestions)
+    profile["search_history"] = profile["search_history"][-50:]
 
     # Accumulate unique interests (simple word-level)
     words = [w.lower() for w in query.split() if len(w) > 3]
     existing = set(profile.get("interests", []))
     profile["interests"] = list(existing | set(words))[:50]  # cap at 50
 
-    # Update preferred difficulty if user keeps picking one
-    if difficulty != "All":
+    # ── v2: track difficulty selection frequency ──────────────────────────
+    dc = profile.setdefault("difficulty_counts", {"Beginner": 0, "Intermediate": 0, "Advanced": 0})
+    if difficulty in dc:
+        dc[difficulty] += 1
+    # Auto-infer preferred difficulty from accumulated picks
+    non_all = {k: v for k, v in dc.items() if v > 0}
+    if non_all:
+        profile["preferred_difficulty"] = max(non_all, key=non_all.get)
+    elif difficulty != "All":
         profile["preferred_difficulty"] = difficulty
 
+    # ── v2: track topic frequency with recency weighting ─────────────────
+    tf = profile.setdefault("topic_frequency", {})
+    _STOP = {
+        "want", "learn", "know", "about", "from", "with", "into",
+        "help", "that", "this", "what", "have", "will", "some",
+        "also", "just", "need", "teach", "show", "make", "more",
+        "than", "then", "they", "like", "good", "best", "free",
+        "course", "courses", "tutorial", "beginner", "beginners",
+        "intermediate", "advanced", "online", "video",
+    }
+    topics = [t for t in re.findall(r"[a-z][a-z0-9+#]*", query.lower())
+              if len(t) > 3 and t not in _STOP]
+    for t in topics:
+        # Recency-weighted: new topics get +1.0, boost existing by 0.5
+        tf[t] = tf.get(t, 0) + (0.5 if t in tf else 1.0)
+    # Cap at 100 topics; drop lowest-weight ones
+    if len(tf) > 100:
+        sorted_tf = sorted(tf.items(), key=lambda x: x[1], reverse=True)
+        profile["topic_frequency"] = dict(sorted_tf[:100])
+
+    # Update last active
+    profile["last_active"] = datetime.now().isoformat()
+
+    return profile
+
+
+# ── Log a course click (implicit feedback) ────────────────────────────────────
+def log_click(profile: dict, course_title: str) -> dict:
+    """Record that the user opened / clicked on *course_title*."""
+    clicks = profile.setdefault("click_history", [])
+    clicks.append({"course_title": course_title, "timestamp": datetime.now().isoformat()})
+    profile["click_history"] = clicks[-100:]  # keep last 100
+    profile["last_active"]   = datetime.now().isoformat()
+    return profile
+
+
+# ── Record session retention ──────────────────────────────────────────────────
+def record_session(profile: dict, retention_secs: float) -> dict:
+    """Accumulate session time for retention analytics."""
+    profile["total_retention_secs"] = (
+        profile.get("total_retention_secs", 0) + max(0, retention_secs)
+    )
+    profile["session_count"] = profile.get("session_count", 0) + 1
+    profile["last_active"]   = datetime.now().isoformat()
     return profile
 
 
@@ -97,13 +164,21 @@ def enrich_query(profile: dict, raw_query: str) -> str:
     """
     Appends top interest keywords to the query so the TF-IDF model
     picks up on prior context when making recommendations.
+
+    v2: prefers topic_frequency (weighted) over flat interests list.
     """
-    interests = profile.get("interests", [])
-    if not interests:
+    # Use frequency-weighted topics if available, else fall back to interests
+    tf = profile.get("topic_frequency", {})
+    if tf:
+        sorted_topics = sorted(tf.items(), key=lambda x: x[1], reverse=True)
+        recent = [t for t, _ in sorted_topics[:5]]
+    else:
+        interests = profile.get("interests", [])
+        recent = interests[-5:]
+
+    if not recent:
         return raw_query
 
-    # Add up to 5 most-recent interests (last entries are most recent)
-    recent = interests[-5:]
     enriched = raw_query + " " + " ".join(recent)
     return enriched.strip()
 
@@ -111,19 +186,39 @@ def enrich_query(profile: dict, raw_query: str) -> str:
 # ── Stats helper ──────────────────────────────────────────────────────────────
 def get_stats(profile: dict) -> dict:
     history = profile.get("search_history", [])
+
+    # Top topics by frequency weight
+    tf = profile.get("topic_frequency", {})
+    top_topics_weighted = sorted(tf.items(), key=lambda x: x[1], reverse=True)
+    top_topics = [t for t, _ in top_topics_weighted[:10]]
+    if not top_topics:
+        top_topics = profile.get("interests", [])[-10:]
+
+    # Avg retention (minutes per session)
+    sc = max(1, profile.get("session_count", 1))
+    avg_retention = round(profile.get("total_retention_secs", 0) / sc / 60, 1)
+
     return {
-        "total_searches":   len(history),
-        "saved_courses":    len(profile.get("saved_courses", [])),
-        "top_interests":    profile.get("interests", [])[-10:],
-        "last_search":      history[-1]["query"] if history else None,
+        "total_searches":       len(history),
+        "saved_courses":        len(profile.get("saved_courses", [])),
+        "top_interests":        top_topics,
+        "last_search":          history[-1]["query"] if history else None,
         "preferred_difficulty": profile.get("preferred_difficulty", "All"),
+        "difficulty_counts":    profile.get("difficulty_counts", {}),
+        "avg_retention_mins":   avg_retention,
+        "session_count":        profile.get("session_count", 0),
+        "click_count":          len(profile.get("click_history", [])),
     }
 
 
 # ── Clear history ─────────────────────────────────────────────────────────────
 def clear_history(profile: dict) -> dict:
-    profile["search_history"] = []
-    profile["interests"]      = []
+    profile["search_history"]       = []
+    profile["interests"]            = []
+    profile["topic_frequency"]      = {}
+    profile["click_history"]        = []
+    profile["difficulty_counts"]    = {"Beginner": 0, "Intermediate": 0, "Advanced": 0}
+    profile["preferred_difficulty"] = "All"
     return profile
 
 

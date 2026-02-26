@@ -1,9 +1,10 @@
 """
 recommender.py
 --------------
-Phase 5: Recommendation Engine
+Phase 5: Recommendation Engine  (v2 — Engagement-Boosted)
 Computes cosine similarity between user query and course corpus,
-then returns Top-N ranked recommendations.
+then blends in a small engagement-boost signal learned from
+collective user behaviour (clicks + saves via behavior_tracker).
 """
 
 import numpy as np
@@ -11,6 +12,7 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
 from vectorizer import load_tfidf_model, transform_query
+from behavior_tracker import get_engagement_boost
 
 
 # ── Load model once at module level (cached) ──────────────────────────────────
@@ -58,6 +60,12 @@ def recommend(
     # 3. Attach scores to dataframe
     results = _courses_df.copy()
     results["similarity_score"] = scores
+
+    # 3b. Blend engagement boost (learned from clicks + saves)
+    results["similarity_score"] = results.apply(
+        lambda row: row["similarity_score"] + get_engagement_boost(row["course_title"]),
+        axis=1,
+    )
 
     # 4. Apply difficulty filter
     if difficulty_filter != "All":
