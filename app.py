@@ -110,6 +110,8 @@ def _init_session():
         st.session_state.live_query_info = {}
     if "live_page" not in st.session_state:
         st.session_state.live_page = 0
+    if "live_price_filter" not in st.session_state:
+        st.session_state.live_price_filter = "All"
 
 _init_session()
 
@@ -295,15 +297,6 @@ with st.sidebar:
     diff_idx     = difficulties.index(default_diff) if default_diff in difficulties else 0
     difficulty   = st.selectbox("Difficulty Level", difficulties, index=diff_idx)
 
-    st.markdown("**💰 Price**")
-    price_filter = st.radio(
-        "price_filter",
-        ["All", "Free", "Paid"],
-        index=0,
-        horizontal=True,
-        label_visibility="collapsed",
-    )
-
     sources_list = get_sources()
     source_filter = st.selectbox("Platform", sources_list, index=0)
 
@@ -412,7 +405,6 @@ with tab_rec:
                     effective_query,
                     top_n=top_n,
                     difficulty_filter=difficulty,
-                    price_filter=price_filter,
                     progress_callback=_live_prog,
                 )
                 df_live = results_to_df(raw_results)
@@ -443,108 +435,167 @@ with tab_rec:
         st.info(f"🔍 **Interpreted as:** {correction}", icon="💡")
 
     if not df_live.empty:
-        PAGE_SIZE   = 10
-        total       = len(df_live)
-        total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
-        current_pg  = st.session_state.live_page  # 0-indexed
+        PAGE_SIZE = 10
 
-        st.success(
-            f"Found **{total}** courses — Page **{current_pg + 1}** of **{total_pages}**"
-        )
+        # ── Count banner ───────────────────────────────────────────────
+        st.success(f"Found **{len(df_live)}** courses from across the internet.")
 
-        # ── Pagination controls (top) ──────────────────────────────────────
+        # ── Top page-number pills ─────────────────────────────────────────
+        # (computed against unfiltered df so pills don't jump while toggling)
+        raw_total_pages = max(1, (len(df_live) + PAGE_SIZE - 1) // PAGE_SIZE)
+        current_pg      = st.session_state.live_page
+
         pg_cols = st.columns([1, 6, 1])
         with pg_cols[0]:
             if st.button("◀ Prev", disabled=(current_pg == 0), use_container_width=True):
                 st.session_state.live_page -= 1
                 st.rerun()
         with pg_cols[1]:
-            # Page number pills
-            pill_cols = st.columns(min(total_pages, 8))
-            for pg_i in range(min(total_pages, 8)):
+            pill_cols = st.columns(min(raw_total_pages, 8))
+            for pg_i in range(min(raw_total_pages, 8)):
                 with pill_cols[pg_i]:
                     label = f"**{pg_i+1}**" if pg_i == current_pg else str(pg_i + 1)
                     if st.button(label, key=f"pgbtn_{pg_i}", use_container_width=True):
                         st.session_state.live_page = pg_i
                         st.rerun()
         with pg_cols[2]:
-            if st.button("Next ▶", disabled=(current_pg >= total_pages - 1), use_container_width=True):
+            if st.button("Next ▶", disabled=(current_pg >= raw_total_pages - 1), use_container_width=True):
                 st.session_state.live_page += 1
                 st.rerun()
 
-        st.divider()
-
-        # ── Courses for this page ─────────────────────────────────────────
-        start_idx = current_pg * PAGE_SIZE
-        end_idx   = start_idx + PAGE_SIZE
-        page_df   = df_live.iloc[start_idx:end_idx]
-        saved_titles = st.session_state.profile.get("saved_courses", [])
-
-        for pos, (_, row) in enumerate(page_df.iterrows(), start=start_idx + 1):
-            diff_badge  = _difficulty_badge(row["difficulty"])
-            src_badge   = _source_badge(row.get("source", "")) if row.get("source") else ""
-            price_val   = row.get("price", "Free*")
-            price_color = {
-                "Free":  ("#d4edda", "#155724"),
-                "Free*": ("#cce5ff", "#004085"),
-                "Paid":  ("#ffe8cc", "#7a3e00"),
-            }.get(price_val, ("#e2e3e5", "#383d41"))
-            price_label = {"Free": "✓ Free", "Free*": "◑ Free to Audit", "Paid": "$ Paid"}.get(price_val, price_val)
-            price_badge = (
-                f'<span class="badge" style="background:{price_color[0]};color:{price_color[1]};'
-                f'border:1px solid {price_color[1]}22">'
-                f'{price_label}</span>'
-            )
-            score      = float(row.get("similarity_score", 0))
-            score_pct  = min(int(score * 100 / max(score, 0.001)), 100)
-            title_disp = str(row["course_title"])[:90] + ("…" if len(str(row["course_title"])) > 90 else "")
-            desc_disp  = str(row["description"])[:150] + ("…" if len(str(row["description"])) > 150 else "")
-
+        # ── Price filter (inline, below page pills) ───────────────────────
+        st.markdown("")
+        pf_left, pf_mid, pf_right = st.columns([1, 3, 4])
+        with pf_left:
             st.markdown(
-                f"""
-                <div class="course-card" style="padding:10px 16px;margin-bottom:8px">
-                    <div style="display:flex;align-items:baseline;gap:10px">
-                        <span style="font-size:1.15rem;font-weight:800;color:#667eea;min-width:32px">#{pos}</span>
-                        <span class="course-title" style="font-size:1rem">{title_disp}</span>
-                    </div>
-                    <div style="margin:5px 0 4px 42px">
-                        {price_badge}{src_badge}{diff_badge}
-                        <span style="color:#667eea;font-size:0.8rem;font-weight:600;margin-left:8px">Score: {score:.4f}</span>
-                    </div>
-                    <div style="color:#495057;font-size:0.85rem;margin:0 0 4px 42px">{desc_disp}</div>
-                </div>
-                """,
+                '<span style="font-weight:700;font-size:0.95rem;">&#128176; Price:</span>',
                 unsafe_allow_html=True,
             )
-            lnk_col, save_col = st.columns([5, 1])
-            with lnk_col:
-                st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[🔗 Open Course]({row['url']})")
-            with save_col:
-                is_saved   = row["course_title"] in saved_titles
-                btn_label  = "★ Saved" if is_saved else "☆ Save"
-                if st.button(btn_label, key=f"save_live_{pos}_{str(row['course_title'])[:10]}"):
-                    profile = st.session_state.profile
-                    if is_saved:
-                        profile = remove_course(profile, row["course_title"])
-                        st.toast(f"Removed: {row['course_title'][:40]}")
-                    else:
-                        profile = save_course(profile, row["course_title"])
-                        st.toast(f"Saved: {row['course_title'][:40]}")
-                    save_profile(profile)
-                    st.session_state.profile = profile
-                    st.rerun()
+        with pf_mid:
+            price_options = ["All", "Free", "Paid"]
+            price_sel = st.radio(
+                "price_sel",
+                price_options,
+                index=price_options.index(st.session_state.live_price_filter),
+                horizontal=True,
+                label_visibility="collapsed",
+                key="price_radio_inline",
+            )
+        with pf_right:
+            st.markdown(
+                '<span style="color:#6c757d;font-size:0.8rem">'  
+                '✓ Free — fully free &nbsp;| '  
+                '◑ Free to Audit — free course, paid certificate &nbsp;| '  
+                '$ Paid — requires payment'  
+                '</span>',
+                unsafe_allow_html=True,
+            )
 
-        # ── Pagination controls (bottom) ───────────────────────────────────
+        # Reset to page 0 when price filter changes
+        if price_sel != st.session_state.live_price_filter:
+            st.session_state.live_price_filter = price_sel
+            st.session_state.live_page = 0
+            st.rerun()
+
+        # ── Apply price filter client-side ───────────────────────────────
+        price_sel = st.session_state.live_price_filter
+        if price_sel == "Free":
+            display_df = df_live[df_live["price"].isin(["Free", "Free*"])].reset_index(drop=True)
+        elif price_sel == "Paid":
+            display_df = df_live[df_live["price"] == "Paid"].reset_index(drop=True)
+        else:
+            display_df = df_live.reset_index(drop=True)
+
+        total_filtered = len(display_df)
+        total_pages    = max(1, (total_filtered + PAGE_SIZE - 1) // PAGE_SIZE)
+        current_pg     = min(st.session_state.live_page, total_pages - 1)
+
         st.divider()
-        bt_cols = st.columns([1, 6, 1])
-        with bt_cols[0]:
-            if st.button("◀ Prev ", disabled=(current_pg == 0), use_container_width=True):
-                st.session_state.live_page -= 1
-                st.rerun()
-        with bt_cols[2]:
-            if st.button(" Next ▶", disabled=(current_pg >= total_pages - 1), use_container_width=True):
-                st.session_state.live_page += 1
-                st.rerun()
+
+        if total_filtered == 0:
+            st.warning(
+                f"No **{'Free' if price_sel == 'Free' else 'Paid'}** courses found in these results. "
+                "Try switching to **All** or searching again."
+            )
+        else:
+            st.caption(
+                f"Showing **{total_filtered}** {'free' if price_sel == 'Free' else 'paid' if price_sel == 'Paid' else ''} "
+                f"courses — Page **{current_pg + 1}** of **{total_pages}**"
+            )
+
+            # ── Courses for this page ──────────────────────────────────────
+            start_idx    = current_pg * PAGE_SIZE
+            end_idx      = start_idx + PAGE_SIZE
+            page_df      = display_df.iloc[start_idx:end_idx]
+            saved_titles = st.session_state.profile.get("saved_courses", [])
+
+            for pos, (_, row) in enumerate(page_df.iterrows(), start=start_idx + 1):
+                diff_badge  = _difficulty_badge(row["difficulty"])
+                src_badge   = _source_badge(row.get("source", "")) if row.get("source") else ""
+                price_val   = row.get("price", "Free*")
+                price_color = {
+                    "Free":  ("#d4edda", "#155724"),
+                    "Free*": ("#cce5ff", "#004085"),
+                    "Paid":  ("#ffe8cc", "#7a3e00"),
+                }.get(price_val, ("#e2e3e5", "#383d41"))
+                price_label = {
+                    "Free":  "✓ Free",
+                    "Free*": "◑ Free to Audit",
+                    "Paid":  "$ Paid",
+                }.get(price_val, price_val)
+                price_badge = (
+                    f'<span class="badge" style="background:{price_color[0]};color:{price_color[1]};'
+                    f'border:1px solid {price_color[1]}22">{price_label}</span>'
+                )
+                score      = float(row.get("similarity_score", 0))
+                title_disp = str(row["course_title"])[:90] + ("…" if len(str(row["course_title"])) > 90 else "")
+                desc_disp  = str(row["description"])[:150] + ("…" if len(str(row["description"])) > 150 else "")
+
+                st.markdown(
+                    f"""
+                    <div class="course-card" style="padding:10px 16px;margin-bottom:8px">
+                        <div style="display:flex;align-items:baseline;gap:10px">
+                            <span style="font-size:1.15rem;font-weight:800;color:#667eea;min-width:32px">#{pos}</span>
+                            <span class="course-title" style="font-size:1rem">{title_disp}</span>
+                        </div>
+                        <div style="margin:5px 0 4px 42px">
+                            {price_badge}{src_badge}{diff_badge}
+                            <span style="color:#667eea;font-size:0.8rem;font-weight:600;margin-left:8px">Score: {score:.4f}</span>
+                        </div>
+                        <div style="color:#495057;font-size:0.85rem;margin:0 0 4px 42px">{desc_disp}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                lnk_col, save_col = st.columns([5, 1])
+                with lnk_col:
+                    st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[🔗 Open Course]({row['url']})")
+                with save_col:
+                    is_saved  = row["course_title"] in saved_titles
+                    btn_label = "★ Saved" if is_saved else "☆ Save"
+                    if st.button(btn_label, key=f"save_live_{pos}_{str(row['course_title'])[:10]}"):
+                        profile = st.session_state.profile
+                        if is_saved:
+                            profile = remove_course(profile, row["course_title"])
+                            st.toast(f"Removed: {row['course_title'][:40]}")
+                        else:
+                            profile = save_course(profile, row["course_title"])
+                            st.toast(f"Saved: {row['course_title'][:40]}")
+                        save_profile(profile)
+                        st.session_state.profile = profile
+                        st.rerun()
+
+            # ── Pagination controls (bottom) ────────────────────────────────
+            st.divider()
+            bt_cols = st.columns([1, 6, 1])
+            with bt_cols[0]:
+                if st.button("◀ Prev ", disabled=(current_pg == 0), use_container_width=True):
+                    st.session_state.live_page -= 1
+                    st.rerun()
+            with bt_cols[2]:
+                if st.button(" Next ▶", disabled=(current_pg >= total_pages - 1), use_container_width=True):
+                    st.session_state.live_page += 1
+                    st.rerun()
 
     elif search_clicked or triggered_preset:
         st.info("No results found. Try rephrasing your query.")
