@@ -21,13 +21,15 @@ st.set_page_config(
 )
 
 # ── Project imports ───────────────────────────────────────────────────────────
-from recommender   import recommend, keyword_search, get_difficulties
+from recommender   import recommend, keyword_search, get_difficulties, get_sources, invalidate_cache
 from user_profile  import (load_profile, save_profile, log_search,
                             save_course, remove_course, enrich_query,
                             get_stats, clear_history)
 from evaluation    import (run_evaluation, plot_comparison,
                             plot_per_query_heatmap, plot_metric_radar,
                             RESULTS_PATH)
+from scraper       import scrape_all, get_last_scrape_info
+from vectorizer    import build_and_save_tfidf
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -99,6 +101,8 @@ def _init_session():
         st.session_state.eval_results = None
     if "active_tab" not in st.session_state:
         st.session_state.active_tab = "Recommend"
+    if "scrape_log" not in st.session_state:
+        st.session_state.scrape_log = []
 
 _init_session()
 
@@ -113,19 +117,39 @@ def _difficulty_badge(level: str) -> str:
     return f'<span class="badge {cls}">{level}</span>'
 
 
+# ── Source badge helper ────────────────────────────────────────────────────────
+_SOURCE_COLORS = {
+    "Coursera":     ("#0056D2", "#fff"),
+    "MIT OCW":      ("#8A0000", "#fff"),
+    "freeCodeCamp": ("#0a0a23", "#99c9ff"),
+    "Khan Academy": ("#14BF96", "#fff"),
+}
+
+def _source_badge(source: str) -> str:
+    bg, fg = _SOURCE_COLORS.get(source, ("#6c757d", "#fff"))
+    return (
+        f'<span style="background:{bg};color:{fg};padding:2px 9px;'
+        f'border-radius:10px;font-size:0.73rem;font-weight:600;'
+        f'margin-right:5px">{source}</span>'
+    )
+
+
 # ── Render a single course card ───────────────────────────────────────────────
 def render_course_card(row, index: int, saved_titles: list, show_save: bool = True):
-    score_pct = min(int(row["similarity_score"] * 100 / max(row["similarity_score"], 0.001)), 100)
-    badge     = _difficulty_badge(row["difficulty"])
-    stars     = "★" * int(row["rating"]) + "☆" * (5 - int(row["rating"]))
+    score_pct  = min(int(row["similarity_score"] * 100 / max(row["similarity_score"], 0.001)), 100)
+    diff_badge = _difficulty_badge(row["difficulty"])
+    src_badge  = _source_badge(row.get("source", "")) if row.get("source") else ""
+    rating_val = float(row.get("rating", 0) or 0)
+    stars      = "★" * int(rating_val) + "☆" * (5 - int(rating_val))
+    rating_str = f"({rating_val}/5)" if rating_val > 0 else "(unrated)"
 
     st.markdown(f"""
     <div class="course-card">
         <div class="course-title">#{index} &nbsp; {row['course_title']}</div>
         <div style="margin:6px 0">
-            {badge}
+            {src_badge}{diff_badge}
             <span style="color:#f59e0b; font-size:0.9rem">{stars}</span>
-            <span style="color:#6c757d; font-size:0.85rem"> &nbsp;({row['rating']}/5)</span>
+            <span style="color:#6c757d; font-size:0.85rem"> &nbsp;{rating_str}</span>
             &nbsp;&nbsp;
             <span style="color:#667eea; font-size:0.85rem; font-weight:600">
                 Similarity: {row['similarity_score']:.4f}
@@ -135,7 +159,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
             <div class="similarity-bar-fill" style="width:{score_pct}%"></div>
         </div>
         <div style="color:#495057; font-size:0.88rem; margin-bottom:6px">
-            {row['description'][:200]}{'…' if len(row['description']) > 200 else ''}
+            {row['description'][:220]}{'…' if len(str(row['description'])) > 220 else ''}
         </div>
         <div style="color:#6c757d; font-size:0.82rem">
             <b>Skills:</b> {row['skills']}
@@ -171,7 +195,80 @@ with st.sidebar:
     st.markdown("*Intelligent Course Recommendations*")
     st.divider()
 
-    # Username
+    # ── Live Data Section ─────────────────────────────────────────────────────
+    st.markdown("### 🌐 Live Course Data")
+
+    scrape_info = get_last_scrape_info()
+    if scrape_info["exists"]:
+        st.success(
+            f"**{scrape_info['count']} courses** loaded  \n"
+            f"Updated: {scrape_info['last_updated']}"
+        )
+        if scrape_info["sources"]:
+            for src, cnt in scrape_info["sources"].items():
+                src_bg, src_fg = _SOURCE_COLORS.get(src, ("#6c757d", "#fff"))
+                st.markdown(
+                    f'<span style="background:{src_bg};color:{src_fg};'
+                    f'padding:1px 8px;border-radius:8px;font-size:0.75rem'
+                    f';font-weight:600">{src}</span> {cnt} courses',
+                    unsafe_allow_html=True,
+                )
+    else:
+        st.warning("No course data yet. Fetch live courses below.")
+
+    st.markdown("**Fetch Settings:**")
+    coursera_lim  = st.slider("Coursera courses",   50, 300, 100, 50)
+    mit_ocw_lim  = st.slider("MIT OCW courses",    20, 200,  80, 20)
+    include_fcc  = st.checkbox("Include freeCodeCamp", value=True)
+    include_khan = st.checkbox("Include Khan Academy", value=True)
+
+    fetch_btn = st.button("🔄 Fetch Live Courses", type="primary", use_container_width=True)
+
+    if fetch_btn:
+        prog_bar    = st.progress(0)
+        status_txt  = st.empty()
+        log_area    = st.empty()
+        scrape_log  = []
+
+        def _progress_cb(msg, pct):
+            prog_bar.progress(pct / 100)
+            status_txt.caption(f"⏳ {msg}")
+            scrape_log.append(f"[{pct:3d}%] {msg}")
+            log_area.code("\n".join(scrape_log[-6:]), language=None)
+
+        with st.spinner("Scraping live courses …"):
+            try:
+                df_new = scrape_all(
+                    coursera_limit=coursera_lim,
+                    mit_ocw_limit=mit_ocw_lim,
+                    include_fcc=include_fcc,
+                    include_khan=include_khan,
+                    progress_callback=_progress_cb,
+                )
+
+                if df_new.empty:
+                    st.error("Scraper returned no courses. Check your internet connection.")
+                else:
+                    # Rebuild TF-IDF with fresh data
+                    _progress_cb("Building NLP model on fresh data …", 95)
+                    build_and_save_tfidf(df_new)
+                    invalidate_cache()          # clear in-memory model cache
+                    st.session_state.scrape_log = scrape_log
+                    prog_bar.progress(1.0)
+                    status_txt.success(
+                        f"✅ Done! {len(df_new)} courses fetched & NLP model rebuilt."
+                    )
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Scraper error: {e}")
+
+    if st.session_state.scrape_log:
+        with st.expander("Last fetch log"):
+            st.code("\n".join(st.session_state.scrape_log), language=None)
+
+    st.divider()
+
+    # ── User section ──────────────────────────────────────────────────────────
     username = st.text_input("Your name (to save history)", value="guest", key="username_input")
     if username != st.session_state.profile.get("username"):
         st.session_state.profile = load_profile(username)
@@ -184,8 +281,12 @@ with st.sidebar:
     default_diff = profile.get("preferred_difficulty", "All")
     diff_idx     = difficulties.index(default_diff) if default_diff in difficulties else 0
     difficulty   = st.selectbox("Difficulty Level", difficulties, index=diff_idx)
+
+    sources_list = get_sources()
+    source_filter = st.selectbox("Platform", sources_list, index=0)
+
     min_rating   = st.slider("Minimum Rating ★", 0.0, 5.0, 0.0, 0.1)
-    top_n        = st.slider("Number of Recommendations", 3, 10, 5)
+    top_n        = st.slider("Number of Recommendations", 3, 15, 5)
     personalize  = st.toggle("Personalize with history", value=True)
 
     st.divider()
@@ -274,6 +375,7 @@ with tab_rec:
                     top_n=top_n,
                     difficulty_filter=difficulty,
                     min_rating=min_rating,
+                    source_filter=source_filter,
                 )
 
             # Log search
@@ -305,7 +407,7 @@ with tab_compare:
 
     if cmp_btn and cmp_query.strip():
         with st.spinner("Running both models …"):
-            nlp_res = recommend(cmp_query, top_n=top_n, difficulty_filter=difficulty)
+            nlp_res = recommend(cmp_query, top_n=top_n, difficulty_filter=difficulty, source_filter=source_filter)
             kw_res  = keyword_search(cmp_query, top_n=top_n, difficulty_filter=difficulty)
 
         st.session_state.last_results_nlp = nlp_res

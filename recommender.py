@@ -31,6 +31,7 @@ def recommend(
     top_n: int = 5,
     difficulty_filter: str = "All",
     min_rating: float = 0.0,
+    source_filter: str = "All",
 ) -> pd.DataFrame:
     """
     Main recommendation function.
@@ -41,12 +42,7 @@ def recommend(
     top_n            : Number of results to return
     difficulty_filter: 'All' | 'Beginner' | 'Intermediate' | 'Advanced'
     min_rating       : Minimum course rating (0.0 – 5.0)
-
-    Returns
-    -------
-    pd.DataFrame with columns:
-        rank, course_title, difficulty, rating, similarity_score,
-        description, skills, url
+    source_filter    : 'All' | 'Coursera' | 'edX' | 'freeCodeCamp' | 'Khan Academy'
     """
     _ensure_model()
 
@@ -67,24 +63,29 @@ def recommend(
     if difficulty_filter != "All":
         results = results[results["difficulty"].str.lower() == difficulty_filter.lower()]
 
-    # 5. Apply rating filter
+    # 5. Apply source filter
+    if source_filter != "All" and "source" in results.columns:
+        results = results[results["source"] == source_filter]
+
+    # 6. Apply rating filter
     if min_rating > 0:
         results = results[results["rating"] >= min_rating]
 
-    # 6. Sort by similarity (desc), then rating (desc) as tie-breaker
+    # 7. Sort by similarity (desc), then rating (desc) as tie-breaker
     results = results.sort_values(
         by=["similarity_score", "rating"],
         ascending=[False, False],
     )
 
-    # 7. Take top-N
+    # 8. Take top-N
     results = results.head(top_n).reset_index(drop=True)
     results["rank"] = results.index + 1
 
-    return results[[
-        "rank", "course_title", "difficulty", "rating",
-        "similarity_score", "description", "skills", "url",
-    ]]
+    cols = ["rank", "course_title", "difficulty", "rating",
+            "similarity_score", "description", "skills", "url"]
+    if "source" in results.columns:
+        cols.append("source")
+    return results[cols]
 
 
 # ── Baseline: keyword search (for comparison in evaluation) ───────────────────
@@ -120,16 +121,33 @@ def keyword_search(
     df = df.head(top_n).reset_index(drop=True)
     df["rank"] = df.index + 1
 
-    return df[[
-        "rank", "course_title", "difficulty", "rating",
-        "similarity_score", "description", "skills", "url",
-    ]]
+    cols = ["rank", "course_title", "difficulty", "rating",
+            "similarity_score", "description", "skills", "url"]
+    if "source" in df.columns:
+        cols.append("source")
+    return df[cols]
+
+
+# ── Invalidate in-memory cache (call after scraping new data) ─────────────────
+def invalidate_cache():
+    global _vectorizer, _tfidf_matrix, _courses_df
+    _vectorizer   = None
+    _tfidf_matrix = None
+    _courses_df   = None
 
 
 # ── Get available difficulties ─────────────────────────────────────────────────
 def get_difficulties():
     _ensure_model()
     return ["All"] + sorted(_courses_df["difficulty"].unique().tolist())
+
+
+# ── Get available sources ──────────────────────────────────────────────────────
+def get_sources():
+    _ensure_model()
+    if "source" in _courses_df.columns:
+        return ["All"] + sorted(_courses_df["source"].unique().tolist())
+    return ["All"]
 
 
 # ── CLI test ──────────────────────────────────────────────────────────────────
