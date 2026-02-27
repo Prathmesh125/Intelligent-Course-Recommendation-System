@@ -37,6 +37,11 @@
       "query": "learn hacking from stert to end..",
       "difficulty": "All",
       "timestamp": "2026-02-27T12:42:14.056989"
+    },
+    {
+      "query": "natural language processing NLP",
+      "difficulty": "All",
+      "timestamp": "2026-02-27T12:50:50.841777"
     }
   ],
   "saved_courses": [
@@ -67,18 +72,18 @@
     "beginer",
     "hacking"
   ],
-  "total_retention_secs": 653.4712221622467,
-  "session_count": 9,
-  "last_active": "2026-02-27T12:42:14.057023",
+  "total_retention_secs": 1268.7119455337524,
+  "session_count": 13,
+  "last_active": "2026-02-27T13:00:37.536971",
   "difficulty_counts": {
     "Beginner": 0,
     "Intermediate": 0,
     "Advanced": 0
   },
   "topic_frequency": {
-    "natural": 1.5,
-    "language": 1.5,
-    "processing": 1.5,
+    "natural": 2.0,
+    "language": 2.0,
+    "processing": 2.0,
     "coding": 1.5,
     "beginer": 1.5,
     "guide": 1.5,

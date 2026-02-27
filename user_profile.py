@@ -144,17 +144,31 @@ def record_session(profile: dict, retention_secs: float) -> dict:
 
 
 # ── Save a course ─────────────────────────────────────────────────────────────
-def save_course(profile: dict, course_title: str) -> dict:
+def save_course(profile: dict, course_title: str, metadata: dict = None) -> dict:
     saved = profile.get("saved_courses", [])
-    if course_title not in saved:
-        saved.append(course_title)
-    profile["saved_courses"] = saved[-50:]  # cap at 50
+    # Normalise: convert any legacy plain strings to dicts
+    saved = [{"title": c} if isinstance(c, str) else c for c in saved]
+    titles = [c["title"] for c in saved]
+    if course_title not in titles:
+        entry = {"title": course_title}
+        if metadata:
+            entry.update({
+                "url":         metadata.get("url", ""),
+                "description": metadata.get("description", ""),
+                "difficulty":  metadata.get("difficulty", ""),
+                "source":      metadata.get("source", ""),
+                "rating":      metadata.get("rating", 0),
+            })
+        saved.append(entry)
+    profile["saved_courses"] = saved[-50:]
     return profile
 
 
 def remove_course(profile: dict, course_title: str) -> dict:
+    saved = profile.get("saved_courses", [])
     profile["saved_courses"] = [
-        c for c in profile.get("saved_courses", []) if c != course_title
+        c for c in saved
+        if (c if isinstance(c, str) else c.get("title", "")) != course_title
     ]
     return profile
 

@@ -117,7 +117,7 @@ st.markdown("""
         border: 1px solid var(--border-color);
         border-radius: var(--radius);
         padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0;
         box-shadow: var(--shadow-sm);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
@@ -223,6 +223,38 @@ st.markdown("""
     div.stButton > button[kind="primary"] {
         background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%);
         color: white;
+    }
+    /* Save bookmark button row — sits flush under the card */
+    .save-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1.5rem;
+    }
+    .save-row div.stButton > button {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-light);
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 5px 14px;
+        border-radius: 0 0 12px 12px !important;
+        border-top: none !important;
+        margin-top: -1px;
+        letter-spacing: 0.03em;
+        box-shadow: none;
+    }
+    .save-row div.stButton > button:hover {
+        background: rgba(129, 140, 248, 0.12);
+        color: var(--primary-light);
+        border-color: var(--primary) !important;
+        transform: none;
+        box-shadow: none;
+    }
+    .save-row div.stButton > button[kind="primary"] {
+        background: rgba(129, 140, 248, 0.18);
+        color: var(--primary-light);
+        border: 1px solid var(--primary) !important;
+        border-top: none !important;
     }
 
     /* SIDEBAR */
@@ -442,21 +474,33 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
 
     if show_save:
         is_saved = row["course_title"] in saved_titles
-        if is_saved:
-            if st.button("★ Saved", key=f"save_{index}_{row['course_title'][:15]}", type="primary"):
-                profile = st.session_state.profile
-                profile = remove_course(profile, row["course_title"])
-                save_profile(profile)
-                st.session_state.profile = profile
-                st.rerun()
-        else:
-            if st.button("☆ Save", key=f"save_{index}_{row['course_title'][:15]}"):
-                profile = st.session_state.profile
-                profile = save_course(profile, row["course_title"])
-                bt.log_save(profile["username"], row["course_title"])
-                save_profile(profile)
-                st.session_state.profile = profile
-                st.rerun()
+        _, save_col = st.columns([3, 1])
+        with save_col:
+            st.markdown('<div class="save-row">', unsafe_allow_html=True)
+            if is_saved:
+                if st.button("★  Saved", key=f"save_{index}_{row['course_title'][:15]}", type="primary", use_container_width=True):
+                    profile = st.session_state.profile
+                    profile = remove_course(profile, row["course_title"])
+                    save_profile(profile)
+                    st.session_state.profile = profile
+                    st.rerun()
+            else:
+                if st.button("☆  Save", key=f"save_{index}_{row['course_title'][:15]}", use_container_width=True):
+                    profile = st.session_state.profile
+                    profile = save_course(profile, row["course_title"], metadata={
+                        "url":         row.get("url", ""),
+                        "description": row.get("description", ""),
+                        "difficulty":  row.get("difficulty", ""),
+                        "source":      row.get("source", ""),
+                        "rating":      row.get("rating", 0),
+                    })
+                    bt.log_save(profile["username"], row["course_title"])
+                    save_profile(profile)
+                    st.session_state.profile = profile
+                    st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div style="margin-bottom:1.5rem;"></div>', unsafe_allow_html=True)
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -591,12 +635,11 @@ st.markdown('''
 </div>
 ''', unsafe_allow_html=True)
 
-tab_rec, tab_compare, tab_eval, tab_saved, tab_about = st.tabs([
+tab_rec, tab_compare, tab_eval, tab_saved = st.tabs([
     "🔍 Discover",
     "⚖️ Model Compare",
     "📊 Performance",
     "🔖 Saved",
-    "ℹ️ About",
 ])
 
 # ── TAB 1: Recommendations ────────────────────────────────────────────────────
@@ -858,7 +901,10 @@ with tab_rec:
             start_idx    = current_pg * PAGE_SIZE
             end_idx      = start_idx + PAGE_SIZE
             page_df      = display_df.iloc[start_idx:end_idx]
-            saved_titles = st.session_state.profile.get("saved_courses", [])
+            saved_titles = [
+                c if isinstance(c, str) else c.get("title", "")
+                for c in st.session_state.profile.get("saved_courses", [])
+            ]
 
             for pos, (_, row) in enumerate(page_df.iterrows(), start=start_idx + 1):
                 diff_badge  = _difficulty_badge(row["difficulty"])
@@ -902,31 +948,33 @@ with tab_rec:
                     """,
                     unsafe_allow_html=True,
                 )
-                track_col, save_col = st.columns([1, 1])
-                with track_col:
-                    if st.button("👁", key=f"track_live_{pos}_{str(row['course_title'])[:8]}",
-                                 help="Mark as opened — trains your recommendations"):
-                        _p = st.session_state.profile
-                        bt.log_click(_p["username"], row["course_title"])
-                        _p = log_click(_p, row["course_title"])
-                        save_profile(_p)
-                        st.session_state.profile = _p
-                        st.toast("📚 Marked! Recommendations will learn from this.")
+                is_saved  = row["course_title"] in saved_titles
+                btn_label = "★  Saved" if is_saved else "☆  Save"
+                btn_type  = "primary" if is_saved else "secondary"
+                _, save_col = st.columns([3, 1])
                 with save_col:
-                    is_saved  = row["course_title"] in saved_titles
-                    btn_label = "★ Saved" if is_saved else "☆ Save"
-                    if st.button(btn_label, key=f"save_live_{pos}_{str(row['course_title'])[:10]}"):
+                    st.markdown('<div class="save-row">', unsafe_allow_html=True)
+                    if st.button(btn_label, key=f"save_live_{pos}_{str(row['course_title'])[:10]}",
+                                 type=btn_type, use_container_width=True):
                         profile = st.session_state.profile
                         if is_saved:
                             profile = remove_course(profile, row["course_title"])
                             st.toast(f"Removed: {row['course_title'][:40]}")
                         else:
-                            profile = save_course(profile, row["course_title"])
+                            profile = save_course(profile, row["course_title"], metadata={
+                                "url":         row.get("url", ""),
+                                "description": row.get("description", ""),
+                                "difficulty":  row.get("difficulty", ""),
+                                "source":      row.get("source", ""),
+                                "rating":      row.get("rating", 0),
+                            })
+                            bt.log_click(profile["username"], row["course_title"])
                             bt.log_save(profile["username"], row["course_title"])
                             st.toast(f"Saved: {row['course_title'][:40]}")
                         save_profile(profile)
                         st.session_state.profile = profile
                         st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
 
             # ── Pagination controls (bottom) ────────────────────────────────
             st.divider()
@@ -1094,96 +1142,52 @@ with tab_eval:
 # ── TAB 4: Saved Courses ──────────────────────────────────────────────────────
 with tab_saved:
     profile = st.session_state.profile
-    saved   = profile.get("saved_courses", [])
+    raw_saved = profile.get("saved_courses", [])
+    # Normalise: support both legacy str entries and new dict entries
+    saved = [{"title": c} if isinstance(c, str) else c for c in raw_saved]
 
     st.markdown(f"### 🔖 Your Saved Courses  ({len(saved)})")
 
     if not saved:
         st.info("No saved courses yet. Hit ☆ Save on any recommendation to bookmark it here.")
     else:
-        from vectorizer import load_tfidf_model
-        _, _, courses_df = load_tfidf_model()
+        for i, entry in enumerate(saved):
+            title   = entry.get("title", "Untitled")
+            url     = entry.get("url", "")
+            desc    = entry.get("description", "")
+            diff    = entry.get("difficulty", "")
+            source  = entry.get("source", "")
+            rating  = float(entry.get("rating", 0) or 0)
+            stars   = "★" * int(rating) + "☆" * (5 - int(rating)) if rating else ""
 
-        for title in saved:
-            row = courses_df[courses_df["course_title"] == title]
-            if row.empty:
-                continue
-            row = row.iloc[0]
-            badge = _difficulty_badge(row["difficulty"])
-            st.markdown(
-                f'<div class="course-card" style="padding: 16px;">'
-                f'<div class="course-title" style="font-size: 1.15rem;">{row["course_title"]}</div>'
-                f'<div style="margin: 8px 0; display: flex; align-items: center; gap: 8px;">'
-                f'{badge} <span style="color:#F59E0B; font-size:0.9rem;">★{row["rating"]}</span>'
-                f'</div>'
-                f'<div style="font-size:0.9rem; color:#4B5563; line-height: 1.5;">{row["description"][:150]}…</div>'
-                f'</div>',
-                unsafe_allow_html=True
+            diff_badge = _difficulty_badge(diff) if diff else ""
+            src_badge  = _source_badge(source) if source else ""
+            desc_html  = f'<div style="color:var(--text-light); font-size:0.9rem; line-height:1.5; margin-top:8px;">{desc[:200] + "…" if len(desc) > 200 else desc}</div>' if desc else ""
+            title_html = (
+                f'<a href="{url}" target="_blank" style="color:inherit; text-decoration:none;" '
+                f'onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">{title}</a>'
+                if url else title
             )
-            if st.button(f"Remove: {title[:40]}", key=f"rm_{title[:20]}"):
-                profile = remove_course(profile, title)
-                save_profile(profile)
-                st.session_state.profile = profile
-                st.rerun()
+
+            st.markdown(
+                f'<div class="course-card">'
+                f'<div class="course-title" style="font-size:1.15rem;">{title_html}</div>'
+                f'<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:8px 0;">'
+                f'{src_badge}{diff_badge}'
+                f'{"<span style=\"color:#F59E0B; font-size:0.9rem;\">" + stars + "</span>" if stars else ""}'
+                f'</div>'
+                f'{desc_html}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            _, rm_col = st.columns([3, 1])
+            with rm_col:
+                st.markdown('<div class="save-row">', unsafe_allow_html=True)
+                if st.button("✕  Remove", key=f"rm_{i}_{title[:20]}", use_container_width=True):
+                    profile = remove_course(profile, title)
+                    save_profile(profile)
+                    st.session_state.profile = profile
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ── TAB 5: About ──────────────────────────────────────────────────────────────
-with tab_about:
-    st.markdown("""
-    <div style="padding: 20px; background: #ffffff; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-        <h2 style="color: #111827; margin-top: 0;">NLPRec — Intelligent Course Recommendation System</h2>
-        <p style="color: #4B5563; font-size: 1.05rem; line-height: 1.6;">
-            NLPRec is an AI-powered course recommendation engine that understands <b>natural language queries</b>
-            and matches them semantically to course descriptions using NLP techniques.
-        </p>
-        
-        <h3 style="color: #374151; margin-top: 24px;">How It Works</h3>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-            <tr style="background: #F9FAFB; border-bottom: 2px solid #E5E7EB;">
-                <th style="padding: 12px; text-align: left; color: #374151;">Step</th>
-                <th style="padding: 12px; text-align: left; color: #374151;">Module</th>
-                <th style="padding: 12px; text-align: left; color: #374151;">What Happens</th>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 12px; color: #4B5563;">1</td>
-                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">text_preprocessing.py</td>
-                <td style="padding: 12px; color: #4B5563;">Lowercasing → Tokenization → Stopword removal → Lemmatization</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 12px; color: #4B5563;">2</td>
-                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">vectorizer.py</td>
-                <td style="padding: 12px; color: #4B5563;">TF-IDF vectorization of corpus (courses)</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 12px; color: #4B5563;">3</td>
-                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">recommender.py</td>
-                <td style="padding: 12px; color: #4B5563;">Cosine similarity between user query and course vectors</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 12px; color: #4B5563;">4</td>
-                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">user_profile.py</td>
-                <td style="padding: 12px; color: #4B5563;">Query logging + personalization enrichment</td>
-            </tr>
-            <tr>
-                <td style="padding: 12px; color: #4B5563;">5</td>
-                <td style="padding: 12px; color: #4F46E5; font-family: monospace;">evaluation.py</td>
-                <td style="padding: 12px; color: #4B5563;">Precision@K, Recall@K, F1@K vs keyword baseline</td>
-            </tr>
-        </table>
-
-        <h3 style="color: #374151;">Tech Stack</h3>
-        <ul style="color: #4B5563; line-height: 1.6;">
-            <li><b>Python 3.10+</b></li>
-            <li><b>scikit-learn</b> — TF-IDF, cosine similarity</li>
-            <li><b>NLTK</b> — tokenization, stopwords, lemmatization</li>
-            <li><b>pandas / numpy</b> — data processing</li>
-            <li><b>Streamlit</b> — web interface</li>
-            <li><b>matplotlib / seaborn / plotly</b> — evaluation charts</li>
-        </ul>
-
-        <hr style="border: 0; border-top: 1px solid #E5E7EB; margin: 24px 0;">
-        <p style="color: #6B7280; font-size: 0.9rem; text-align: center; margin: 0;">
-            <i>Built as part of Final Year Project — B.E. Computer Engineering</i>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)

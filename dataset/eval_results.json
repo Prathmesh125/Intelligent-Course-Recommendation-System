@@ -1,22 +1,23 @@
 {
   "nlp": {
     "label": "NLP Semantic (TF-IDF + Cosine)",
-    "k": 5,
-    "precision_mean": 0.5,
-    "recall_mean": 0.7717,
-    "f1_mean": 0.5983,
+    "k": 6,
+    "precision_mean": 0.0,
+    "recall_mean": 0.0,
+    "f1_mean": 0.0,
     "per_query": [
       {
         "query": "learn python programming basics for beginners",
-        "precision": 0.6,
-        "recall": 1.0,
-        "f1": 0.75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Python for Everybody",
-          "Introduction to Programming with Java",
-          "R Programming for Statistics",
-          "C++ for Competitive Programming",
-          "Introduction to Computer Science with Python"
+          "Machine Learning with Python",
+          "College Algebra with Python",
+          "Data Analysis with Python",
+          "Scientific Computing with Python",
+          "Get Started with iOS App Development",
+          "The Linux Essentials"
         ],
         "relevant": [
           "Python for Everybody",
@@ -26,15 +27,16 @@
       },
       {
         "query": "I want to enter AI but I am weak at math beginner",
-        "precision": 0.6,
-        "recall": 0.75,
-        "f1": 0.6667,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Ethics in Artificial Intelligence",
-          "Introduction to Cybersecurity for Kids and Beginners",
-          "Mathematics for Computer Science",
-          "Introduction to Artificial Intelligence",
-          "Prompt Engineering for AI Applications"
+          "Analyze and Create Your AI Marketing Plan",
+          "Developing AI Policy",
+          "Math",
+          "Differential Equations",
+          "SAT",
+          "Voice AI: Introduction to Building Voice Applications"
         ],
         "relevant": [
           "Introduction to Artificial Intelligence",
@@ -45,15 +47,16 @@
       },
       {
         "query": "data science with python statistics machine learning",
-        "precision": 0.8,
-        "recall": 0.8,
-        "f1": 0.8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Data Science with Python",
-          "Introduction to Computer Science with Python",
-          "Statistics for Data Science",
-          "Machine Learning by Andrew Ng",
-          "Applied Machine Learning"
+          "Machine Learning with Python",
+          "Modelos predictivos con Machine Learning",
+          "Getting started with the Vertex AI Gemini 1.5 Pro Model",
+          "Predictive Analytics with SPSS: Analyze & Apply",
+          "Develop Code with Gemini in BigQuery",
+          "Analyze Box Office Data with Seaborn and Python"
         ],
         "relevant": [
           "Data Science with Python",
@@ -65,15 +68,16 @@
       },
       {
         "query": "advanced deep learning neural networks convolutional",
-        "precision": 0.4,
-        "recall": 0.6667,
-        "f1": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Deep Learning Specialization",
-          "Introduction to Neural Networks",
-          "Machine Learning by Andrew Ng",
-          "Graph Neural Networks",
-          "Speech Recognition and Audio Processing"
+          "Advanced Security and Troubleshooting",
+          "Social Network Analysis",
+          "Introduction To Network Models",
+          "Machine Learning with Python",
+          "Advanced DAX and Performance Optimization",
+          "CyberSec First Responder (CFR-310)"
         ],
         "relevant": [
           "Deep Learning Specialization",
@@ -83,15 +87,16 @@
       },
       {
         "query": "web development HTML CSS JavaScript front end",
-        "precision": 0.4,
-        "recall": 1.0,
-        "f1": 0.5714,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Web Development Bootcamp",
-          "React.js Front-End Development",
-          "FastAPI and Python Backend Development",
-          "Data Science with Python",
-          "Game Development with Unity"
+          "Computer Programming",
+          "GenAI for Front-End Developers",
+          "Responsive Web Design",
+          "Front End Development Libraries",
+          "Build a Mobile App with Firebase",
+          "User Interface Design and Prototyping"
         ],
         "relevant": [
           "Web Development Bootcamp",
@@ -100,15 +105,16 @@
       },
       {
         "query": "database SQL queries data analysis",
-        "precision": 0.4,
-        "recall": 0.6667,
-        "f1": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "SQL for Data Analysis",
-          "Excel for Data Analysis",
-          "Statistics for Data Science",
-          "Natural Language Processing with Python",
-          "Data Cleaning and Preprocessing"
+          "Introduction to SQL and relational databases",
+          "Relational Database",
+          "Performing Data Aggregation using SQL Aggregate Functions",
+          "Data Analysis with Python",
+          "Star Schemas & Track Changes",
+          "Migrating to Cloud SQL from Amazon RDS for MySQL Using Database Migration Service"
         ],
         "relevant": [
           "SQL for Data Analysis",
@@ -118,15 +124,16 @@
       },
       {
         "query": "natural language processing text classification sentiment",
-        "precision": 0.6,
-        "recall": 1.0,
-        "f1": 0.75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Natural Language Processing with Python",
-          "Speech Recognition and Audio Processing",
-          "Computer Vision with OpenCV",
-          "Machine Learning by Andrew Ng",
-          "Generative AI with Large Language Models"
+          "Voice AI: Introduction to Building Voice Applications",
+          "Analyze Multimodal AI for Business Insights",
+          "Grammar",
+          "Data Storage and Management for Big Data",
+          "Fundamentals of Blockchain Architecture",
+          "Gamification"
         ],
         "relevant": [
           "Natural Language Processing with Python",
@@ -136,15 +143,16 @@
       },
       {
         "query": "cloud computing aws deployment devops docker",
-        "precision": 0.6,
-        "recall": 1.0,
-        "f1": 0.75,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Cloud Computing on AWS",
-          "Docker and Kubernetes",
-          "Introduction to Big Data",
-          "Introduction to Quantum Computing",
-          "FastAPI and Python Backend Development"
+          "Choosing your AWS identity service",
+          "Develop Code with Gemini in BigQuery",
+          "Getting started with the Vertex AI Gemini 1.5 Pro Model",
+          "Securing Compute Engine Applications and Resources using Chrome Enterprise Premium",
+          "Debugging Apps on Google Kubernetes Engine",
+          "Multimodality with Gemini"
         ],
         "relevant": [
           "Cloud Computing on AWS",
@@ -154,15 +162,16 @@
       },
       {
         "query": "mathematics for machine learning linear algebra calculus",
-        "precision": 0.4,
-        "recall": 0.5,
-        "f1": 0.4444,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Linear Algebra for Machine Learning",
-          "Machine Learning by Andrew Ng",
-          "Calculus for Machine Learning",
-          "Applied Machine Learning",
-          "Bayesian Machine Learning"
+          "Linear Algebra",
+          "Algebra",
+          "College Algebra with Python",
+          "Machine Learning with Python",
+          "Computer Vision Basics",
+          "Calculus 1"
         ],
         "relevant": [
           "Linear Algebra for Machine Learning",
@@ -173,15 +182,16 @@
       },
       {
         "query": "recommendation systems collaborative filtering",
-        "precision": 0.2,
-        "recall": 0.3333,
-        "f1": 0.25,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Recommender Systems",
-          "Introduction to Robotics",
-          "Speech Recognition and Audio Processing",
-          "Machine Learning by Andrew Ng",
-          "Deep Learning Specialization"
+          "Electrochemical Energy Systems",
+          "Ecology I The Earth System",
+          "Mechanics Of Material Systems An Energy Approach",
+          "Introduction to Enterprise Computing",
+          "Debugging Apps on Google Kubernetes Engine",
+          "Multimodality with Gemini"
         ],
         "relevant": [
           "Recommender Systems",
@@ -193,22 +203,23 @@
   },
   "baseline": {
     "label": "Baseline (Keyword Matching)",
-    "k": 5,
-    "precision_mean": 0.34,
-    "recall_mean": 0.54,
-    "f1_mean": 0.411,
+    "k": 6,
+    "precision_mean": 0.0,
+    "recall_mean": 0.0,
+    "f1_mean": 0.0,
     "per_query": [
       {
         "query": "learn python programming basics for beginners",
-        "precision": 0.2,
-        "recall": 0.3333,
-        "f1": 0.25,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Python for Everybody",
-          "Deep Learning Specialization",
-          "R Programming for Statistics",
-          "Reinforcement Learning",
-          "Linear Algebra for Machine Learning"
+          "Get Started with iOS App Development",
+          "Modern Robotics, Course 1:  Foundations of Robot Motion",
+          "Computer Vision Basics",
+          "Multi-Agent Systems with LangGraph",
+          "CyberSec First Responder (CFR-310)",
+          "The Linux Essentials"
         ],
         "relevant": [
           "Python for Everybody",
@@ -218,15 +229,16 @@
       },
       {
         "query": "I want to enter AI but I am weak at math beginner",
-        "precision": 0.4,
-        "recall": 0.5,
-        "f1": 0.4444,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Introduction to Neural Networks",
-          "Introduction to Artificial Intelligence",
-          "Cybersecurity Fundamentals",
-          "Python for Everybody",
-          "Introduction to Computer Science with Python"
+          "Mastering Microsoft Endpoint Manager and Intune",
+          "Data Management and Sharing for NIH Proposals",
+          "Semiconductor Manufacturing Fundamentals",
+          "The Linux Essentials",
+          "Voice AI: Introduction to Building Voice Applications",
+          "University Studies for Student Veterans"
         ],
         "relevant": [
           "Introduction to Artificial Intelligence",
@@ -237,15 +249,16 @@
       },
       {
         "query": "data science with python statistics machine learning",
-        "precision": 0.4,
-        "recall": 0.4,
-        "f1": 0.4,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Data Science with Python",
-          "Introduction to Computer Science with Python",
-          "Python for Everybody",
-          "FastAPI and Python Backend Development",
-          "Statistics for Data Science"
+          "Analyze Box Office Data with Seaborn and Python",
+          "GenAI for Talent Acquisition: Smarter Candidate Screening",
+          "Predictive Analytics with SPSS: Analyze & Apply",
+          "Multi-Agent Systems with LangGraph",
+          "SPSS: Apply & Interpret Logistic Regression Models",
+          "Data Storage and Management for Big Data"
         ],
         "relevant": [
           "Data Science with Python",
@@ -257,15 +270,16 @@
       },
       {
         "query": "advanced deep learning neural networks convolutional",
-        "precision": 0.4,
-        "recall": 0.6667,
-        "f1": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Deep Learning Specialization",
-          "Graph Neural Networks",
-          "Introduction to Neural Networks",
-          "Machine Learning by Andrew Ng",
-          "Reinforcement Learning"
+          "CyberSec First Responder (CFR-310)",
+          "Advanced Security and Troubleshooting",
+          "Systems Acquisition, Development and Implementation",
+          "The Linux Essentials",
+          "Mastering Microsoft Endpoint Manager and Intune",
+          "Predictive Analytics with SPSS: Analyze & Apply"
         ],
         "relevant": [
           "Deep Learning Specialization",
@@ -275,15 +289,16 @@
       },
       {
         "query": "web development HTML CSS JavaScript front end",
-        "precision": 0.4,
-        "recall": 1.0,
-        "f1": 0.5714,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Web Development Bootcamp",
-          "React.js Front-End Development",
-          "FastAPI and Python Backend Development",
-          "Recommender Systems",
-          "Ethics in Artificial Intelligence"
+          "GenAI for Front-End Developers",
+          "Build a Mobile App with Firebase",
+          "Computer Programming",
+          "Adobe Dreamweaver CC (2017): Part 1",
+          "Multi-Agent Systems with LangGraph",
+          "Get Started with iOS App Development"
         ],
         "relevant": [
           "Web Development Bootcamp",
@@ -292,15 +307,16 @@
       },
       {
         "query": "database SQL queries data analysis",
-        "precision": 0.4,
-        "recall": 0.6667,
-        "f1": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "SQL for Data Analysis",
-          "Excel for Data Analysis",
-          "FastAPI and Python Backend Development",
-          "Statistics for Data Science",
-          "Web Development Bootcamp"
+          "Data Storage and Management for Big Data",
+          "Introduction to SQL and relational databases",
+          "Performing Data Aggregation using SQL Aggregate Functions",
+          "Analyze Box Office Data with Seaborn and Python",
+          "Migrating to Cloud SQL from Amazon RDS for MySQL Using Database Migration Service",
+          "Bioinformatic Methods I"
         ],
         "relevant": [
           "SQL for Data Analysis",
@@ -310,15 +326,16 @@
       },
       {
         "query": "natural language processing text classification sentiment",
-        "precision": 0.2,
-        "recall": 0.3333,
-        "f1": 0.25,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Natural Language Processing with Python",
-          "Computer Vision with OpenCV",
-          "Machine Learning by Andrew Ng",
-          "Feature Engineering for Machine Learning",
-          "Introduction to Big Data"
+          "Voice AI: Introduction to Building Voice Applications",
+          "Analyze Multimodal AI for Business Insights",
+          "Modern Robotics, Course 1:  Foundations of Robot Motion",
+          "YouTube Ads & Video Marketing",
+          "SEO Case Study: Analyze, Optimize & Grow",
+          "Systems Acquisition, Development and Implementation"
         ],
         "relevant": [
           "Natural Language Processing with Python",
@@ -328,15 +345,16 @@
       },
       {
         "query": "cloud computing aws deployment devops docker",
-        "precision": 0.4,
-        "recall": 0.6667,
-        "f1": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Cloud Computing on AWS",
-          "Docker and Kubernetes",
-          "Introduction to Data Engineering",
-          "Introduction to Big Data",
-          "Deep Learning Specialization"
+          "Choosing your AWS identity service",
+          "Getting started with the Vertex AI Gemini 1.5 Pro Model",
+          "Building No-Code Apps with AppSheet: Implementation",
+          "Introduction to Image Generation - Fran\u00e7ais",
+          "Inteligencia Artificial Generativa para Docentes",
+          "Debugging Apps on Google Kubernetes Engine"
         ],
         "relevant": [
           "Cloud Computing on AWS",
@@ -346,15 +364,16 @@
       },
       {
         "query": "mathematics for machine learning linear algebra calculus",
-        "precision": 0.4,
-        "recall": 0.5,
-        "f1": 0.4444,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Linear Algebra for Machine Learning",
-          "Calculus for Machine Learning",
-          "Machine Learning by Andrew Ng",
-          "Feature Engineering for Machine Learning",
-          "Bayesian Machine Learning"
+          "Computer Vision Basics",
+          "Predictive Analytics with SPSS: Analyze & Apply",
+          "Performing Data Aggregation using SQL Aggregate Functions",
+          "Data Storage and Management for Big Data",
+          "Star Schemas & Track Changes",
+          "Developing AI Policy"
         ],
         "relevant": [
           "Linear Algebra for Machine Learning",
@@ -365,15 +384,16 @@
       },
       {
         "query": "recommendation systems collaborative filtering",
-        "precision": 0.2,
-        "recall": 0.3333,
-        "f1": 0.25,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
         "predicted": [
-          "Recommender Systems",
-          "Introduction to Robotics",
-          "Speech Recognition and Audio Processing",
-          "Python for Everybody",
-          "Generative AI with Large Language Models"
+          "Multi-Agent Systems with LangGraph",
+          "Getting started with the Vertex AI Gemini 1.5 Pro Model",
+          "Computer Vision Basics",
+          "Product Management: Developing and Delivering a New Product",
+          "Introduction to Image Generation - Fran\u00e7ais",
+          "Vulnerability Assessment and Management"
         ],
         "relevant": [
           "Recommender Systems",
