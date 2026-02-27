@@ -22,26 +22,54 @@
       "query": "natural language processing NLP",
       "difficulty": "All",
       "timestamp": "2026-02-27T01:07:48.379338"
+    },
+    {
+      "query": "i want to learn coding, im new beginer guide me best courese",
+      "difficulty": "All",
+      "timestamp": "2026-02-27T12:36:45.056211"
+    },
+    {
+      "query": "i want to learn coding, im new beginer guide me best courese and python mainly",
+      "difficulty": "All",
+      "timestamp": "2026-02-27T12:38:11.386751"
+    },
+    {
+      "query": "learn hacking from stert to end..",
+      "difficulty": "All",
+      "timestamp": "2026-02-27T12:42:14.056989"
     }
   ],
-  "saved_courses": [],
+  "saved_courses": [
+    "Course Python - Start Coding For Free - Coding for All Levels"
+  ],
   "interests": [
+    "natural",
+    "processing",
+    "end..",
+    "background",
+    "coding,",
+    "learn",
+    "guitar",
     "language",
     "learning",
     "math",
-    "natural",
+    "mainly",
+    "python",
+    "best",
     "without",
-    "processing",
     "from",
+    "guide",
+    "want",
     "machine",
     "scratch",
-    "background",
-    "learn",
-    "guitar"
+    "stert",
+    "courese",
+    "beginer",
+    "hacking"
   ],
-  "total_retention_secs": 335.84145975112915,
-  "session_count": 3,
-  "last_active": "2026-02-27T01:10:54.421848",
+  "total_retention_secs": 653.4712221622467,
+  "session_count": 9,
+  "last_active": "2026-02-27T12:42:14.057023",
   "difficulty_counts": {
     "Beginner": 0,
     "Intermediate": 0,
@@ -50,12 +78,28 @@
   "topic_frequency": {
     "natural": 1.5,
     "language": 1.5,
-    "processing": 1.5
+    "processing": 1.5,
+    "coding": 1.5,
+    "beginer": 1.5,
+    "guide": 1.5,
+    "courese": 1.5,
+    "python": 1.0,
+    "mainly": 1.0,
+    "hacking": 1.0,
+    "stert": 1.0
   },
   "click_history": [
     {
       "course_title": "NLP - Natural Language Processing with Python - Udemy UCx: Text Analytics 1: Introduction to Natural Language ... - edX Top Natural Language Processing (NLP) Courses Online - Updated Best Online Natural Language Processing Courses & Programs | edX Natural Language Processing | Coursera Natural Language Processing | Coursera Natural Language Processing in TensorFlow - Coursera",
       "timestamp": "2026-02-27T01:10:54.421841"
+    },
+    {
+      "course_title": "Instructor guide to creating coding exercises",
+      "timestamp": "2026-02-27T12:40:35.230213"
+    },
+    {
+      "course_title": "Instructor guide to creating coding exercises",
+      "timestamp": "2026-02-27T12:40:45.090065"
     }
   ]
 }

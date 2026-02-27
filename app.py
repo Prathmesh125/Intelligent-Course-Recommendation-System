@@ -33,6 +33,7 @@ from vectorizer    import build_and_save_tfidf
 from live_search   import search_courses_live, results_to_df, PLATFORM_COLORS as _LIVE_PLATFORM_COLORS
 import behavior_tracker as bt
 from query_suggestions import generate_suggestions, get_trending_chips
+import streamlit.components.v1 as components
 import time
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
@@ -410,7 +411,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     <div class="course-card">
         <div class="course-title">
             <span style="color:#A5B4FC; margin-right:6px; font-weight:400;">#{index}</span>
-            {row['course_title']}
+            <a href="{row['url']}" target="_blank" style="color:inherit; text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{row['course_title']}</a>
         </div>
         
         <div class="course-meta">
@@ -439,34 +440,23 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        if show_save:
-            is_saved = row["course_title"] in saved_titles
-            # Use distinct visual for saved state
-            if is_saved:
-                if st.button("★ Saved", key=f"save_{index}_{row['course_title'][:15]}", type="primary"):
-                    profile = st.session_state.profile
-                    profile = remove_course(profile, row["course_title"])
-                    save_profile(profile)
-                    st.session_state.profile = profile
-                    st.rerun()
-            else:
-                if st.button("☆ Save", key=f"save_{index}_{row['course_title'][:15]}"):
-                    profile = st.session_state.profile
-                    profile = save_course(profile, row["course_title"])
-                    bt.log_save(profile["username"], row["course_title"])
-                    save_profile(profile)
-                    st.session_state.profile = profile
-                    st.rerun()
-    with col2:
-        st.markdown(
-            f"""<a href="{row['url']}" target="_blank" style="text-decoration:none;">
-            <div style="display:inline-block; background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%); color:white; padding:8px 20px; border-radius:8px; font-weight:600; font-size:0.9rem; transition:all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">
-            Go to Course ↗
-            </div></a>""", 
-            unsafe_allow_html=True
-        )
+    if show_save:
+        is_saved = row["course_title"] in saved_titles
+        if is_saved:
+            if st.button("★ Saved", key=f"save_{index}_{row['course_title'][:15]}", type="primary"):
+                profile = st.session_state.profile
+                profile = remove_course(profile, row["course_title"])
+                save_profile(profile)
+                st.session_state.profile = profile
+                st.rerun()
+        else:
+            if st.button("☆ Save", key=f"save_{index}_{row['course_title'][:15]}"):
+                profile = st.session_state.profile
+                profile = save_course(profile, row["course_title"])
+                bt.log_save(profile["username"], row["course_title"])
+                save_profile(profile)
+                st.session_state.profile = profile
+                st.rerun()
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -630,6 +620,37 @@ with tab_rec:
         height=68,
         label_visibility="collapsed",
         key="main_query",
+    )
+
+    # Intercept Enter → submit, Shift+Enter → new line
+    components.html(
+        """
+        <script>
+        (function() {
+            function attachHandler() {
+                var doc = window.parent.document;
+                var textareas = doc.querySelectorAll('textarea[data-testid="stTextArea"], textarea');
+                textareas.forEach(function(ta) {
+                    if (ta._enterSubmitAttached) return;
+                    ta._enterSubmitAttached = true;
+                    ta.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            // Click the first primary button (Find Courses)
+                            var btn = doc.querySelector('button[data-testid="baseButton-primary"]');
+                            if (btn) btn.click();
+                        }
+                    });
+                });
+            }
+            // Run once immediately and again after a short delay to catch late renders
+            attachHandler();
+            setTimeout(attachHandler, 500);
+            setTimeout(attachHandler, 1500);
+        })();
+        </script>
+        """,
+        height=0,
     )
 
     col_btn, col_hint = st.columns([1.5, 4])
@@ -866,7 +887,7 @@ with tab_rec:
                     <div class="course-card">
                         <div class="course-title">
                             <span style="color:#A5B4FC; margin-right:6px; font-weight:400;">#{pos}</span>
-                            {title_disp}
+                            <a href="{row['url']}" target="_blank" style="color:inherit; text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{title_disp}</a>
                         </div>
                         <div class="course-meta">
                             {price_badge}{src_badge}{diff_badge}
@@ -881,9 +902,7 @@ with tab_rec:
                     """,
                     unsafe_allow_html=True,
                 )
-                lnk_col, track_col, save_col = st.columns([4, 1, 1])
-                with lnk_col:
-                    st.markdown(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[🔗 Open Course]({row['url']})")
+                track_col, save_col = st.columns([1, 1])
                 with track_col:
                     if st.button("👁", key=f"track_live_{pos}_{str(row['course_title'])[:8]}",
                                  help="Mark as opened — trains your recommendations"):

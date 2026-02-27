@@ -41,6 +41,42 @@
         "language",
         "processing"
       ]
+    },
+    {
+      "username": "guest",
+      "query": "i want to learn coding, im new beginer guide me best courese",
+      "difficulty": "All",
+      "ts": "2026-02-27T12:36:45.055218",
+      "topics": [
+        "coding",
+        "beginer",
+        "guide",
+        "courese"
+      ]
+    },
+    {
+      "username": "guest",
+      "query": "i want to learn coding, im new beginer guide me best courese and python mainly",
+      "difficulty": "All",
+      "ts": "2026-02-27T12:38:11.386010",
+      "topics": [
+        "coding",
+        "beginer",
+        "guide",
+        "courese",
+        "python",
+        "mainly"
+      ]
+    },
+    {
+      "username": "guest",
+      "query": "learn hacking from stert to end..",
+      "difficulty": "All",
+      "ts": "2026-02-27T12:42:14.056214",
+      "topics": [
+        "hacking",
+        "stert"
+      ]
     }
   ],
   "course_engagement": {
@@ -53,6 +89,16 @@
       "clicks": 1,
       "saves": 0,
       "last_interacted": "2026-02-27T01:10:54.420427"
+    },
+    "Instructor guide to creating coding exercises": {
+      "clicks": 2,
+      "saves": 0,
+      "last_interacted": "2026-02-27T12:40:45.089036"
+    },
+    "Course Python - Start Coding For Free - Coding for All Levels": {
+      "clicks": 0,
+      "saves": 1,
+      "last_interacted": "2026-02-27T12:41:08.159744"
     }
   },
   "user_stats": {
@@ -71,22 +117,34 @@
       ]
     },
     "guest": {
-      "session_count": 3,
-      "total_retention_secs": 335.8416373729706,
-      "last_seen": "2026-02-27T01:10:54.420514",
-      "query_count": 2,
-      "click_count": 1,
-      "save_count": 0,
+      "session_count": 9,
+      "total_retention_secs": 653.4719405174255,
+      "last_seen": "2026-02-27T12:42:14.056241",
+      "query_count": 5,
+      "click_count": 3,
+      "save_count": 1,
       "recent_topics": [
         "natural",
         "language",
         "processing",
         "natural",
         "language",
-        "processing"
+        "processing",
+        "coding",
+        "beginer",
+        "guide",
+        "courese",
+        "coding",
+        "beginer",
+        "guide",
+        "courese",
+        "python",
+        "mainly",
+        "hacking",
+        "stert"
       ]
     }
   },
   "created_at": "2026-02-27T00:24:22.340977",
-  "last_updated": "2026-02-27T01:10:54.420621"
+  "last_updated": "2026-02-27T12:42:14.056270"
 }
