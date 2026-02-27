@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 # ── Page config (must be FIRST Streamlit call) ────────────────────────────────
 st.set_page_config(
     page_title="NLPRec — Course Recommender",
-    page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -42,19 +41,20 @@ st.markdown("""
     /* -------------------------------------------------------------------------- */
     /*                                 VARIABLES                                  */
     /* -------------------------------------------------------------------------- */
+
     :root {
-        --primary: #818CF8;
-        --primary-light: #A5B4FC;
-        --secondary: #F472B6;
-        --bg-color: #0F172A;
-        --surface-color: #1E293B;
-        --text-color: #E2E8F0;
-        --text-light: #94A3B8;
-        --border-color: #334155;
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-        --radius: 16px;
+        --primary: #2563EB;        /* Solid Royal Blue */
+        --primary-light: #60A5FA;  /* Lighter Blue for hovers */
+        --secondary: #2563EB;      /* Unified secondary color */
+        --bg-color: #0F172A;       /* Slate 900 */
+        --surface-color: #1E293B;  /* Slate 800 */
+        --text-color: #F8FAFC;     /* Slate 50 */
+        --text-light: #94A3B8;     /* Slate 400 */
+        --border-color: #334155;   /* Slate 700 */
+        --shadow-sm: none;
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        --radius: 8px;             /* Sharper corners for professional look */
     }
 
     /* -------------------------------------------------------------------------- */
@@ -85,30 +85,28 @@ st.markdown("""
     
     /* HERO SECTION */
     .hero-container {
-        text-align: center;
-        padding: 4rem 0 3rem 0;
-        background: radial-gradient(circle at top center, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
+        text-align: left;
+        padding: 3rem 0;
+        background: transparent;
         margin-bottom: 2rem;
-        border-radius: var(--radius);
+        border: none;
+        border-bottom: 1px solid var(--border-color);
         animation: fadeIn 0.8s ease-out;
     }
     .main-title {
-        font-size: 4rem;
-        font-weight: 800;
-        letter-spacing: -0.03em;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
-        line-height: 1.1;
+        font-size: 3rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
     }
     .subtitle {
         color: var(--text-light);
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         font-weight: 400;
-        max-width: 600px;
-        margin: 0 auto;
-        line-height: 1.6;
+        max-width: 800px;
+        margin: 0;
+        line-height: 1.5;
     }
 
     /* CARDS */
@@ -118,30 +116,22 @@ st.markdown("""
         border-radius: var(--radius);
         padding: 1.5rem;
         margin-bottom: 0;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
+        transition: border-color 0.2s;
         position: relative;
         overflow: hidden;
     }
     .course-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--primary-light);
+        border-color: var(--primary);
+        transform: none;
+        box-shadow: none;
     }
-    /* Accent line on left */
+    /* Accent line on left - REMOVED for cleaner look */
     .course-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 6px;
-        height: 100%;
-        background: linear-gradient(to bottom, var(--primary), var(--secondary));
-        opacity: 0;
-        transition: opacity 0.3s ease;
+        display: none;
     }
     .course-card:hover::before {
-        opacity: 1;
+        display: none;
     }
 
     .course-title {
@@ -176,53 +166,61 @@ st.markdown("""
         border-top: 1px solid var(--border-color);
     }
 
-    /* BADGES */
+    /* BADGES - Solid Colors */
     .badge {
         display: inline-flex;
         align-items: center;
-        padding: 0.35rem 0.85rem;
-        border-radius: 9999px;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px; /* More rectangular */
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        transition: background-color 0.2s;
+        letter-spacing: 0.03em;
     }
-    .badge-beginner     { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-intermediate { background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-advanced     { background: rgba(239, 68, 68, 0.2);  color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-beginner     { background: #064E3B; color: #6EE7B7; border: none; }
+    .badge-intermediate { background: #78350F; color: #FCD34D; border: none; }
+    .badge-advanced     { background: #7F1D1D; color: #FCA5A5; border: none; }
     
-    /* PROGRESS BARS */
+    /* PROGRESS BARS - Solid */
     .similarity-bar-bg {
         background: #334155;
-        border-radius: 9999px;
-        height: 8px;
+        border-radius: 4px;
+        height: 6px;
         margin: 0.75rem 0;
         overflow: hidden;
     }
     .similarity-bar-fill {
         height: 100%;
-        border-radius: 9999px;
-        background: linear-gradient(90deg, var(--primary), var(--secondary));
-        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 4px;
+        background: var(--primary);
+        transition: width 0.3s ease;
     }
 
-    /* BUTTONS & INPUTS */
+    /* Buttons - Solid & Clean */
     div.stButton > button {
-        border-radius: 12px;
-        font-weight: 600;
-        border: none;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.2s;
+        border-radius: 6px;
+        font-weight: 500;
+        border: 1px solid var(--border-color);
+        background: var(--surface-color);
+        color: var(--text-color);
+        box-shadow: none;
+        transition: all 0.15s;
     }
     div.stButton > button:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
+        background: #334155;
+        border-color: #475569;
+        transform: none;
+        box-shadow: none;
     }
     /* Primary buttons */
     div.stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%);
+        background: var(--primary);
+        border: 1px solid var(--primary);
         color: white;
+    }
+    div.stButton > button[kind="primary"]:hover {
+        background: #1D4ED8; /* Darker blue */
+        border-color: #1D4ED8;
     }
     /* Save bookmark button row — sits flush under the card */
     .save-row {
@@ -251,7 +249,7 @@ st.markdown("""
         box-shadow: none;
     }
     .save-row div.stButton > button[kind="primary"] {
-        background: rgba(129, 140, 248, 0.18);
+        background: rgba(79, 70, 229, 0.15);
         color: var(--primary-light);
         border: 1px solid var(--primary) !important;
         border-top: none !important;
@@ -288,18 +286,16 @@ st.markdown("""
 
     /* TABS */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 1.5rem;
-        border-bottom: 1px solid var(--border-color);
+        gap: 2rem;
+        border-bottom: 2px solid var(--border-color);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 3.5rem;
-        white-space: pre-wrap;
+        height: 3rem;
         background-color: transparent;
-        border-radius: 8px 8px 0 0;
-        color: var(--text-light);
-        font-weight: 500;
-        padding: 0 1rem;
         border: none;
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 0.95rem;
     }
     .stTabs [data-baseweb="tab"]:hover {
         color: var(--primary);
@@ -515,7 +511,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     # ── User Profile ──────────────────────────────────────────────────────────
-    st.markdown("#### 👤 User Profile")
+    st.markdown("#### User Profile")
     username = st.text_input("Username", value="guest", key="username_input")
     if username != st.session_state.profile.get("username"):
         st.session_state.profile = load_profile(username)
@@ -526,7 +522,7 @@ with st.sidebar:
     st.divider()
 
     # ── Live Data Status ──────────────────────────────────────────────────────
-    st.markdown("#### 🌐 Live Data Index")
+    st.markdown("#### Live Data Index")
     scrape_info = get_last_scrape_info()
     
     if scrape_info["exists"]:
@@ -540,13 +536,13 @@ with st.sidebar:
     else:
         st.warning("No course data yet.")
 
-    with st.expander("⚙️ Scraper Settings"):
+    with st.expander("Scraper Settings"):
         coursera_lim  = st.slider("Coursera",   50, 300, 100, 50)
         mit_ocw_lim   = st.slider("MIT OCW",    20, 200,  80, 20)
         include_fcc   = st.checkbox("Include freeCodeCamp", value=True)
         include_khan  = st.checkbox("Include Khan Academy", value=True)
         
-        if st.button("🔄 Fetch New Data", use_container_width=True):
+        if st.button("Fetch New Data", use_container_width=True):
             prog_bar    = st.progress(0)
             status_txt  = st.empty()
             log_area    = st.empty()
@@ -584,7 +580,7 @@ with st.sidebar:
     st.divider()
 
     # ── Search Preferences ────────────────────────────────────────────────────
-    st.markdown("#### ⚡ Filters")
+    st.markdown("#### Filters")
     
     difficulties = get_difficulties()
     default_diff = profile.get("preferred_difficulty", "All")
@@ -602,7 +598,7 @@ with st.sidebar:
     st.divider()
     
     # ── Stats & Trends ────────────────────────────────────────────────────────
-    st.markdown("#### 📊 Insights")
+    st.markdown("#### Insights")
     c1, c2 = st.columns(2)
     c1.metric("Searches", stats["total_searches"])
     c2.metric("Saved",   stats["saved_courses"])
@@ -618,7 +614,7 @@ with st.sidebar:
                     st.markdown(f"- {t}")
 
     st.markdown("---")
-    if st.button("🗑 Clear All History", use_container_width=True):
+    if st.button("Clear All History", use_container_width=True):
         profile = clear_history(profile)
         save_profile(profile)
         st.session_state.profile = profile
@@ -631,24 +627,24 @@ with st.sidebar:
 st.markdown('''
 <div class="hero-container">
     <h1 class="main-title">NLPRec</h1>
-    <p class="subtitle">Intelligent Course Intelligence & Recommendation Engine</p>
+    <p class="subtitle">Course Intelligence & Recommendation Engine</p>
 </div>
 ''', unsafe_allow_html=True)
 
 tab_rec, tab_compare, tab_eval, tab_saved = st.tabs([
-    "🔍 Discover",
-    "⚖️ Model Compare",
-    "📊 Performance",
-    "🔖 Saved",
+    "Discover",
+    "Model Compare",
+    "Performance",
+    "Saved",
 ])
 
 # ── TAB 1: Recommendations ────────────────────────────────────────────────────
 with tab_rec:
 
-    st.markdown("### 🌐 What do you want to learn today?")
+    st.markdown("### What do you want to learn today?")
     st.caption(
         "Search across **Coursera, Udemy, YouTube, MIT OCW, Harvard, Stanford** and 30+ other platforms concurrently. "
-        "Our AI understands natural language, slangs, and context."
+        "Search using natural language, topics, or specific skills."
     )
     
     st.markdown('<div style="margin-bottom: 8px;"></div>', unsafe_allow_html=True)
@@ -698,11 +694,11 @@ with tab_rec:
 
     col_btn, col_hint = st.columns([1.5, 4])
     with col_btn:
-        search_clicked = st.button("🔎 Find Courses", type="primary", use_container_width=True)
+        search_clicked = st.button("Find Courses", type="primary", use_container_width=True)
     with col_hint:
         st.markdown(
-            "<div style='padding-top:10px; color:#6B7280; font-size:0.9rem;'> "
-            "<i>💡 Type naturally. We handle typos & context.</i></div>", 
+            "<div style='padding-top:10px; color:var(--text-light); font-size:0.9rem;'> "
+            "<i>Press Enter to search</i></div>", 
             unsafe_allow_html=True
         )
 
@@ -736,7 +732,7 @@ with tab_rec:
     # ── Trending row (based on real multi-user data) ──────────────────────
     trending_chips = get_trending_chips(4)
     if any(c.lower() not in {s.lower() for s in suggestions} for c in trending_chips):
-        st.markdown("🔥 **Trending:**")
+        st.markdown("**Trending:**")
         t_cols = st.columns(4)
         for i, chip in enumerate(trending_chips[:4]):
             with t_cols[i]:
@@ -806,7 +802,7 @@ with tab_rec:
     # "Did you mean / Interpreted as" banner
     correction = query_info.get("display_correction")
     if correction:
-        st.info(f"🔍 **Interpreted as:** {correction}", icon="💡")
+        st.info(f"Interpreted as: {correction}")
 
     if not df_live.empty:
         PAGE_SIZE = 10
@@ -1002,7 +998,7 @@ with tab_compare:
         placeholder="machine learning for beginners with weak math",
         key="cmp_query",
     )
-    cmp_btn = st.button("⚖️ Compare Models", type="primary")
+    cmp_btn = st.button("Compare Models", type="primary")
 
     if cmp_btn and cmp_query.strip():
         with st.spinner("Running both models …"):
@@ -1019,7 +1015,7 @@ with tab_compare:
         col_nlp, col_kw = st.columns(2)
 
         with col_nlp:
-            st.markdown("#### 🤖 NLP Semantic Model")
+            st.markdown("#### NLP Semantic Model")
             st.caption("*TF-IDF + Cosine Similarity*")
             if nlp_res.empty:
                 st.info("No results.")
@@ -1043,7 +1039,7 @@ with tab_compare:
                     )
 
         with col_kw:
-            st.markdown("#### 🔑 Keyword Baseline")
+            st.markdown("#### Keyword Baseline")
             st.caption("*Word-count matching*")
             if kw_res.empty:
                 st.info("No results.")
@@ -1077,7 +1073,7 @@ with tab_eval:
 
     k_val = st.slider("K (top-N for evaluation)", 3, 10, 5, key="eval_k")
 
-    run_eval_btn = st.button("▶ Run Evaluation", type="primary")
+    run_eval_btn = st.button("Run Evaluation", type="primary")
 
     # Load cached results if available
     if not run_eval_btn and st.session_state.eval_results is None:
@@ -1146,10 +1142,10 @@ with tab_saved:
     # Normalise: support both legacy str entries and new dict entries
     saved = [{"title": c} if isinstance(c, str) else c for c in raw_saved]
 
-    st.markdown(f"### 🔖 Your Saved Courses  ({len(saved)})")
+    st.markdown(f"### Your Saved Courses  ({len(saved)})")
 
     if not saved:
-        st.info("No saved courses yet. Hit ☆ Save on any recommendation to bookmark it here.")
+        st.info("No saved courses yet. Save any recommendation to bookmark it here.")
     else:
         for i, entry in enumerate(saved):
             title   = entry.get("title", "Untitled")
