@@ -169,9 +169,9 @@
       ]
     },
     "guest": {
-      "session_count": 16,
-      "total_retention_secs": 1352.5977184772491,
-      "last_seen": "2026-02-28T19:48:20.177209",
+      "session_count": 17,
+      "total_retention_secs": 1364.813895702362,
+      "last_seen": "2026-02-28T21:38:08.627128",
       "query_count": 9,
       "click_count": 4,
       "save_count": 2,
@@ -213,5 +213,5 @@
     }
   },
   "created_at": "2026-02-27T00:24:22.340977",
-  "last_updated": "2026-02-28T19:48:20.177451"
+  "last_updated": "2026-02-28T21:38:08.627477"
 }
