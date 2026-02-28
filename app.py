@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 # ── Page config (must be FIRST Streamlit call) ────────────────────────────────
 st.set_page_config(
     page_title="NLPRec — Course Recommender",
+    page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -32,7 +33,6 @@ from vectorizer    import build_and_save_tfidf
 from live_search   import search_courses_live, results_to_df, PLATFORM_COLORS as _LIVE_PLATFORM_COLORS
 import behavior_tracker as bt
 from query_suggestions import generate_suggestions, get_trending_chips
-import streamlit.components.v1 as components
 import time
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
@@ -41,20 +41,19 @@ st.markdown("""
     /* -------------------------------------------------------------------------- */
     /*                                 VARIABLES                                  */
     /* -------------------------------------------------------------------------- */
-
     :root {
-        --primary: #2563EB;        /* Solid Royal Blue */
-        --primary-light: #60A5FA;  /* Lighter Blue for hovers */
-        --secondary: #2563EB;      /* Unified secondary color */
-        --bg-color: #0F172A;       /* Slate 900 */
-        --surface-color: #1E293B;  /* Slate 800 */
-        --text-color: #F8FAFC;     /* Slate 50 */
-        --text-light: #94A3B8;     /* Slate 400 */
-        --border-color: #334155;   /* Slate 700 */
-        --shadow-sm: none;
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        --radius: 8px;             /* Sharper corners for professional look */
+        --primary: #4F46E5;
+        --primary-light: #818CF8;
+        --secondary: #EC4899;
+        --bg-color: #F8FAFC;
+        --surface-color: #FFFFFF;
+        --text-color: #1E293B;
+        --text-light: #64748B;
+        --border-color: #E2E8F0;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --radius: 16px;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -65,10 +64,6 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         color: var(--text-color);
-        background-color: var(--bg-color);
-    }
-    /* Force main container to respect dark mode */
-    .stApp {
         background-color: var(--bg-color);
     }
     
@@ -85,28 +80,30 @@ st.markdown("""
     
     /* HERO SECTION */
     .hero-container {
-        text-align: left;
-        padding: 3rem 0;
-        background: transparent;
+        text-align: center;
+        padding: 4rem 0 3rem 0;
+        background: radial-gradient(circle at top center, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
         margin-bottom: 2rem;
-        border: none;
-        border-bottom: 1px solid var(--border-color);
+        border-radius: var(--radius);
         animation: fadeIn 0.8s ease-out;
     }
     .main-title {
-        font-size: 3rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
+        font-size: 4rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        line-height: 1.1;
     }
     .subtitle {
         color: var(--text-light);
-        font-size: 1.15rem;
+        font-size: 1.25rem;
         font-weight: 400;
-        max-width: 800px;
-        margin: 0;
-        line-height: 1.5;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
     }
 
     /* CARDS */
@@ -115,23 +112,31 @@ st.markdown("""
         border: 1px solid var(--border-color);
         border-radius: var(--radius);
         padding: 1.5rem;
-        margin-bottom: 0;
-        box-shadow: none;
-        transition: border-color 0.2s;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
     }
     .course-card:hover {
-        border-color: var(--primary);
-        transform: none;
-        box-shadow: none;
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-light);
     }
-    /* Accent line on left - REMOVED for cleaner look */
+    /* Accent line on left */
     .course-card::before {
-        display: none;
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 6px;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
     .course-card:hover::before {
-        display: none;
+        opacity: 1;
     }
 
     .course-title {
@@ -141,6 +146,15 @@ st.markdown("""
         margin-bottom: 0.75rem;
         line-height: 1.3;
         letter-spacing: -0.01em;
+    }
+    .course-title a {
+        color: var(--text-color);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .course-title a:hover {
+        color: var(--primary);
+        text-decoration: none;
     }
 
     .course-meta {
@@ -166,136 +180,96 @@ st.markdown("""
         border-top: 1px solid var(--border-color);
     }
 
-    /* BADGES - Solid Colors */
+    /* BADGES */
     .badge {
         display: inline-flex;
         align-items: center;
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px; /* More rectangular */
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.05em;
+        transition: background-color 0.2s;
     }
-    .badge-beginner     { background: #064E3B; color: #6EE7B7; border: none; }
-    .badge-intermediate { background: #78350F; color: #FCD34D; border: none; }
-    .badge-advanced     { background: #7F1D1D; color: #FCA5A5; border: none; }
+    .badge-beginner     { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
+    .badge-intermediate { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+    .badge-advanced     { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
     
-    /* PROGRESS BARS - Solid */
+    /* PROGRESS BARS */
     .similarity-bar-bg {
-        background: #334155;
-        border-radius: 4px;
-        height: 6px;
+        background: #F1F5F9;
+        border-radius: 9999px;
+        height: 8px;
         margin: 0.75rem 0;
         overflow: hidden;
     }
     .similarity-bar-fill {
         height: 100%;
-        border-radius: 4px;
-        background: var(--primary);
-        transition: width 0.3s ease;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Buttons - Solid & Clean */
+    /* BUTTONS & INPUTS */
     div.stButton > button {
-        border-radius: 6px;
-        font-weight: 500;
-        border: 1px solid var(--border-color);
-        background: var(--surface-color);
-        color: var(--text-color);
-        box-shadow: none;
-        transition: all 0.15s;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s;
     }
     div.stButton > button:hover {
-        background: #334155;
-        border-color: #475569;
-        transform: none;
-        box-shadow: none;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
     }
     /* Primary buttons */
     div.stButton > button[kind="primary"] {
-        background: var(--primary);
-        border: 1px solid var(--primary);
+        background: linear-gradient(135deg, var(--primary) 0%, #6366F1 100%);
         color: white;
-    }
-    div.stButton > button[kind="primary"]:hover {
-        background: #1D4ED8; /* Darker blue */
-        border-color: #1D4ED8;
-    }
-    /* Save bookmark button row — sits flush under the card */
-    .save-row {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 1.5rem;
-    }
-    .save-row div.stButton > button {
-        background: var(--surface-color);
-        border: 1px solid var(--border-color) !important;
-        color: var(--text-light);
-        font-size: 0.78rem;
-        font-weight: 600;
-        padding: 5px 14px;
-        border-radius: 0 0 12px 12px !important;
-        border-top: none !important;
-        margin-top: -1px;
-        letter-spacing: 0.03em;
-        box-shadow: none;
-    }
-    .save-row div.stButton > button:hover {
-        background: rgba(129, 140, 248, 0.12);
-        color: var(--primary-light);
-        border-color: var(--primary) !important;
-        transform: none;
-        box-shadow: none;
-    }
-    .save-row div.stButton > button[kind="primary"] {
-        background: rgba(79, 70, 229, 0.15);
-        color: var(--primary-light);
-        border: 1px solid var(--primary) !important;
-        border-top: none !important;
     }
 
     /* SIDEBAR */
     section[data-testid="stSidebar"] {
-        background-color: var(--bg-color); /* Match global background instead of forcing white */
-        border-right: 1px solid var(--border-color);
+        background-color: #1a1a1a;
+        border-right: 1px solid #333;
+    }
+    section[data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+    section[data-testid="stSidebar"] .stMarkdown {
+        color: #ffffff !important;
+    }
+    section[data-testid="stSidebar"] label {
+        color: #ffffff !important;
+    }
+    section[data-testid="stSidebar"] input {
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
+        border: 1px solid #444 !important;
     }
     .sidebar-header {
         text-align: center;
         padding: 2rem 1rem;
-        border-bottom: 1px solid var(--border-color);
+        background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
+        border-bottom: 1px solid #333;
         margin: -1rem -1rem 1.5rem -1rem;
-        background: transparent;
-    }
-    /* Ensure text visibility in sidebar regardless of theme */
-    section[data-testid="stSidebar"] h1, 
-    section[data-testid="stSidebar"] h2, 
-    section[data-testid="stSidebar"] h3, 
-    section[data-testid="stSidebar"] h4, 
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] li,
-    section[data-testid="stSidebar"] div,
-    section[data-testid="stSidebar"] span {
-        color: var(--text-color);
-    }
-    /* Fix specific contrast issues for headers if they are too light */
-    section[data-testid="stSidebar"] h4 {
-        color: var(--primary);
-        font-weight: 700;
     }
 
     /* TABS */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-        border-bottom: 2px solid var(--border-color);
+        gap: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
     }
     .stTabs [data-baseweb="tab"] {
-        height: 3rem;
+        height: 3.5rem;
+        white-space: pre-wrap;
         background-color: transparent;
-        border: none;
+        border-radius: 8px 8px 0 0;
         color: var(--text-light);
-        font-weight: 600;
-        font-size: 0.95rem;
+        font-weight: 500;
+        padding: 0 1rem;
+        border: none;
     }
     .stTabs [data-baseweb="tab"]:hover {
         color: var(--primary);
@@ -397,15 +371,15 @@ def _difficulty_badge(level: str) -> str:
 
 
 # ── Source badge helper ────────────────────────────────────────────────────────
-# Use cleaner colors for the refresh (Dark Mode Adjusted)
+# Use cleaner colors for the refresh
 _SOURCE_COLORS = {
-    "Coursera":     ("rgba(59, 130, 246, 0.2)", "#93C5FD"),  # Blue-500/20% bg, Blue-300 text
-    "MIT OCW":      ("rgba(239, 68, 68, 0.2)",  "#FCA5A5"),  # Red-500/20% bg, Red-300 text
-    "freeCodeCamp": ("rgba(17, 24, 39, 0.8)",   "#F3F4F6"),  # Gray-900/80% bg, Gray-100 text
-    "Khan Academy": ("rgba(16, 185, 129, 0.2)", "#6EE7B7"),  # Emerald-500/20% bg, Emerald-300 text
-    "Udemy":        ("rgba(168, 85, 247, 0.2)", "#D8B4FE"),  # Purple-500/20% bg, Purple-300 text
-    "YouTube":      ("rgba(220, 38, 38, 0.2)",  "#FCA5A5"),  # Red-600/20% bg, Red-300 text
-    "edX":          ("rgba(79, 70, 229, 0.2)",  "#A5B4FC"),  # Indigo-600/20% bg, Indigo-300 text
+    "Coursera":     ("#DBEAFE", "#1E40AF"),  # Blue-100/800
+    "MIT OCW":      ("#FEE2E2", "#991B1B"),  # Red-100/800
+    "freeCodeCamp": ("#1F2937", "#F9FAFB"),  # Gray-800/50
+    "Khan Academy": ("#D1FAE5", "#065F46"),  # Emerald-100/800
+    "Udemy":        ("#F3E8FF", "#6B21A8"),  # Purple-100/800
+    "YouTube":      ("#FEE2E2", "#DC2626"),  # Red-100/600
+    "edX":          ("#E0E7FF", "#3730A3"),  # Indigo-100/800
 }
 # Fallback to existing logic but preferring above
 def _source_badge(source: str) -> str:
@@ -414,11 +388,11 @@ def _source_badge(source: str) -> str:
     else:
         # Try to find in imported map, else gray
         pair = _LIVE_PLATFORM_COLORS.get(source)
-        bg, fg = pair if pair else ("rgba(75, 85, 99, 0.3)", "#D1D5DB") # Default gray
+        bg, fg = pair if pair else ("#F3F4F6", "#374151")
 
     return (
         f'<span class="badge" style="background:{bg};color:{fg};'
-        f'border:1px solid {fg}40;">{source}</span>'
+        f'border:1px solid {bg}80;">{source}</span>'
     )
 
 
@@ -439,7 +413,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     <div class="course-card">
         <div class="course-title">
             <span style="color:#A5B4FC; margin-right:6px; font-weight:400;">#{index}</span>
-            <a href="{row['url']}" target="_blank" style="color:inherit; text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{row['course_title']}</a>
+            {row['course_title']}
         </div>
         
         <div class="course-meta">
@@ -449,7 +423,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
                 <span style="color:#F59E0B; letter-spacing:1px; font-size:1rem;">{stars}</span>
                 <span style="color:#94A3B8; font-size:0.85rem;">{rating_str}</span>
             </span>
-            <span style="margin-left: auto; color:#C7D2FE; font-size:0.85rem; font-weight:700; background: rgba(79, 70, 229, 0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(79, 70, 229, 0.4);">
+            <span style="margin-left: auto; color:var(--primary); font-size:0.85rem; font-weight:700; background: #EEF2FF; padding: 4px 10px; border-radius: 6px;">
                 Match: {int(score_pct)}%
             </span>
         </div>
@@ -462,41 +436,40 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
             {desc}
         </div>
         
-        <div style="font-size:0.85rem; color:var(--text-light); background: rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-            <b style="color:var(--text-color);">Skills:</b> {row['skills']}
+        <div style="font-size:0.85rem; color:#64748B; background:#F8FAFC; padding:8px 12px; border-radius:8px; border:1px solid #F1F5F9;">
+            <b style="color:#334155;">Skills:</b> {row['skills']}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    if show_save:
-        is_saved = row["course_title"] in saved_titles
-        _, save_col = st.columns([3, 1])
-        with save_col:
-            st.markdown('<div class="save-row">', unsafe_allow_html=True)
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        if show_save:
+            is_saved = row["course_title"] in saved_titles
+            # Use distinct visual for saved state
             if is_saved:
-                if st.button("★  Saved", key=f"save_{index}_{row['course_title'][:15]}", type="primary", use_container_width=True):
+                if st.button("★ Saved", key=f"save_{index}_{row['course_title'][:15]}", type="primary"):
                     profile = st.session_state.profile
                     profile = remove_course(profile, row["course_title"])
                     save_profile(profile)
                     st.session_state.profile = profile
                     st.rerun()
             else:
-                if st.button("☆  Save", key=f"save_{index}_{row['course_title'][:15]}", use_container_width=True):
+                if st.button("☆ Save", key=f"save_{index}_{row['course_title'][:15]}"):
                     profile = st.session_state.profile
-                    profile = save_course(profile, row["course_title"], metadata={
-                        "url":         row.get("url", ""),
-                        "description": row.get("description", ""),
-                        "difficulty":  row.get("difficulty", ""),
-                        "source":      row.get("source", ""),
-                        "rating":      row.get("rating", 0),
-                    })
+                    profile = save_course(profile, row["course_title"])
                     bt.log_save(profile["username"], row["course_title"])
                     save_profile(profile)
                     st.session_state.profile = profile
                     st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div style="margin-bottom:1.5rem;"></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown(
+            f"""<a href="{row['url']}" target="_blank" style="text-decoration:none;">
+            <div style="display:inline-block; background:white; color:#4F46E5; padding:6px 16px; border-radius:8px; border:1px solid #E0E7FF; font-weight:600; font-size:0.9rem; transition:all 0.2s;">
+            🔗 Go to Course &rarr;
+            </div></a>""", 
+            unsafe_allow_html=True
+        )
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -511,7 +484,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     # ── User Profile ──────────────────────────────────────────────────────────
-    st.markdown("#### User Profile")
+    st.markdown("#### 👤 User Profile")
     username = st.text_input("Username", value="guest", key="username_input")
     if username != st.session_state.profile.get("username"):
         st.session_state.profile = load_profile(username)
@@ -522,27 +495,27 @@ with st.sidebar:
     st.divider()
 
     # ── Live Data Status ──────────────────────────────────────────────────────
-    st.markdown("#### Live Data Index")
+    st.markdown("#### 🌐 Live Data Index")
     scrape_info = get_last_scrape_info()
     
     if scrape_info["exists"]:
         st.markdown(
-            f"""<div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.2); padding:12px; border-radius:12px; margin-bottom:16px;">
-                <div style="color:#34D399; font-weight:700; font-size:1.1rem;">{scrape_info['count']} Courses</div>
-                <div style="color:#6EE7B7; font-size:0.8rem;">Updated: {scrape_info['last_updated']}</div>
+            f"""<div style="background:#1e3a2e; border:2px solid #10b981; padding:16px; border-radius:12px; margin-bottom:16px;">
+                <div style="color:#10b981; font-weight:700; font-size:1.2rem;">📚 {scrape_info['count']} Courses</div>
+                <div style="color:#6ee7b7; font-size:0.9rem; margin-top: 4px;">Updated: {scrape_info['last_updated']}</div>
             </div>""", 
             unsafe_allow_html=True
         )
     else:
         st.warning("No course data yet.")
 
-    with st.expander("Scraper Settings"):
+    with st.expander("⚙️ Scraper Settings"):
         coursera_lim  = st.slider("Coursera",   50, 300, 100, 50)
         mit_ocw_lim   = st.slider("MIT OCW",    20, 200,  80, 20)
         include_fcc   = st.checkbox("Include freeCodeCamp", value=True)
         include_khan  = st.checkbox("Include Khan Academy", value=True)
         
-        if st.button("Fetch New Data", use_container_width=True):
+        if st.button("🔄 Fetch New Data", use_container_width=True):
             prog_bar    = st.progress(0)
             status_txt  = st.empty()
             log_area    = st.empty()
@@ -580,7 +553,7 @@ with st.sidebar:
     st.divider()
 
     # ── Search Preferences ────────────────────────────────────────────────────
-    st.markdown("#### Filters")
+    st.markdown("#### ⚡ Filters")
     
     difficulties = get_difficulties()
     default_diff = profile.get("preferred_difficulty", "All")
@@ -598,7 +571,7 @@ with st.sidebar:
     st.divider()
     
     # ── Stats & Trends ────────────────────────────────────────────────────────
-    st.markdown("#### Insights")
+    st.markdown("#### 📊 Insights")
     c1, c2 = st.columns(2)
     c1.metric("Searches", stats["total_searches"])
     c2.metric("Saved",   stats["saved_courses"])
@@ -614,7 +587,7 @@ with st.sidebar:
                     st.markdown(f"- {t}")
 
     st.markdown("---")
-    if st.button("Clear All History", use_container_width=True):
+    if st.button("🗑 Clear All History", use_container_width=True):
         profile = clear_history(profile)
         save_profile(profile)
         st.session_state.profile = profile
@@ -627,24 +600,24 @@ with st.sidebar:
 st.markdown('''
 <div class="hero-container">
     <h1 class="main-title">NLPRec</h1>
-    <p class="subtitle">Course Intelligence & Recommendation Engine</p>
+    <p class="subtitle">Intelligent Course Intelligence & Recommendation Engine</p>
 </div>
 ''', unsafe_allow_html=True)
 
 tab_rec, tab_compare, tab_eval, tab_saved = st.tabs([
-    "Discover",
-    "Model Compare",
-    "Performance",
-    "Saved",
+    "🔍 Discover",
+    "⚖️ Model Compare",
+    "📊 Performance",
+    "🔖 Saved",
 ])
 
 # ── TAB 1: Recommendations ────────────────────────────────────────────────────
 with tab_rec:
 
-    st.markdown("### What do you want to learn today?")
+    st.markdown("### 🌐 What do you want to learn today?")
     st.caption(
         "Search across **Coursera, Udemy, YouTube, MIT OCW, Harvard, Stanford** and 30+ other platforms concurrently. "
-        "Search using natural language, topics, or specific skills."
+        "Our AI understands natural language, slangs, and context."
     )
     
     st.markdown('<div style="margin-bottom: 8px;"></div>', unsafe_allow_html=True)
@@ -661,44 +634,13 @@ with tab_rec:
         key="main_query",
     )
 
-    # Intercept Enter → submit, Shift+Enter → new line
-    components.html(
-        """
-        <script>
-        (function() {
-            function attachHandler() {
-                var doc = window.parent.document;
-                var textareas = doc.querySelectorAll('textarea[data-testid="stTextArea"], textarea');
-                textareas.forEach(function(ta) {
-                    if (ta._enterSubmitAttached) return;
-                    ta._enterSubmitAttached = true;
-                    ta.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            // Click the first primary button (Find Courses)
-                            var btn = doc.querySelector('button[data-testid="baseButton-primary"]');
-                            if (btn) btn.click();
-                        }
-                    });
-                });
-            }
-            // Run once immediately and again after a short delay to catch late renders
-            attachHandler();
-            setTimeout(attachHandler, 500);
-            setTimeout(attachHandler, 1500);
-        })();
-        </script>
-        """,
-        height=0,
-    )
-
     col_btn, col_hint = st.columns([1.5, 4])
     with col_btn:
-        search_clicked = st.button("Find Courses", type="primary", use_container_width=True)
+        search_clicked = st.button("🔎 Find Courses", type="primary", use_container_width=True)
     with col_hint:
         st.markdown(
-            "<div style='padding-top:10px; color:var(--text-light); font-size:0.9rem;'> "
-            "<i>Press Enter to search</i></div>", 
+            "<div style='padding-top:10px; color:#6B7280; font-size:0.9rem;'> "
+            "<i>💡 Type naturally. We handle typos & context.</i></div>", 
             unsafe_allow_html=True
         )
 
@@ -732,7 +674,7 @@ with tab_rec:
     # ── Trending row (based on real multi-user data) ──────────────────────
     trending_chips = get_trending_chips(4)
     if any(c.lower() not in {s.lower() for s in suggestions} for c in trending_chips):
-        st.markdown("**Trending:**")
+        st.markdown("🔥 **Trending:**")
         t_cols = st.columns(4)
         for i, chip in enumerate(trending_chips[:4]):
             with t_cols[i]:
@@ -802,7 +744,7 @@ with tab_rec:
     # "Did you mean / Interpreted as" banner
     correction = query_info.get("display_correction")
     if correction:
-        st.info(f"Interpreted as: {correction}")
+        st.info(f"🔍 **Interpreted as:** {correction}", icon="💡")
 
     if not df_live.empty:
         PAGE_SIZE = 10
@@ -897,10 +839,7 @@ with tab_rec:
             start_idx    = current_pg * PAGE_SIZE
             end_idx      = start_idx + PAGE_SIZE
             page_df      = display_df.iloc[start_idx:end_idx]
-            saved_titles = [
-                c if isinstance(c, str) else c.get("title", "")
-                for c in st.session_state.profile.get("saved_courses", [])
-            ]
+            saved_titles = st.session_state.profile.get("saved_courses", [])
 
             for pos, (_, row) in enumerate(page_df.iterrows(), start=start_idx + 1):
                 diff_badge  = _difficulty_badge(row["difficulty"])
@@ -929,11 +868,11 @@ with tab_rec:
                     <div class="course-card">
                         <div class="course-title">
                             <span style="color:#A5B4FC; margin-right:6px; font-weight:400;">#{pos}</span>
-                            <a href="{row['url']}" target="_blank" style="color:inherit; text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{title_disp}</a>
+                            <a href="{row['url']}" target="_blank">{title_disp}</a>
                         </div>
                         <div class="course-meta">
                             {price_badge}{src_badge}{diff_badge}
-                            <span style="margin-left: auto; color:#C7D2FE; font-size:0.85rem; font-weight:700; background: rgba(79, 70, 229, 0.3); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(79, 70, 229, 0.4);">
+                            <span style="margin-left: auto; color:var(--primary); font-size:0.85rem; font-weight:700; background: #EEF2FF; padding: 4px 10px; border-radius: 6px;">
                                 Match: {int(score * 100)}%
                             </span>
                         </div>
@@ -944,33 +883,31 @@ with tab_rec:
                     """,
                     unsafe_allow_html=True,
                 )
-                is_saved  = row["course_title"] in saved_titles
-                btn_label = "★  Saved" if is_saved else "☆  Save"
-                btn_type  = "primary" if is_saved else "secondary"
-                _, save_col = st.columns([3, 1])
-                with save_col:
-                    st.markdown('<div class="save-row">', unsafe_allow_html=True)
-                    if st.button(btn_label, key=f"save_live_{pos}_{str(row['course_title'])[:10]}",
-                                 type=btn_type, use_container_width=True):
+                # Track click automatically when course card is rendered
+                # Save button with enhanced styling
+                col1, col2, col3 = st.columns([5, 1, 1])
+                with col3:
+                    is_saved  = row["course_title"] in saved_titles
+                    btn_label = "💾 Saved" if is_saved else "⭐ Save"
+                    btn_type = "secondary" if is_saved else "primary"
+                    if st.button(btn_label, key=f"save_live_{pos}_{str(row['course_title'])[:10]}", 
+                               use_container_width=True, type=btn_type):
                         profile = st.session_state.profile
                         if is_saved:
                             profile = remove_course(profile, row["course_title"])
-                            st.toast(f"Removed: {row['course_title'][:40]}")
+                            st.toast(f"🗑️ Removed: {row['course_title'][:40]}")
                         else:
-                            profile = save_course(profile, row["course_title"], metadata={
-                                "url":         row.get("url", ""),
-                                "description": row.get("description", ""),
-                                "difficulty":  row.get("difficulty", ""),
-                                "source":      row.get("source", ""),
-                                "rating":      row.get("rating", 0),
-                            })
-                            bt.log_click(profile["username"], row["course_title"])
+                            profile = save_course(profile, row["course_title"])
                             bt.log_save(profile["username"], row["course_title"])
-                            st.toast(f"Saved: {row['course_title'][:40]}")
+                            # Log click when saving
+                            _p = log_click(profile, row["course_title"])
+                            bt.log_click(_p["username"], row["course_title"])
+                            save_profile(_p)
+                            profile = _p
+                            st.toast(f"✅ Saved: {row['course_title'][:40]}")
                         save_profile(profile)
                         st.session_state.profile = profile
                         st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
 
             # ── Pagination controls (bottom) ────────────────────────────────
             st.divider()
@@ -998,7 +935,7 @@ with tab_compare:
         placeholder="machine learning for beginners with weak math",
         key="cmp_query",
     )
-    cmp_btn = st.button("Compare Models", type="primary")
+    cmp_btn = st.button("⚖️ Compare Models", type="primary")
 
     if cmp_btn and cmp_query.strip():
         with st.spinner("Running both models …"):
@@ -1015,7 +952,7 @@ with tab_compare:
         col_nlp, col_kw = st.columns(2)
 
         with col_nlp:
-            st.markdown("#### NLP Semantic Model")
+            st.markdown("#### 🤖 NLP Semantic Model")
             st.caption("*TF-IDF + Cosine Similarity*")
             if nlp_res.empty:
                 st.info("No results.")
@@ -1025,7 +962,8 @@ with tab_compare:
                     st.markdown(
                         f"""<div class="course-card" style="padding: 1.25rem;">
                             <div class="course-title" style="font-size: 1.1rem; margin-bottom: 0.5rem;">
-                                <span style="color:#A5B4FC; margin-right:4px;">#{int(row["rank"])}</span> {row["course_title"]}
+                                <span style="color:#A5B4FC; margin-right:4px;">#{int(row["rank"])}</span> 
+                                <a href="{row.get('url', '#')}" target="_blank">{row["course_title"]}</a>
                             </div>
                             <div class="course-meta" style="margin-bottom:0;">
                                 {diff_badge} 
@@ -1039,7 +977,7 @@ with tab_compare:
                     )
 
         with col_kw:
-            st.markdown("#### Keyword Baseline")
+            st.markdown("#### 🔑 Keyword Baseline")
             st.caption("*Word-count matching*")
             if kw_res.empty:
                 st.info("No results.")
@@ -1049,7 +987,8 @@ with tab_compare:
                     st.markdown(
                         f"""<div class="course-card" style="padding: 1.25rem; border-left: 3px solid #F59E0B;">
                             <div class="course-title" style="font-size: 1.1rem; margin-bottom: 0.5rem;">
-                                <span style="color:#FCD34D; margin-right:4px;">#{int(row["rank"])}</span> {row["course_title"]}
+                                <span style="color:#FCD34D; margin-right:4px;">#{int(row["rank"])}</span> 
+                                <a href="{row.get('url', '#')}" target="_blank">{row["course_title"]}</a>
                             </div>
                             <div class="course-meta" style="margin-bottom:0;">
                                 {diff_badge}
@@ -1073,7 +1012,7 @@ with tab_eval:
 
     k_val = st.slider("K (top-N for evaluation)", 3, 10, 5, key="eval_k")
 
-    run_eval_btn = st.button("Run Evaluation", type="primary")
+    run_eval_btn = st.button("▶ Run Evaluation", type="primary")
 
     # Load cached results if available
     if not run_eval_btn and st.session_state.eval_results is None:
@@ -1138,52 +1077,43 @@ with tab_eval:
 # ── TAB 4: Saved Courses ──────────────────────────────────────────────────────
 with tab_saved:
     profile = st.session_state.profile
-    raw_saved = profile.get("saved_courses", [])
-    # Normalise: support both legacy str entries and new dict entries
-    saved = [{"title": c} if isinstance(c, str) else c for c in raw_saved]
+    saved   = profile.get("saved_courses", [])
 
-    st.markdown(f"### Your Saved Courses  ({len(saved)})")
+    st.markdown(f'<h2 style="color: #111827; font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem;">🔖 Your Saved Courses ({len(saved)})</h2>', unsafe_allow_html=True)
 
     if not saved:
-        st.info("No saved courses yet. Save any recommendation to bookmark it here.")
+        st.info("No saved courses yet. Hit ☆ Save on any recommendation to bookmark it here.")
     else:
-        for i, entry in enumerate(saved):
-            title   = entry.get("title", "Untitled")
-            url     = entry.get("url", "")
-            desc    = entry.get("description", "")
-            diff    = entry.get("difficulty", "")
-            source  = entry.get("source", "")
-            rating  = float(entry.get("rating", 0) or 0)
-            stars   = "★" * int(rating) + "☆" * (5 - int(rating)) if rating else ""
+        from vectorizer import load_tfidf_model
+        _, _, courses_df = load_tfidf_model()
 
-            diff_badge = _difficulty_badge(diff) if diff else ""
-            src_badge  = _source_badge(source) if source else ""
-            desc_html  = f'<div style="color:var(--text-light); font-size:0.9rem; line-height:1.5; margin-top:8px;">{desc[:200] + "…" if len(desc) > 200 else desc}</div>' if desc else ""
-            title_html = (
-                f'<a href="{url}" target="_blank" style="color:inherit; text-decoration:none;" '
-                f'onmouseover="this.style.textDecoration=\'underline\'" onmouseout="this.style.textDecoration=\'none\'">{title}</a>'
-                if url else title
-            )
-
+        for title in saved:
+            row = courses_df[courses_df["course_title"] == title]
+            if row.empty:
+                continue
+            row = row.iloc[0]
+            badge = _difficulty_badge(row["difficulty"])
+            course_url = row.get("url", "#")
             st.markdown(
-                f'<div class="course-card">'
-                f'<div class="course-title" style="font-size:1.15rem;">{title_html}</div>'
-                f'<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:8px 0;">'
-                f'{src_badge}{diff_badge}'
-                f'{"<span style=\"color:#F59E0B; font-size:0.9rem;\">" + stars + "</span>" if stars else ""}'
+                f'<div class="course-card" style="padding: 20px; background: #ffffff; border: 2px solid #e5e7eb; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">'
+                f'<div style="font-size: 1.35rem; font-weight: 700; margin-bottom: 12px;">'
+                f'<a href="{course_url}" target="_blank" style="color: #111827; text-decoration: none; transition: color 0.2s;" '
+                f'onmouseover="this.style.color=\'#4F46E5\'" onmouseout="this.style.color=\'#111827\'">{row["course_title"]}</a>'
                 f'</div>'
-                f'{desc_html}'
+                f'<div style="margin: 10px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">'
+                f'{badge} '
+                f'<span style="color:#F59E0B; font-size:1.1rem; font-weight: 600;">★ {row["rating"]}</span>'
+                f'<span style="color: #6b7280; font-size: 0.95rem;">• {row.get("source", "N/A")}</span>'
+                f'</div>'
+                f'<div style="font-size:1rem; color:#374151; line-height: 1.7; margin-top: 14px;">{row["description"][:200]}…</div>'
                 f'</div>',
-                unsafe_allow_html=True,
+                unsafe_allow_html=True
             )
-            _, rm_col = st.columns([3, 1])
-            with rm_col:
-                st.markdown('<div class="save-row">', unsafe_allow_html=True)
-                if st.button("✕  Remove", key=f"rm_{i}_{title[:20]}", use_container_width=True):
+            # Remove button centered
+            col1, col2, col3 = st.columns([2, 2, 2])
+            with col2:
+                if st.button(f"🗑️ Remove from Saved", key=f"rm_{title[:30]}", use_container_width=True):
                     profile = remove_course(profile, title)
                     save_profile(profile)
                     st.session_state.profile = profile
                     st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
-
-

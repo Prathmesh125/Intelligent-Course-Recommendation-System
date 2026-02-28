@@ -24,17 +24,12 @@ def download_nltk_resources():
     else:
         ssl._create_default_https_context = _create_unverified_https_context
 
-    resources = {
-        "tokenizers/punkt":     "punkt",
-        "tokenizers/punkt_tab": "punkt_tab",
-        "corpora/stopwords":    "stopwords",
-        "corpora/wordnet":      "wordnet",
-    }
-    for path, name in resources.items():
+    resources = ["punkt", "stopwords", "wordnet"]
+    for name in resources:
         try:
-            nltk.data.find(path)
-        except LookupError:
             nltk.download(name, quiet=True)
+        except Exception:
+            pass
 
 download_nltk_resources()
 

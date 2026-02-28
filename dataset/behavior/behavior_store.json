@@ -88,6 +88,42 @@
         "language",
         "processing"
       ]
+    },
+    {
+      "username": "guest",
+      "query": "deep learning and neural networks",
+      "difficulty": "All",
+      "ts": "2026-02-28T19:35:58.454970",
+      "topics": [
+        "deep",
+        "learning",
+        "neural",
+        "networks"
+      ]
+    },
+    {
+      "username": "guest",
+      "query": "natural language processing NLP",
+      "difficulty": "All",
+      "ts": "2026-02-28T19:38:35.301920",
+      "topics": [
+        "natural",
+        "language",
+        "processing"
+      ]
+    },
+    {
+      "username": "guest",
+      "query": "advanced machine learning \u2014 ensemble methods and tuning",
+      "difficulty": "All",
+      "ts": "2026-02-28T19:43:31.927799",
+      "topics": [
+        "machine",
+        "learning",
+        "ensemble",
+        "methods",
+        "tuning"
+      ]
     }
   ],
   "course_engagement": {
@@ -133,10 +169,10 @@
       ]
     },
     "guest": {
-      "session_count": 13,
-      "total_retention_secs": 1268.7129127979279,
-      "last_seen": "2026-02-27T13:00:37.528401",
-      "query_count": 6,
+      "session_count": 16,
+      "total_retention_secs": 1352.5977184772491,
+      "last_seen": "2026-02-28T19:48:20.177209",
+      "query_count": 9,
       "click_count": 4,
       "save_count": 2,
       "recent_topics": [
@@ -160,10 +196,22 @@
         "stert",
         "natural",
         "language",
-        "processing"
+        "processing",
+        "deep",
+        "learning",
+        "neural",
+        "networks",
+        "natural",
+        "language",
+        "processing",
+        "machine",
+        "learning",
+        "ensemble",
+        "methods",
+        "tuning"
       ]
     }
   },
   "created_at": "2026-02-27T00:24:22.340977",
-  "last_updated": "2026-02-27T13:00:37.529386"
+  "last_updated": "2026-02-28T19:48:20.177451"
 }

@@ -42,48 +42,70 @@
       "query": "natural language processing NLP",
       "difficulty": "All",
       "timestamp": "2026-02-27T12:50:50.841777"
+    },
+    {
+      "query": "deep learning and neural networks",
+      "difficulty": "All",
+      "timestamp": "2026-02-28T19:35:58.456754"
+    },
+    {
+      "query": "natural language processing NLP",
+      "difficulty": "All",
+      "timestamp": "2026-02-28T19:38:35.303496"
+    },
+    {
+      "query": "advanced machine learning \u2014 ensemble methods and tuning",
+      "difficulty": "All",
+      "timestamp": "2026-02-28T19:43:31.929372"
     }
   ],
   "saved_courses": [
     "Course Python - Start Coding For Free - Coding for All Levels"
   ],
   "interests": [
-    "natural",
-    "processing",
-    "end..",
-    "background",
-    "coding,",
     "learn",
-    "guitar",
-    "language",
-    "learning",
-    "math",
-    "mainly",
-    "python",
-    "best",
-    "without",
-    "from",
-    "guide",
-    "want",
-    "machine",
+    "networks",
     "scratch",
+    "math",
     "stert",
+    "learning",
+    "python",
     "courese",
+    "end..",
+    "hacking",
+    "language",
+    "coding,",
+    "neural",
+    "best",
+    "mainly",
+    "without",
     "beginer",
-    "hacking"
+    "background",
+    "from",
+    "machine",
+    "want",
+    "guide",
+    "guitar",
+    "advanced",
+    "methods",
+    "deep",
+    "natural",
+    "ensemble",
+    "tuning",
+    "processing"
   ],
-  "total_retention_secs": 1268.7119455337524,
-  "session_count": 13,
-  "last_active": "2026-02-27T13:00:37.536971",
+  "total_retention_secs": 1352.5966384410858,
+  "session_count": 16,
+  "last_active": "2026-02-28T19:48:20.180494",
   "difficulty_counts": {
     "Beginner": 0,
     "Intermediate": 0,
     "Advanced": 0
   },
   "topic_frequency": {
-    "natural": 2.0,
-    "language": 2.0,
-    "processing": 2.0,
+    "natural": 2.5,
+    "language": 2.5,
+    "processing": 2.5,
     "coding": 1.5,
     "beginer": 1.5,
     "guide": 1.5,
@@ -91,7 +113,15 @@
     "python": 1.0,
     "mainly": 1.0,
     "hacking": 1.0,
-    "stert": 1.0
+    "stert": 1.0,
+    "deep": 1.0,
+    "learning": 1.5,
+    "neural": 1.0,
+    "networks": 1.0,
+    "machine": 1.0,
+    "ensemble": 1.0,
+    "methods": 1.0,
+    "tuning": 1.0
   },
   "click_history": [
     {
