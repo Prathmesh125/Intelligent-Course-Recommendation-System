@@ -132,6 +132,13 @@ If Streamlit Cloud doesn't meet your needs:
 
 ## Troubleshooting
 
+### ❗ Package build errors (pandas, Pillow, numpy):
+**Problem**: "Error during processing dependencies" with Python 3.13
+**Solution**: Already fixed! Your repo now has:
+- `.python-version` file pinning Python to 3.11
+- Updated `requirements.txt` with flexible version ranges
+- Streamlit Cloud will automatically use Python 3.11 on next deployment
+
 ### Models not loading:
 - Check logs to see if vectorizer.py ran successfully
 - Ensure `dataset/courses.csv` exists in repo
