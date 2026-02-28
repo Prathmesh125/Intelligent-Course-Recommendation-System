@@ -176,16 +176,4 @@ Charts saved to `assets/`:
 
 ---
 
-## Team (Phase Ownership)
-
-| Phase | Module | Owner |
-|-------|--------|-------|
-| Phase 3 | `text_preprocessing.py` | Akshata |
-| Phase 5 | `recommender.py` | Dawker |
-| Phase 6 | `user_profile.py` | Ketan |
-| Phase 7 | `evaluation.py` | Bagbande |
-| Phase 8 | `app.py` | Team |
-
----
-
-*NLPRec — B.E. Final Year Project, Computer Engineering*
+*NLPRec — Intelligent Course Recommendation System*
