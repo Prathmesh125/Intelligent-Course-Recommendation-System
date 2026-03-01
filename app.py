@@ -281,7 +281,8 @@ st.markdown(
       rgba(255,255,255,0.04) 60%);
     background-size: 200% 100%;
     animation: nlprecShimmer 1.2s ease-in-out infinite;
-    height: 220px;
+    height: 145px;
+    margin-bottom: 12px;
   }
 
   /* Small utility text */
@@ -403,16 +404,10 @@ def _price_badge(price_val: str) -> str:
 
 
 # ── Render a single course card ───────────────────────────────────────────────
-def _render_skeleton_grid(total_cards: int = 6, cols: int = 3):
-    rows = (total_cards + cols - 1) // cols
-    for r in range(rows):
-        c = st.columns(cols, gap="large")
-        for i in range(cols):
-            idx = r * cols + i
-            if idx >= total_cards:
-                break
-            with c[i]:
-                st.markdown('<div class="nlprec-skeleton"></div>', unsafe_allow_html=True)
+def _render_skeleton_grid(total_cards: int = 6, cols: int = 1):
+    """Render skeleton placeholders for loading state (full-width horizontal cards)."""
+    for i in range(total_cards):
+        st.markdown('<div class="nlprec-skeleton"></div>', unsafe_allow_html=True)
 
 
 def _truncate(text: str, limit: int) -> str:
@@ -777,7 +772,7 @@ def _render_discover(profile: dict):
         pending = st.session_state.get("pending_search_query")
         if pending:
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-            _render_skeleton_grid(total_cards=9, cols=3)
+            _render_skeleton_grid(total_cards=9, cols=1)
             try:
                 _run_live_search(pending, top_n=top_n, difficulty=difficulty)
             except Exception as e:
@@ -850,10 +845,9 @@ def _render_discover(profile: dict):
         end_idx = start_idx + PAGE_SIZE
         page_df = display_df.iloc[start_idx:end_idx].reset_index(drop=True)
 
-        grid = st.columns(3, gap="large")
         for i, (_, row) in enumerate(page_df.iterrows(), start=start_idx + 1):
-            with grid[(i - start_idx - 1) % 3]:
-                render_course_card(row, index=i, saved_titles=saved_titles, key_prefix="live")
+            render_course_card(row, index=i, saved_titles=saved_titles, key_prefix="live")
+            st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
 
 def _render_saved(profile: dict):
@@ -872,7 +866,6 @@ def _render_saved(profile: dict):
     except Exception:
         courses_df = None
 
-    grid = st.columns(3, gap="large")
     for idx, entry in enumerate(saved_entries, start=1):
         title = entry.get("title", "")
         if not title:
@@ -901,8 +894,8 @@ def _render_saved(profile: dict):
                     "rating": r.get("rating", row_data.get("rating", 0.0)),
                 })
 
-        with grid[(idx - 1) % 3]:
-            render_course_card(row_data, index=idx, saved_titles=saved_titles, key_prefix="saved")
+        render_course_card(row_data, index=idx, saved_titles=saved_titles, key_prefix="saved")
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
 
 def _render_model_comparison(profile: dict):
@@ -925,7 +918,7 @@ def _render_model_comparison(profile: dict):
 
     pending = st.session_state.get("pending_compare_query")
     if pending:
-        _render_skeleton_grid(total_cards=6, cols=2)
+        _render_skeleton_grid(total_cards=6, cols=1)
         try:
             nlp_res = recommend(pending, top_n=10, difficulty_filter="All")
             kw_res = keyword_search(pending, top_n=10, difficulty_filter="All")
