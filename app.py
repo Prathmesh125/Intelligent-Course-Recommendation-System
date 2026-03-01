@@ -117,6 +117,10 @@ st.markdown(
     font-weight: 600 !important;
     white-space: nowrap !important;
     word-break: keep-all !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    display: block !important;
     transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
   }
   .stButton > button:hover{
@@ -726,7 +730,7 @@ def _render_discover(profile: dict):
         triggered_preset = None
         for i, preset in enumerate((suggestions or [])[:4]):
             with sug_cols[i]:
-                if st.button(_truncate(preset, 42), key=f"sug_{i}", use_container_width=True, type="secondary"):
+                if st.button(_truncate(preset, 28), key=f"sug_{i}", use_container_width=True, type="secondary"):
                     triggered_preset = preset
 
         trending = get_trending_chips(4)
@@ -735,7 +739,7 @@ def _render_discover(profile: dict):
             tr_cols = st.columns(4)
             for i, chip in enumerate(trending[:4]):
                 with tr_cols[i]:
-                    if st.button(_truncate(chip, 42), key=f"tr_{i}", use_container_width=True, type="secondary"):
+                    if st.button(_truncate(chip, 28), key=f"tr_{i}", use_container_width=True, type="secondary"):
                         triggered_preset = chip
 
         effective_query = (triggered_preset or q or "").strip()
