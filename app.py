@@ -115,8 +115,8 @@ st.markdown(
     color: var(--text-primary) !important;
     padding: 10px 14px !important;
     font-weight: 600 !important;
-        white-space: nowrap !important;
-        word-break: keep-all !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
     transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
   }
   .stButton > button:hover{
@@ -135,35 +135,32 @@ st.markdown(
   .stButton > button[kind="primary"]:hover{ box-shadow: var(--shadow-elevated) !important; }
 
   /* Inputs */
-  [data-baseweb="input"] input,
-  [data-baseweb="textarea"] textarea{
-    background: rgba(17,21,34,0.62) !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text-primary) !important;
-    border-radius: 12px !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
-  }
-    [data-testid="stTextInput"] input,
-    [data-testid="stTextArea"] textarea{
-        background: rgba(17,21,34,0.62) !important;
+    /* Streamlit/BaseWeb often sets background on the wrapper, not the input */
+    [data-baseweb="input"],
+    [data-baseweb="textarea"]{
+        background: var(--surface) !important;
         border: 1px solid var(--border) !important;
-        color: var(--text-primary) !important;
         border-radius: 12px !important;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
     }
+    [data-baseweb="input"]:hover,
+    [data-baseweb="textarea"]:hover{
+        background: var(--surface-elevated) !important;
+        border-color: rgba(255,255,255,0.14) !important;
+    }
+    [data-baseweb="input"] input,
+    [data-baseweb="textarea"] textarea{
+        background: transparent !important;
+        border: none !important;
+        color: var(--text-primary) !important;
+        box-shadow: none !important;
+    }
     [data-baseweb="input"] input::placeholder,
-    [data-baseweb="textarea"] textarea::placeholder,
-    [data-testid="stTextInput"] input::placeholder,
-    [data-testid="stTextArea"] textarea::placeholder{
+    [data-baseweb="textarea"] textarea::placeholder{
         color: rgba(255,255,255,0.38) !important;
     }
-  [data-baseweb="input"] input:focus,
-  [data-baseweb="textarea"] textarea:focus{
-    outline: 2px solid rgba(124,92,255,0.55) !important;
-    outline-offset: 2px !important;
-  }
-    [data-testid="stTextInput"] input:focus,
-    [data-testid="stTextArea"] textarea:focus{
+    [data-baseweb="input"]:focus-within,
+    [data-baseweb="textarea"]:focus-within{
         outline: 2px solid rgba(124,92,255,0.55) !important;
         outline-offset: 2px !important;
     }
