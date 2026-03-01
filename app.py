@@ -243,10 +243,33 @@ st.markdown("""
     section[data-testid="stSidebar"] label {
         color: #ffffff !important;
     }
-    section[data-testid="stSidebar"] input {
+    section[data-testid="stSidebar"] input,
+    section[data-testid="stSidebar"] textarea {
         background-color: #2a2a2a !important;
         color: #ffffff !important;
         border: 1px solid #444 !important;
+    }
+    /* Selectbox styling for sidebar */
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+        background-color: #2a2a2a !important;
+        border: 1px solid #444 !important;
+    }
+    section[data-testid="stSidebar"] div[data-baseweb="select"] span {
+        color: #ffffff !important;
+    }
+    /* Dropdown menu */
+    div[data-baseweb="popover"] {
+        background-color: #2a2a2a !important;
+    }
+    div[data-baseweb="popover"] ul[role="listbox"] {
+        background-color: #2a2a2a !important;
+    }
+    div[data-baseweb="popover"] li {
+        background-color: #2a2a2a !important;
+        color: #ffffff !important;
+    }
+    div[data-baseweb="popover"] li:hover {
+        background-color: #3a3a3a !important;
     }
     .sidebar-header {
         text-align: center;

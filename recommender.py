@@ -146,15 +146,23 @@ def invalidate_cache():
 
 # ── Get available difficulties ─────────────────────────────────────────────────
 def get_difficulties():
-    _ensure_model()
-    return ["All"] + sorted(_courses_df["difficulty"].unique().tolist())
+    try:
+        _ensure_model()
+        if _courses_df is not None and "difficulty" in _courses_df.columns:
+            return ["All"] + sorted(_courses_df["difficulty"].unique().tolist())
+    except Exception as e:
+        print(f"[Recommender] Error getting difficulties: {e}")
+    return ["All", "Beginner", "Intermediate", "Advanced"]
 
 
 # ── Get available sources ──────────────────────────────────────────────────────
 def get_sources():
-    _ensure_model()
-    if "source" in _courses_df.columns:
-        return ["All"] + sorted(_courses_df["source"].unique().tolist())
+    try:
+        _ensure_model()
+        if _courses_df is not None and "source" in _courses_df.columns:
+            return ["All"] + sorted(_courses_df["source"].unique().tolist())
+    except Exception as e:
+        print(f"[Recommender] Error getting sources: {e}")
     return ["All"]
 
 
