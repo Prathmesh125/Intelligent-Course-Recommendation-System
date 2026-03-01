@@ -637,14 +637,14 @@ def _render_sidebar() -> tuple[str, dict, dict]:
     return page, profile, stats
 
 
-def _run_live_search(query_text: str, top_n: int, difficulty: str):
+def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None, status_txt=None):
     profile = st.session_state.profile
-    prog_bar = st.progress(0)
-    status_txt = st.empty()
 
     def _live_prog(msg, pct):
-        prog_bar.progress(pct / 100)
-        status_txt.caption(msg)
+        if prog_bar:
+            prog_bar.progress(pct / 100)
+        if status_txt:
+            status_txt.caption(msg)
 
     raw_results, query_info = search_courses_live(
         query_text,
@@ -774,15 +774,26 @@ def _render_discover(profile: dict):
         pending = st.session_state.get("pending_search_query")
         if pending:
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+            # Progress indicator at the top
+            prog_placeholder = st.empty()
+            status_placeholder = st.empty()
+            with prog_placeholder.container():
+                prog_bar = st.progress(0)
+            with status_placeholder.container():
+                status_txt = st.empty()
+            
+            st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
             _render_skeleton_grid(total_cards=9, cols=1)
             try:
-                _run_live_search(pending, top_n=top_n, difficulty=difficulty)
+                _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt)
             except Exception as e:
                 st.error(f"Live search failed: {e}")
                 st.session_state.live_results = pd.DataFrame()
                 st.session_state.live_query_info = {}
             finally:
                 st.session_state.pending_search_query = None
+                prog_placeholder.empty()
+                status_placeholder.empty()
                 st.rerun()
 
         # Results
