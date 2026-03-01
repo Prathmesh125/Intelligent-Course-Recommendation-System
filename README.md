@@ -1,8 +1,4 @@
 # NLPRec — Intelligent Course Recommendation System
-
-> Final Year Project | B.E. Computer Engineering  
-> *AI-based recommendation system using Natural Language Processing*
-
 ---
 
 ## Problem Statement
