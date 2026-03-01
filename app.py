@@ -231,52 +231,57 @@ st.markdown("""
 
     /* SIDEBAR */
     section[data-testid="stSidebar"] {
-        background-color: #1a1a1a;
-        border-right: 1px solid #333;
-    }
-    section[data-testid="stSidebar"] * {
-        color: #ffffff !important;
+        background-color: #ffffff;
+        border-right: 1px solid var(--border-color);
     }
     section[data-testid="stSidebar"] .stMarkdown {
-        color: #ffffff !important;
+        color: var(--text-color) !important;
     }
     section[data-testid="stSidebar"] label {
-        color: #ffffff !important;
+        color: var(--text-color) !important;
+        font-weight: 600;
     }
     section[data-testid="stSidebar"] input,
     section[data-testid="stSidebar"] textarea {
-        background-color: #2a2a2a !important;
-        color: #ffffff !important;
-        border: 1px solid #444 !important;
+        background-color: #ffffff !important;
+        color: var(--text-color) !important;
+        border: 1px solid var(--border-color) !important;
     }
     /* Selectbox styling for sidebar */
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-        background-color: #2a2a2a !important;
-        border: 1px solid #444 !important;
+        background-color: #ffffff !important;
+        border: 1px solid var(--border-color) !important;
     }
     section[data-testid="stSidebar"] div[data-baseweb="select"] span {
-        color: #ffffff !important;
+        color: var(--text-color) !important;
     }
     /* Dropdown menu */
     div[data-baseweb="popover"] {
-        background-color: #2a2a2a !important;
+        background-color: #ffffff !important;
     }
     div[data-baseweb="popover"] ul[role="listbox"] {
-        background-color: #2a2a2a !important;
+        background-color: #ffffff !important;
     }
     div[data-baseweb="popover"] li {
-        background-color: #2a2a2a !important;
-        color: #ffffff !important;
+        background-color: #ffffff !important;
+        color: var(--text-color) !important;
     }
     div[data-baseweb="popover"] li:hover {
-        background-color: #3a3a3a !important;
+        background-color: #F0F2F6 !important;
     }
     .sidebar-header {
         text-align: center;
         padding: 2rem 1rem;
-        background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
-        border-bottom: 1px solid #333;
+        background: linear-gradient(to bottom, rgba(79, 70, 229, 0.08), rgba(236, 72, 153, 0.05));
+        border-bottom: 1px solid var(--border-color);
         margin: -1rem -1rem 1.5rem -1rem;
+        border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .sidebar-header h2 {
+        color: var(--primary) !important;
+    }
+    .sidebar-header p {
+        color: var(--text-light) !important;
     }
 
     /* TABS */
