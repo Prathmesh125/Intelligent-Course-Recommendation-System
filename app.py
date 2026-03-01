@@ -368,6 +368,14 @@ def _init_session():
 
 _init_session()
 
+# ── Check if models exist, show warning if building for first time ────────────
+import os
+MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
+TFIDF_PATH = os.path.join(MODELS_DIR, "tfidf_vectorizer.pkl")
+
+if not os.path.exists(TFIDF_PATH):
+    st.info("🔧 **First-time setup**: Building NLP models from course dataset. This may take 1-2 minutes...", icon="⚙️")
+
 # ── Retention tracking (accumulate time on every meaningful page interaction) ─
 _now = time.time()
 _last_hb = st.session_state.get("last_heartbeat_ts", _now)
