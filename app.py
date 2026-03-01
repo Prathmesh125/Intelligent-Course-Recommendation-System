@@ -135,34 +135,51 @@ st.markdown(
   .stButton > button[kind="primary"]:hover{ box-shadow: var(--shadow-elevated) !important; }
 
   /* Inputs */
-    /* Streamlit/BaseWeb often sets background on the wrapper, not the input */
-    [data-baseweb="input"],
-    [data-baseweb="textarea"]{
+    /* Streamlit/BaseWeb: background is usually applied to nested wrapper divs.
+         Force dark theme on wrapper + inner wrapper + actual input/textarea. */
+    div[data-testid="stTextInput"] [data-baseweb="input"],
+    div[data-testid="stTextArea"]  [data-baseweb="textarea"]{
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Inner wrapper (this is the one that often stays white on Cloud) */
+    div[data-testid="stTextInput"] [data-baseweb="input"] > div,
+    div[data-testid="stTextArea"]  [data-baseweb="textarea"] > div{
         background: var(--surface) !important;
         border: 1px solid var(--border) !important;
         border-radius: 12px !important;
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
+        transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
     }
-    [data-baseweb="input"]:hover,
-    [data-baseweb="textarea"]:hover{
+    div[data-testid="stTextInput"] [data-baseweb="input"] > div:hover,
+    div[data-testid="stTextArea"]  [data-baseweb="textarea"] > div:hover{
         background: var(--surface-elevated) !important;
         border-color: rgba(255,255,255,0.14) !important;
     }
-    [data-baseweb="input"] input,
-    [data-baseweb="textarea"] textarea{
+    div[data-testid="stTextInput"] [data-baseweb="input"] > div:focus-within,
+    div[data-testid="stTextArea"]  [data-baseweb="textarea"] > div:focus-within{
+        border-color: rgba(124,92,255,0.38) !important;
+        box-shadow: 0 0 0 2px rgba(124,92,255,0.35) !important;
+    }
+
+    /* Actual editable elements */
+    div[data-testid="stTextInput"] input,
+    div[data-testid="stTextArea"] textarea{
         background: transparent !important;
-        border: none !important;
         color: var(--text-primary) !important;
-        box-shadow: none !important;
+        caret-color: var(--text-primary) !important;
     }
-    [data-baseweb="input"] input::placeholder,
-    [data-baseweb="textarea"] textarea::placeholder{
-        color: rgba(255,255,255,0.38) !important;
+    div[data-testid="stTextInput"] input::placeholder,
+    div[data-testid="stTextArea"] textarea::placeholder{
+        color: rgba(255,255,255,0.40) !important;
     }
-    [data-baseweb="input"]:focus-within,
-    [data-baseweb="textarea"]:focus-within{
-        outline: 2px solid rgba(124,92,255,0.55) !important;
-        outline-offset: 2px !important;
+
+    /* Remove the default outline that can look harsh on dark */
+    div[data-testid="stTextInput"] input:focus,
+    div[data-testid="stTextArea"] textarea:focus{
+        outline: none !important;
     }
 
   /* Select */
