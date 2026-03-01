@@ -115,6 +115,8 @@ st.markdown(
     color: var(--text-primary) !important;
     padding: 10px 14px !important;
     font-weight: 600 !important;
+        white-space: nowrap !important;
+        word-break: keep-all !important;
     transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
   }
   .stButton > button:hover{
@@ -141,11 +143,30 @@ st.markdown(
     border-radius: 12px !important;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
   }
+    [data-testid="stTextInput"] input,
+    [data-testid="stTextArea"] textarea{
+        background: rgba(17,21,34,0.62) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text-primary) !important;
+        border-radius: 12px !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    }
+    [data-baseweb="input"] input::placeholder,
+    [data-baseweb="textarea"] textarea::placeholder,
+    [data-testid="stTextInput"] input::placeholder,
+    [data-testid="stTextArea"] textarea::placeholder{
+        color: rgba(255,255,255,0.38) !important;
+    }
   [data-baseweb="input"] input:focus,
   [data-baseweb="textarea"] textarea:focus{
     outline: 2px solid rgba(124,92,255,0.55) !important;
     outline-offset: 2px !important;
   }
+    [data-testid="stTextInput"] input:focus,
+    [data-testid="stTextArea"] textarea:focus{
+        outline: 2px solid rgba(124,92,255,0.55) !important;
+        outline-offset: 2px !important;
+    }
 
   /* Select */
   [data-baseweb="select"] > div{
@@ -221,6 +242,15 @@ st.markdown(
     overflow: hidden;
     border: 1px solid var(--border);
   }
+
+    /* Alerts (st.info / st.warning / st.error) */
+    div[data-testid="stAlert"]{
+        border-radius: var(--radius) !important;
+        border: 1px solid rgba(255,255,255,0.10) !important;
+        background: rgba(124,92,255,0.08) !important;
+        box-shadow: var(--shadow-soft) !important;
+    }
+    div[data-testid="stAlert"] *{ color: var(--text-primary) !important; }
 
   /* Skeleton */
   @keyframes nlprecShimmer{ 0%{ background-position: 0% 0%; } 100%{ background-position: 200% 0%; } }
@@ -401,7 +431,8 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
 
     with st.container(border=True):
         st.markdown('<div class="nlprec-course">', unsafe_allow_html=True)
-        top_l, top_r = st.columns([5, 1], vertical_alignment="top")
+        # Wider action column to avoid label wrapping on narrow cards
+        top_l, top_r = st.columns([7, 2], vertical_alignment="top")
         with top_l:
             st.markdown(
                 f'<div style="font-weight:700; font-size:14.5px; line-height:1.35;">'
@@ -607,85 +638,91 @@ def _render_discover(profile: dict):
 
     saved_entries, saved_titles = _normalize_saved_courses(profile)
 
-    filters_col, main_col = st.columns([1.05, 2.25], gap="large")
+    # Horizontal filter bar (better alignment + less "left column" clutter)
+    with st.container(border=True):
+        st.markdown("**Filters**")
 
-    with filters_col:
-        with st.container(border=True):
-            st.markdown("**Filters**")
-            difficulties = get_difficulties()
-            default_diff = profile.get("preferred_difficulty", "All")
-            diff_idx = difficulties.index(default_diff) if default_diff in difficulties else 0
+        difficulties = get_difficulties()
+        default_diff = profile.get("preferred_difficulty", "All")
+        diff_idx = difficulties.index(default_diff) if default_diff in difficulties else 0
+
+        sources_list = get_sources()
+
+        r1 = st.columns([1.15, 1.15, 1.35, 1.0], gap="large")
+        with r1[0]:
             difficulty = st.selectbox("Difficulty", difficulties, index=diff_idx, key="flt_difficulty")
-
-            sources_list = get_sources()
+        with r1[1]:
             source_filter = st.selectbox("Platform", sources_list, index=0, key="flt_platform")
-
-            min_rating = st.slider("Minimum rating", 0.0, 5.0, 0.0, 0.5, key="flt_min_rating")
-            top_n = st.select_slider("Results", options=[12, 24, 36, 48], value=24, key="flt_topn")
-
+        with r1[2]:
             price_sel = st.radio(
                 "Price",
                 ["All", "Free", "Paid"],
                 horizontal=True,
                 key="flt_price",
             )
-            st.caption("Free to audit means course access is free, certificate may be paid.")
-
+        with r1[3]:
             personalize = st.toggle("Personalize", value=True, key="flt_personalize")
 
-    with main_col:
-        with st.container(border=True):
-            st.markdown("**Search**")
-            q = st.text_input(
-                "Search",
-                key="main_query",
-                placeholder="Try: data structures, NLP, system design, React, machine learning",
-                label_visibility="collapsed",
+        r2 = st.columns([1.4, 1.2, 1.4], gap="large")
+        with r2[0]:
+            min_rating = st.slider("Minimum rating", 0.0, 5.0, 0.0, 0.5, key="flt_min_rating")
+        with r2[1]:
+            top_n = st.select_slider("Results", options=[12, 24, 36, 48], value=24, key="flt_topn")
+        with r2[2]:
+            st.caption("Free to audit means course access is free; certificate may be paid.")
+
+    with st.container(border=True):
+        st.markdown("**Search**")
+        q = st.text_input(
+            "Search",
+            key="main_query",
+            placeholder="Try: data structures, NLP, system design, React, machine learning",
+            label_visibility="collapsed",
+        )
+
+        btn_l, btn_r = st.columns([1, 1])
+        with btn_l:
+            search_clicked = st.button("Search", type="primary", use_container_width=True)
+        with btn_r:
+            clear_clicked = st.button("Clear", use_container_width=True)
+
+        if clear_clicked:
+            st.session_state.main_query = ""
+            st.session_state.live_results = pd.DataFrame()
+            st.session_state.live_query_info = {}
+            st.session_state.live_page = 0
+            st.rerun()
+
+        # Dynamic suggestions based on query/profile
+        current_q = (st.session_state.get("main_query", "") or "").strip()
+        if current_q != st.session_state.get("last_query", ""):
+            st.session_state.last_query = current_q
+            st.session_state.dynamic_suggestions = generate_suggestions(
+                current_q or "machine learning",
+                st.session_state.profile,
+                n=4,
             )
 
-            btn_l, btn_r = st.columns([1, 1])
-            with btn_l:
-                search_clicked = st.button("Search", type="primary", use_container_width=True)
-            with btn_r:
-                clear_clicked = st.button("Clear", use_container_width=True)
+        suggestions = st.session_state.dynamic_suggestions or generate_suggestions(
+            "machine learning", st.session_state.profile, n=4
+        )
 
-            if clear_clicked:
-                st.session_state.main_query = ""
-                st.session_state.live_results = pd.DataFrame()
-                st.session_state.live_query_info = {}
-                st.session_state.live_page = 0
-                st.rerun()
+        st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Suggested</div>", unsafe_allow_html=True)
+        sug_cols = st.columns(4)
+        triggered_preset = None
+        for i, preset in enumerate((suggestions or [])[:4]):
+            with sug_cols[i]:
+                if st.button(_truncate(preset, 42), key=f"sug_{i}", use_container_width=True, type="secondary"):
+                    triggered_preset = preset
 
-            # Dynamic suggestions based on query/profile
-            current_q = (st.session_state.get("main_query", "") or "").strip()
-            if current_q != st.session_state.get("last_query", ""):
-                st.session_state.last_query = current_q
-                st.session_state.dynamic_suggestions = generate_suggestions(
-                    current_q or "machine learning",
-                    st.session_state.profile,
-                    n=4,
-                )
-
-            suggestions = st.session_state.dynamic_suggestions or generate_suggestions(
-                "machine learning", st.session_state.profile, n=4
-            )
-
-            st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Suggested</div>", unsafe_allow_html=True)
-            sug_cols = st.columns(4)
-            triggered_preset = None
-            for i, preset in enumerate((suggestions or [])[:4]):
-                with sug_cols[i]:
-                    if st.button(_truncate(preset, 42), key=f"sug_{i}", use_container_width=True, type="secondary"):
-                        triggered_preset = preset
-
-            trending = get_trending_chips(4)
-            if trending:
-                st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Trending</div>", unsafe_allow_html=True)
-                tr_cols = st.columns(4)
-                for i, chip in enumerate(trending[:4]):
-                    with tr_cols[i]:
-                        if st.button(_truncate(chip, 42), key=f"tr_{i}", use_container_width=True, type="secondary"):
-                            triggered_preset = chip
+        trending = get_trending_chips(4)
+        if trending:
+            st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Trending</div>", unsafe_allow_html=True)
+            tr_cols = st.columns(4)
+            for i, chip in enumerate(trending[:4]):
+                with tr_cols[i]:
+                    if st.button(_truncate(chip, 42), key=f"tr_{i}", use_container_width=True, type="secondary"):
+                        triggered_preset = chip
 
         effective_query = (triggered_preset or q or "").strip()
 
