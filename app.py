@@ -708,8 +708,14 @@ def _render_discover(profile: dict):
 
     with st.container(border=True):
         st.markdown("**Search**")
+        
+        # Initialize search query value if not present
+        if "search_query_value" not in st.session_state:
+            st.session_state.search_query_value = ""
+        
         q = st.text_input(
             "Search",
+            value=st.session_state.search_query_value,
             key="main_query",
             placeholder="Try: data structures, NLP, system design, React, machine learning",
             label_visibility="collapsed",
@@ -722,7 +728,7 @@ def _render_discover(profile: dict):
             clear_clicked = st.button("Clear", use_container_width=True)
 
         if clear_clicked:
-            st.session_state.main_query = ""
+            st.session_state.search_query_value = ""
             st.session_state.live_results = pd.DataFrame()
             st.session_state.live_query_info = {}
             st.session_state.live_page = 0
