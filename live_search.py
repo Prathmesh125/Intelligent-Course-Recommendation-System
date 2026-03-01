@@ -219,6 +219,37 @@ def _infer_price(url: str, text: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Duration inference — lightweight
+# ═══════════════════════════════════════════════════════════════════════════════
+_DURATION_HOURS = re.compile(r"\b(\d{1,3})\s*(h|hr|hrs|hour|hours)\b", re.I)
+_DURATION_WEEKS = re.compile(r"\b(\d{1,2})\s*(w|wk|wks|week|weeks)\b", re.I)
+_DURATION_MINS  = re.compile(r"\b(\d{1,3})\s*(m|min|mins|minute|minutes)\b", re.I)
+
+
+def _infer_duration(text: str) -> str:
+    """Infer a compact duration label from snippets.
+
+    Returns values like '12h', '6w', '45m' or '' when unknown.
+    """
+    if not text:
+        return ""
+
+    m = _DURATION_HOURS.search(text)
+    if m:
+        return f"{m.group(1)}h"
+
+    m = _DURATION_WEEKS.search(text)
+    if m:
+        return f"{m.group(1)}w"
+
+    m = _DURATION_MINS.search(text)
+    if m:
+        return f"{m.group(1)}m"
+
+    return ""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Platform inference from URL
 # ═══════════════════════════════════════════════════════════════════════════════
 def _infer_platform(url: str) -> str:
@@ -426,6 +457,7 @@ def search_courses_live(
         difficulty = _infer_difficulty(f"{title} {body}")
         skills     = _extract_skills(f"{title} {body}", topic)
         price      = _infer_price(url, f"{title} {body}")
+        duration   = _infer_duration(f"{title} {body}")
 
         courses.append({
             "course_title":     title,
@@ -434,6 +466,7 @@ def search_courses_live(
             "source":           platform,
             "difficulty":       difficulty,
             "price":            price,
+            "duration":         duration,
             "rating":           0.0,
             "skills":           skills,
             "similarity_score": 0.0,
@@ -491,7 +524,7 @@ def results_to_df(results: list[dict]):
     import pandas as pd
     _COLS = [
         "rank", "course_title", "description", "skills",
-        "difficulty", "price", "rating", "url", "source", "similarity_score",
+        "difficulty", "duration", "price", "rating", "url", "source", "similarity_score",
     ]
     if not results:
         return pd.DataFrame(columns=_COLS)

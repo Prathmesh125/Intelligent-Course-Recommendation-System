@@ -81,14 +81,24 @@ def load_tfidf_model():
         print("[Vectorizer] Pre-built model not found — building now …")
         return build_and_save_tfidf()
 
-    with open(TFIDF_PATH,   "rb") as f:
-        vectorizer   = pickle.load(f)
-    with open(MATRIX_PATH,  "rb") as f:
-        tfidf_matrix = pickle.load(f)
-    with open(COURSES_PATH, "rb") as f:
-        df           = pickle.load(f)
-
-    return vectorizer, tfidf_matrix, df
+    try:
+        with open(TFIDF_PATH, "rb") as f:
+            vectorizer = pickle.load(f)
+        with open(MATRIX_PATH, "rb") as f:
+            tfidf_matrix = pickle.load(f)
+        with open(COURSES_PATH, "rb") as f:
+            df = pickle.load(f)
+        return vectorizer, tfidf_matrix, df
+    except Exception as e:
+        # Pickles can be brittle across library versions (notably NumPy / SciPy).
+        # If loading fails, rebuild deterministically from the CSV dataset.
+        print(f"[Vectorizer] Failed to load pre-built model ({type(e).__name__}: {e}) — rebuilding now …")
+        for path in (TFIDF_PATH, MATRIX_PATH, COURSES_PATH):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+        return build_and_save_tfidf()
 
 
 # ── Transform a single user query ─────────────────────────────────────────────

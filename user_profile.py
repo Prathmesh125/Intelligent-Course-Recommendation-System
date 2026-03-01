@@ -145,21 +145,29 @@ def record_session(profile: dict, retention_secs: float) -> dict:
 
 # ── Save a course ─────────────────────────────────────────────────────────────
 def save_course(profile: dict, course_title: str, metadata: dict = None) -> dict:
-    saved = profile.get("saved_courses", [])
-    # Normalise: convert any legacy plain strings to dicts
-    saved = [{"title": c} if isinstance(c, str) else c for c in saved]
-    titles = [c["title"] for c in saved]
-    if course_title not in titles:
-        entry = {"title": course_title}
-        if metadata:
-            entry.update({
-                "url":         metadata.get("url", ""),
-                "description": metadata.get("description", ""),
-                "difficulty":  metadata.get("difficulty", ""),
-                "source":      metadata.get("source", ""),
-                "rating":      metadata.get("rating", 0),
-            })
+    saved = profile.get("saved_courses", []) or []
+
+    def _title_of(item) -> str:
+        return item if isinstance(item, str) else (item.get("title", "") if isinstance(item, dict) else "")
+
+    existing_titles = {_title_of(item) for item in saved}
+    if course_title in existing_titles:
+        return profile
+
+    # Backwards-compatible default: store a plain string unless metadata is provided.
+    if not metadata:
+        saved.append(course_title)
+    else:
+        entry = {
+            "title": course_title,
+            "url": metadata.get("url", ""),
+            "description": metadata.get("description", ""),
+            "difficulty": metadata.get("difficulty", ""),
+            "source": metadata.get("source", ""),
+            "rating": metadata.get("rating", 0),
+        }
         saved.append(entry)
+
     profile["saved_courses"] = saved[-50:]
     return profile
 
