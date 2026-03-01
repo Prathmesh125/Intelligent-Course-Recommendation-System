@@ -334,6 +334,36 @@ st.markdown("""
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+    
+    /* ─── HIDE DEBUG/DEV UI ELEMENTS ─────────────────────────────────────────── */
+    /* Hide top-right toolbar completely */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+    /* Hide hamburger menu */
+    #MainMenu {
+        visibility: hidden !important;
+    }
+    /* Hide "Made with Streamlit" footer */
+    footer {
+        visibility: hidden !important;
+    }
+    /* Hide deploy button */
+    .stDeployButton {
+        display: none !important;
+    }
+    /* Hide toolbar */
+    section[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    /* Hide top toolbar area */
+    div[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    /* Remove top padding since toolbar is hidden */
+    .main .block-container {
+        padding-top: 2rem !important;
+    }
 ```
     
 
