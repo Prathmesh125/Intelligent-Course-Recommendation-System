@@ -93,7 +93,7 @@ st.markdown(
     border-radius: var(--radius);
     box-shadow: var(--shadow-soft);
   }
-  div[data-testid="stContainer"] > div{ padding: 14px 14px !important; }
+  div[data-testid="stContainer"] > div{ padding: 20px 20px !important; }
 
   /* Course card hover lift (only when the container contains .nlprec-course) */
   div[data-testid="stContainer"]:has(.nlprec-course){
@@ -281,7 +281,7 @@ st.markdown(
       rgba(255,255,255,0.04) 60%);
     background-size: 200% 100%;
     animation: nlprecShimmer 1.2s ease-in-out infinite;
-    height: 140px;
+    height: 220px;
   }
 
   /* Small utility text */
@@ -434,7 +434,10 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     sim = float(row.get("similarity_score", 0) or 0)
     match_pct = int(max(0, min(100, round(sim * 100))))
 
-    desc = _truncate(str(row.get("description", "")), 220)
+    # Clean description: remove "Missing:" artifacts and truncate
+    raw_desc = str(row.get("description", ""))
+    clean_desc = raw_desc.split("Missing:")[0].strip()
+    desc = _truncate(clean_desc, 140) if clean_desc else ""
 
     src_badge = _source_badge(source) if source else ""
     diff_badge = _difficulty_badge(difficulty)
@@ -449,20 +452,14 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
 
     with st.container(border=True):
         st.markdown('<div class="nlprec-course">', unsafe_allow_html=True)
-        # Wider action column to avoid label wrapping on narrow cards
-        top_l, top_r = st.columns([7, 2], vertical_alignment="top")
+        # Header: title + save button
+        top_l, top_r = st.columns([8, 2], vertical_alignment="top")
         with top_l:
             st.markdown(
-                f'<div style="font-weight:700; font-size:14.5px; line-height:1.35;">'
+                f'<div style="font-weight:700; font-size:15.5px; line-height:1.4; margin-bottom:12px;">'
                 f'<a href="{url}" target="_blank" style="color: var(--text-primary); text-decoration:none;">'
-                f'{_truncate(title, 92)}'
+                f'{_truncate(title, 85)}'
                 f'</a></div>',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f'<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">'
-                f'{src_badge}{diff_badge}{dur_badge}{rating_badge}{price_badge}{match_badge}'
-                f'</div>',
                 unsafe_allow_html=True,
             )
 
@@ -488,15 +485,38 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
                     st.session_state.profile = profile
                     st.rerun()
 
-        if desc:
-            st.markdown(f'<div class="nlprec-subtitle" style="margin-top:10px;">{desc}</div>', unsafe_allow_html=True)
-
+        # Metadata chips in organized groups
         st.markdown(
-            f'<div style="display:flex; justify-content:flex-end; margin-top:12px;">'
-            f'<a class="nlprec-linkbtn" href="{url}" target="_blank">Open course</a>'
+            f'<div style="display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px;">'
+            f'{src_badge}{diff_badge}'
             f'</div>',
             unsafe_allow_html=True,
         )
+        st.markdown(
+            f'<div style="display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px;">'
+            f'{dur_badge}{rating_badge}{price_badge}'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        # Description
+        if desc:
+            st.markdown(
+                f'<div class="nlprec-subtitle" style="margin-bottom:14px; line-height:1.5;">{desc}</div>',
+                unsafe_allow_html=True,
+            )
+
+        # Footer: match score + action button
+        footer_l, footer_r = st.columns([1, 1], vertical_alignment="center")
+        with footer_l:
+            st.markdown(match_badge, unsafe_allow_html=True)
+        with footer_r:
+            st.markdown(
+                f'<div style="display:flex; justify-content:flex-end;">'
+                f'<a class="nlprec-linkbtn" href="{url}" target="_blank">Open course</a>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
         st.markdown('</div>', unsafe_allow_html=True)
 
 
