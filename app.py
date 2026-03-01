@@ -88,10 +88,11 @@ st.markdown(
 
   /* Containers (used as cards/panels) */
   div[data-testid="stContainer"]{
-    background: linear-gradient(180deg, rgba(255,255,255,0.030), rgba(255,255,255,0.012));
-    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(21,26,43,0.95), rgba(17,21,34,0.98));
+    border: 1.5px solid rgba(255,255,255,0.12);
     border-radius: var(--radius);
-    box-shadow: var(--shadow-soft);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(8px);
   }
   div[data-testid="stContainer"] > div{ padding: 20px 20px !important; }
 
@@ -101,10 +102,10 @@ st.markdown(
     will-change: transform;
   }
   div[data-testid="stContainer"]:has(.nlprec-course):hover{
-    transform: translateY(-2px);
-    background: var(--surface-elevated);
-    box-shadow: var(--shadow-elevated);
-    border-color: rgba(255,255,255,0.14);
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, rgba(21,26,43,1), rgba(17,21,34,1));
+    box-shadow: 0 12px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(124,92,255,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    border-color: rgba(124,92,255,0.25);
   }
 
   /* Buttons */
@@ -274,15 +275,16 @@ st.markdown(
   @keyframes nlprecShimmer{ 0%{ background-position: 0% 0%; } 100%{ background-position: 200% 0%; } }
   .nlprec-skeleton{
     border-radius: var(--radius);
-    border: 1px solid var(--border);
+    border: 1.5px solid rgba(255,255,255,0.10);
     background: linear-gradient(90deg,
-      rgba(255,255,255,0.04) 0%,
-      rgba(255,255,255,0.06) 30%,
-      rgba(255,255,255,0.04) 60%);
+      rgba(21,26,43,0.7) 0%,
+      rgba(21,26,43,0.85) 30%,
+      rgba(21,26,43,0.7) 60%);
     background-size: 200% 100%;
     animation: nlprecShimmer 1.2s ease-in-out infinite;
     height: 145px;
     margin-bottom: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   }
 
   /* Small utility text */
