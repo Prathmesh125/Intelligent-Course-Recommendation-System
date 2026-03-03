@@ -436,12 +436,14 @@ def search_courses_live(
 
     ddgs = DDGS()
     search_errors = []
+    filtered_count = 0  # Track how many results were filtered out
     
     for i, sq in enumerate(all_search_passes):
         pct = 5 + int((i / len(all_search_passes)) * 55)
         _prog(f"Scanning: {sq[:65]} ...", pct)
         try:
             hits = ddgs.text(sq, max_results=per_query)
+            fetched = len(hits or [])
             for h in (hits or []):
                 url   = (h.get("href") or h.get("url", "")).strip()
                 title = (h.get("title", "")).strip()
@@ -452,10 +454,12 @@ def search_courses_live(
                 if url in seen_urls:
                     continue
                 if not _is_course_like(title, body, url):
+                    filtered_count += 1
                     continue
 
                 seen_urls.add(url)
                 raw.append({"_title": title, "_body": body, "_url": url})
+            log.info(f"Search pass {i+1}/{len(all_search_passes)}: fetched {fetched} results, kept {len(raw)} total (filtered {filtered_count})")
         except Exception as e:
             error_msg = f"Search failed for '{sq[:40]}': {str(e)}"
             log.warning(error_msg)
@@ -464,14 +468,22 @@ def search_courses_live(
 
     _prog(f"Found {len(raw)} raw results — filtering & ranking ...", 62)
     
+    # Log detailed diagnostics
+    log.info(f"Search completed: {len(raw)} results after filtering {filtered_count} non-course pages. Errors: {len(search_errors)}")
+    
     # If we got 0 results and had errors, raise an exception with details
     if len(raw) == 0 and search_errors:
-        error_summary = f"Search engine error: {search_errors[-1]}"
+        error_summary = f"All search queries failed. Last error: {search_errors[-1]}"
         raise Exception(error_summary)
     
-    # If we got 0 results without errors, it means the filters were too strict
+    # If we got 0 results without errors, it means either:
+    # 1. DuckDuckGo returned 0 results (rare)
+    # 2. All results were filtered out (more likely)
     if len(raw) == 0:
-        log.warning(f"No course-like results found for query: '{topic}'")
+        if filtered_count > 0:
+            log.warning(f"Filtered out all {filtered_count} results for query '{topic}' (too strict)")
+        else:
+            log.warning(f"DuckDuckGo returned 0 results for query '{topic}' (search queries: {effective_search_queries})")
 
     # ── Step 3: Build structured course dicts ─────────────────────────────
     courses = []

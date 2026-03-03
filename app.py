@@ -657,6 +657,28 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
         progress_callback=_live_prog,
     )
     df_live = results_to_df(raw_results)
+    
+    # SMART FALLBACK: If live search returns 0 results, try local dataset
+    if df_live.empty:
+        _live_prog("No live results found — searching local dataset...", 70)
+        # Try keyword search on local dataset
+        try:
+            # Use the topic from query_info for better matching
+            search_topic = query_info.get("topic", query_text) if isinstance(query_info, dict) else query_text
+            local_results = keyword_search(search_topic, top_n=min(top_n, 30))
+            if not local_results.empty:
+                # Add a note that these are from local dataset
+                df_live = local_results.copy()
+                # Mark these as fallback results
+                st.session_state.search_fallback_used = True
+                _live_prog(f"Found {len(df_live)} courses in local dataset", 100)
+            else:
+                st.session_state.search_fallback_used = False
+        except Exception as e:
+            st.session_state.search_fallback_used = False
+            _live_prog(f"Local fallback also failed: {str(e)}", 100)
+    else:
+        st.session_state.search_fallback_used = False
 
     # If this was a personalized/enriched query, clear the display_correction
     # to avoid confusing the user with the enriched query terms
@@ -833,6 +855,10 @@ def _render_discover(profile: dict):
         correction = query_info.get("display_correction") if isinstance(query_info, dict) else None
         if correction:
             st.info(f"Interpreted as: {correction}")
+        
+        # Show if fallback to local dataset was used
+        if st.session_state.get("search_fallback_used", False):
+            st.info("🔍 Live web search returned no results — showing matches from our curated dataset instead. Try different keywords for live web results.")
         
         # Display any search errors
         if st.session_state.last_search_error:
