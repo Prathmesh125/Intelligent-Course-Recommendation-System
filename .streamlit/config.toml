@@ -15,9 +15,9 @@ showErrorDetails = false
 fastReruns = true
 
 [theme]
-primaryColor = "#4CAF50"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F0F2F6"
-textColor = "#262730"
+primaryColor = "#7C5CFF"
+backgroundColor = "#0B0D12"
+secondaryBackgroundColor = "#111522"
+textColor = "#FFFFFF"
 font = "sans serif"
 
