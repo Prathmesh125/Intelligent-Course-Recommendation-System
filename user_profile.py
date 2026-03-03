@@ -188,20 +188,32 @@ def enrich_query(profile: dict, raw_query: str) -> str:
     picks up on prior context when making recommendations.
 
     v2: prefers topic_frequency (weighted) over flat interests list.
+    
+    IMPROVED: Only enriches very short/vague queries (1-3 words)
+    and only adds 1-2 most relevant topics to avoid query pollution.
     """
+    # Only enrich if query is very short/vague
+    query_words = raw_query.strip().split()
+    if len(query_words) > 3:
+        # Query is already detailed enough, don't pollute it
+        return raw_query
+    
     # Use frequency-weighted topics if available, else fall back to interests
     tf = profile.get("topic_frequency", {})
     if tf:
         sorted_topics = sorted(tf.items(), key=lambda x: x[1], reverse=True)
-        recent = [t for t, _ in sorted_topics[:5]]
+        # Only take top 1-2 topics, not 5
+        recent = [t for t, _ in sorted_topics[:2]]
     else:
         interests = profile.get("interests", [])
-        recent = interests[-5:]
+        # Only take last 1-2 interests
+        recent = interests[-2:]
 
     if not recent:
         return raw_query
 
-    enriched = raw_query + " " + " ".join(recent)
+    # Only add at most 2 topics
+    enriched = raw_query + " " + " ".join(recent[:2])
     return enriched.strip()
 
 

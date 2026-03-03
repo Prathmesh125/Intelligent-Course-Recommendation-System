@@ -637,7 +637,7 @@ def _render_sidebar() -> tuple[str, dict, dict]:
     return page, profile, stats
 
 
-def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None, status_txt=None):
+def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None, status_txt=None, original_query=None):
     profile = st.session_state.profile
 
     def _live_prog(msg, pct):
@@ -654,9 +654,15 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
     )
     df_live = results_to_df(raw_results)
 
-    # Log behaviour and persist profile
-    bt.log_query(profile.get("username", "guest"), query_text, difficulty)
-    profile = log_search(profile, query_text, difficulty)
+    # If this was a personalized/enriched query, clear the display_correction
+    # to avoid confusing the user with the enriched query terms
+    if original_query and original_query != query_text:
+        # This was enriched, don't show the enrichment to the user
+        query_info['display_correction'] = None
+
+    # Log behaviour and persist profile using the ORIGINAL query
+    bt.log_query(profile.get("username", "guest"), original_query or query_text, difficulty)
+    profile = log_search(profile, original_query or query_text, difficulty)
     save_profile(profile)
     st.session_state.profile = profile
 
@@ -769,9 +775,13 @@ def _render_discover(profile: dict):
 
         # Stage search to enable skeleton loading
         if (search_clicked or triggered_preset) and effective_query:
+            # Store the original query for display, then enrich if personalization is on
+            original_query = effective_query
             if personalize:
                 effective_query = enrich_query(profile, effective_query)
+            # Pass both original and enriched query
             st.session_state.pending_search_query = effective_query
+            st.session_state.pending_search_original = original_query
             st.rerun()
         elif (search_clicked or triggered_preset) and not effective_query:
             st.warning("Enter a topic to search.")
@@ -791,13 +801,15 @@ def _render_discover(profile: dict):
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
             _render_skeleton_grid(total_cards=9, cols=1)
             try:
-                _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt)
+                original = st.session_state.get("pending_search_original", pending)
+                _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt, original_query=original)
             except Exception as e:
                 st.error(f"Live search failed: {e}")
                 st.session_state.live_results = pd.DataFrame()
                 st.session_state.live_query_info = {}
             finally:
                 st.session_state.pending_search_query = None
+                st.session_state.pending_search_original = None
                 prog_placeholder.empty()
                 status_placeholder.empty()
                 st.rerun()
