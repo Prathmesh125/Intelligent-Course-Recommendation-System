@@ -330,6 +330,8 @@ def _init_session():
         st.session_state.pending_compare_query = None
     if "last_search_error" not in st.session_state:
         st.session_state.last_search_error = None
+    if "search_debug_info" not in st.session_state:
+        st.session_state.search_debug_info = []
     # ── v2: session start + last query for dynamic suggestions ───────────────
     if "session_start_ts" not in st.session_state:
         st.session_state.session_start_ts = time.time()
@@ -792,15 +794,18 @@ def _render_discover(profile: dict):
         # Stage search to enable skeleton loading
         if (search_clicked or triggered_preset) and effective_query:
             print(f"[SEARCH TRIGGER] Query: '{effective_query}', Personalize: {personalize}")
+            st.session_state.search_debug_info = [f"Search triggered for: '{effective_query}'"]
             # Store the original query for display, then enrich if personalization is on
             original_query = effective_query
             if personalize:
                 effective_query = enrich_query(profile, effective_query)
                 print(f"[SEARCH ENRICHED] New query: '{effective_query}'")
+                st.session_state.search_debug_info.append(f"Query enriched to: '{effective_query}'")
             # Pass both original and enriched query
             st.session_state.pending_search_query = effective_query
             st.session_state.pending_search_original = original_query
             print(f"[SEARCH STAGED] Pending query set, about to rerun")
+            st.session_state.search_debug_info.append("Query staged, preparing search...")
             st.rerun()
         elif (search_clicked or triggered_preset) and not effective_query:
             st.warning("Enter a topic to search.")
@@ -809,6 +814,7 @@ def _render_discover(profile: dict):
         pending = st.session_state.get("pending_search_query")
         if pending:
             print(f"[SEARCH EXECUTING] Found pending query: '{pending}'")
+            st.session_state.search_debug_info.append(f"Executing search for: '{pending}'")
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
             # Progress indicator at the top
             prog_placeholder = st.empty()
@@ -825,11 +831,13 @@ def _render_discover(profile: dict):
                 print(f"[SEARCH START] Calling _run_live_search with top_n={top_n}, difficulty={difficulty}")
                 _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt, original_query=original)
                 print(f"[SEARCH COMPLETE] Search finished successfully")
+                st.session_state.search_debug_info.append(f"Search completed, found {len(st.session_state.live_results)} results")
                 st.session_state.last_search_error = None  # Clear any previous error
             except Exception as e:
                 import traceback
                 error_details = traceback.format_exc()
                 print(f"[SEARCH ERROR] {error_details}")
+                st.session_state.search_debug_info.append(f"ERROR: {str(e)}")
                 # Store error in session state so it persists after rerun
                 st.session_state.last_search_error = {"message": str(e), "details": error_details}
                 st.session_state.live_results = pd.DataFrame()
@@ -867,14 +875,31 @@ def _render_discover(profile: dict):
             with st.expander("Error details"):
                 st.code(err['details'])
 
+        # DEBUG: Show what's in session state
         if df_live.empty:
             print(f"[DISPLAY] DataFrame is EMPTY - showing 'no results' message")
+            st.error(f"🔍 DEBUG: Search returned 0 results")
+            
+            # Show debug trail
+            if st.session_state.get("search_debug_info"):
+                with st.expander("🐛 Search Debug Trail", expanded=True):
+                    for i, msg in enumerate(st.session_state.search_debug_info, 1):
+                        st.text(f"{i}. {msg}")
+            
+            st.info(f"**Session State Info:**\n- live_results rows: {len(st.session_state.live_results)}\n- pending_search_query: {st.session_state.get('pending_search_query')}\n- last_search_error: {'Yes' if st.session_state.get('last_search_error') else 'None'}")
             if st.session_state.get("last_query"):
                 st.caption("No results yet. Try a different query.")
             return
 
         # Apply local filters (price/source/min_rating)
         display_df = df_live.copy()
+        
+        # Show debug info if available (in an expander so it doesn't clutter the UI)
+        if st.session_state.get("search_debug_info"):
+            with st.expander("🐛 Search Debug Info"):
+                for i, msg in enumerate(st.session_state.search_debug_info, 1):
+                    st.text(f"{i}. {msg}")
+        
         if source_filter and source_filter != "All" and "source" in display_df.columns:
             display_df = display_df[display_df["source"] == source_filter]
         if min_rating and min_rating > 0 and "rating" in display_df.columns:
