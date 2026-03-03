@@ -328,6 +328,8 @@ def _init_session():
         st.session_state.pending_search_original = None
     if "pending_compare_query" not in st.session_state:
         st.session_state.pending_compare_query = None
+    if "last_search_error" not in st.session_state:
+        st.session_state.last_search_error = None
     # ── v2: session start + last query for dynamic suggestions ───────────────
     if "session_start_ts" not in st.session_state:
         st.session_state.session_start_ts = time.time()
@@ -655,6 +657,10 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
         progress_callback=_live_prog,
     )
     df_live = results_to_df(raw_results)
+    
+    # DEBUG: Log search results
+    import logging
+    logging.warning(f"SEARCH DEBUG: Query='{query_text}', Raw results={len(raw_results)}, DataFrame rows={len(df_live)}")
 
     # If this was a personalized/enriched query, clear the display_correction
     # to avoid confusing the user with the enriched query terms
@@ -671,6 +677,9 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
     st.session_state.live_results = df_live
     st.session_state.live_query_info = query_info
     st.session_state.live_page = 0
+    
+    # DEBUG: Verify it was stored
+    logging.warning(f"SEARCH DEBUG: Stored in session_state, live_results has {len(st.session_state.live_results)} rows")
 
 
 def _render_discover(profile: dict):
@@ -805,12 +814,12 @@ def _render_discover(profile: dict):
             try:
                 original = st.session_state.get("pending_search_original", pending)
                 _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt, original_query=original)
+                st.session_state.last_search_error = None  # Clear any previous error
             except Exception as e:
                 import traceback
                 error_details = traceback.format_exc()
-                st.error(f"Search failed: {str(e)}")
-                with st.expander("Error details"):
-                    st.code(error_details)
+                # Store error in session state so it persists after rerun
+                st.session_state.last_search_error = {"message": str(e), "details": error_details}
                 st.session_state.live_results = pd.DataFrame()
                 st.session_state.live_query_info = {}
             finally:
@@ -823,6 +832,10 @@ def _render_discover(profile: dict):
         # Results
         df_live = st.session_state.live_results
         query_info = st.session_state.live_query_info
+        
+        # DEBUG: Log what we're trying to display
+        import logging
+        logging.warning(f"DISPLAY DEBUG: About to display, live_results has {len(df_live)} rows")
 
         if not df_live.empty and "price" not in df_live.columns:
             df_live["price"] = "Free*"
@@ -832,6 +845,13 @@ def _render_discover(profile: dict):
         correction = query_info.get("display_correction") if isinstance(query_info, dict) else None
         if correction:
             st.info(f"Interpreted as: {correction}")
+        
+        # Display any search errors
+        if st.session_state.last_search_error:
+            err = st.session_state.last_search_error
+            st.error(f"Search failed: {err['message']}")
+            with st.expander("Error details"):
+                st.code(err['details'])
 
         if df_live.empty:
             if st.session_state.get("last_query"):
