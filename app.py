@@ -324,6 +324,8 @@ def _init_session():
         st.session_state.nav_page = "Discover"
     if "pending_search_query" not in st.session_state:
         st.session_state.pending_search_query = None
+    if "pending_search_original" not in st.session_state:
+        st.session_state.pending_search_original = None
     if "pending_compare_query" not in st.session_state:
         st.session_state.pending_compare_query = None
     # ── v2: session start + last query for dynamic suggestions ───────────────
@@ -804,7 +806,11 @@ def _render_discover(profile: dict):
                 original = st.session_state.get("pending_search_original", pending)
                 _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt, original_query=original)
             except Exception as e:
-                st.error(f"Live search failed: {e}")
+                import traceback
+                error_details = traceback.format_exc()
+                st.error(f"Search failed: {str(e)}")
+                with st.expander("Error details"):
+                    st.code(error_details)
                 st.session_state.live_results = pd.DataFrame()
                 st.session_state.live_query_info = {}
             finally:
