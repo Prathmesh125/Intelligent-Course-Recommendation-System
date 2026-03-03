@@ -335,6 +335,7 @@ _LISTICLE_URL = re.compile(
 
 def _is_course_like(title: str, body: str, url: str) -> bool:
     """Return True only if the result is an actual course/tutorial page, not an article about courses."""
+    # Skip obvious non-course domains
     if _SKIP_DOMAINS.search(url):
         return False
     # Reject listicle titles: "10 best Python courses", "Top courses for ..."
@@ -343,8 +344,20 @@ def _is_course_like(title: str, body: str, url: str) -> bool:
     # Reject blog/article URLs
     if _LISTICLE_URL.search(url):
         return False
+    
+    # More lenient: accept if it has course signals OR if it's from a known education platform
     text = f"{title} {body} {url}"
-    return bool(_COURSE_SIGNALS.search(text))
+    has_course_signals = bool(_COURSE_SIGNALS.search(text))
+    
+    # Accept results from known course platforms even without explicit signals
+    from_course_platform = any(domain in url.lower() for domain in [
+        'coursera.org', 'udemy.com', 'edx.org', 'udacity.com', 'khanacademy.org',
+        'freecodecamp.org', 'codecademy.com', 'pluralsight.com', 'datacamp.com',
+        'linkedin.com/learning', 'skillshare.com', 'futurelearn.com',
+        'youtube.com/watch', 'mit.edu', 'stanford.edu', 'harvard.edu'
+    ])
+    
+    return has_course_signals or from_course_platform
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -419,9 +432,11 @@ def search_courses_live(
         f"{topic} course site:datacamp.com OR site:pluralsight.com OR site:linkedin.com/learning",
     ]
     all_search_passes = effective_search_queries + site_passes
-    per_query = max(8, (top_n * 3) // len(all_search_passes))
+    per_query = max(10, (top_n * 4) // len(all_search_passes))  # Increased multiplier for more results
 
     ddgs = DDGS()
+    search_errors = []
+    
     for i, sq in enumerate(all_search_passes):
         pct = 5 + int((i / len(all_search_passes)) * 55)
         _prog(f"Scanning: {sq[:65]} ...", pct)
@@ -442,10 +457,21 @@ def search_courses_live(
                 seen_urls.add(url)
                 raw.append({"_title": title, "_body": body, "_url": url})
         except Exception as e:
-            log.warning(f"Search pass failed for '{sq[:40]}': {e}")
-        time.sleep(0.25)
+            error_msg = f"Search failed for '{sq[:40]}': {str(e)}"
+            log.warning(error_msg)
+            search_errors.append(error_msg)
+        time.sleep(0.1)  # Reduced delay for faster searches
 
     _prog(f"Found {len(raw)} raw results — filtering & ranking ...", 62)
+    
+    # If we got 0 results and had errors, raise an exception with details
+    if len(raw) == 0 and search_errors:
+        error_summary = f"Search engine error: {search_errors[-1]}"
+        raise Exception(error_summary)
+    
+    # If we got 0 results without errors, it means the filters were too strict
+    if len(raw) == 0:
+        log.warning(f"No course-like results found for query: '{topic}'")
 
     # ── Step 3: Build structured course dicts ─────────────────────────────
     courses = []
