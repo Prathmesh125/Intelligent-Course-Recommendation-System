@@ -702,13 +702,13 @@ def _render_discover(profile: dict):
                 key="flt_price",
             )
         with r1[3]:
-            personalize = st.toggle("Personalize", value=True, key="flt_personalize")
+            personalize = st.toggle("Personalize", value=False, key="flt_personalize")
 
         r2 = st.columns([1.4, 1.2, 1.4], gap="large")
         with r2[0]:
             min_rating = st.slider("Minimum rating", 0.0, 5.0, 0.0, 0.5, key="flt_min_rating")
         with r2[1]:
-            top_n = st.select_slider("Results", options=[12, 24, 36, 48], value=24, key="flt_topn")
+            top_n = st.select_slider("Results", options=[30, 60, 90, 120], value=60, key="flt_topn")
         with r2[2]:
             st.caption("Free to audit means course access is free; certificate may be paid.")
 
@@ -849,7 +849,7 @@ def _render_discover(profile: dict):
             st.warning("No courses match the current filters.")
             return
 
-        PAGE_SIZE = 12
+        PAGE_SIZE = 10
         total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
         current_pg = min(st.session_state.get("live_page", 0), total_pages - 1)
 
