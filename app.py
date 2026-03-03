@@ -642,6 +642,7 @@ def _render_sidebar() -> tuple[str, dict, dict]:
 
 
 def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None, status_txt=None, original_query=None):
+    print(f"[_run_live_search ENTER] query_text='{query_text}', top_n={top_n}, difficulty='{difficulty}'")
     profile = st.session_state.profile
 
     def _live_prog(msg, pct):
@@ -650,13 +651,16 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
         if status_txt:
             status_txt.caption(msg)
 
+    print(f"[_run_live_search] Calling search_courses_live...")
     raw_results, query_info = search_courses_live(
         query_text,
         top_n=top_n,
         difficulty_filter=difficulty,
         progress_callback=_live_prog,
     )
+    print(f"[_run_live_search] Got {len(raw_results)} raw results")
     df_live = results_to_df(raw_results)
+    print(f"[_run_live_search] DataFrame has {len(df_live)} rows")
     
     # DEBUG: Log search results
     import logging
@@ -680,6 +684,7 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
     
     # DEBUG: Verify it was stored
     logging.warning(f"SEARCH DEBUG: Stored in session_state, live_results has {len(st.session_state.live_results)} rows")
+    print(f"[_run_live_search EXIT] Stored {len(df_live)} results in session_state")
 
 
 def _render_discover(profile: dict):
@@ -786,13 +791,16 @@ def _render_discover(profile: dict):
 
         # Stage search to enable skeleton loading
         if (search_clicked or triggered_preset) and effective_query:
+            print(f"[SEARCH TRIGGER] Query: '{effective_query}', Personalize: {personalize}")
             # Store the original query for display, then enrich if personalization is on
             original_query = effective_query
             if personalize:
                 effective_query = enrich_query(profile, effective_query)
+                print(f"[SEARCH ENRICHED] New query: '{effective_query}'")
             # Pass both original and enriched query
             st.session_state.pending_search_query = effective_query
             st.session_state.pending_search_original = original_query
+            print(f"[SEARCH STAGED] Pending query set, about to rerun")
             st.rerun()
         elif (search_clicked or triggered_preset) and not effective_query:
             st.warning("Enter a topic to search.")
@@ -800,6 +808,7 @@ def _render_discover(profile: dict):
         # Pending search run (shows skeleton first, then executes)
         pending = st.session_state.get("pending_search_query")
         if pending:
+            print(f"[SEARCH EXECUTING] Found pending query: '{pending}'")
             st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
             # Progress indicator at the top
             prog_placeholder = st.empty()
@@ -813,11 +822,14 @@ def _render_discover(profile: dict):
             _render_skeleton_grid(total_cards=9, cols=1)
             try:
                 original = st.session_state.get("pending_search_original", pending)
+                print(f"[SEARCH START] Calling _run_live_search with top_n={top_n}, difficulty={difficulty}")
                 _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt, original_query=original)
+                print(f"[SEARCH COMPLETE] Search finished successfully")
                 st.session_state.last_search_error = None  # Clear any previous error
             except Exception as e:
                 import traceback
                 error_details = traceback.format_exc()
+                print(f"[SEARCH ERROR] {error_details}")
                 # Store error in session state so it persists after rerun
                 st.session_state.last_search_error = {"message": str(e), "details": error_details}
                 st.session_state.live_results = pd.DataFrame()
@@ -827,6 +839,7 @@ def _render_discover(profile: dict):
                 st.session_state.pending_search_original = None
                 prog_placeholder.empty()
                 status_placeholder.empty()
+                print(f"[SEARCH RERUN] About to rerun to show results")
                 st.rerun()
 
         # Results
@@ -836,6 +849,7 @@ def _render_discover(profile: dict):
         # DEBUG: Log what we're trying to display
         import logging
         logging.warning(f"DISPLAY DEBUG: About to display, live_results has {len(df_live)} rows")
+        print(f"[DISPLAY] Retrieved live_results with {len(df_live)} rows from session_state")
 
         if not df_live.empty and "price" not in df_live.columns:
             df_live["price"] = "Free*"
@@ -854,6 +868,7 @@ def _render_discover(profile: dict):
                 st.code(err['details'])
 
         if df_live.empty:
+            print(f"[DISPLAY] DataFrame is EMPTY - showing 'no results' message")
             if st.session_state.get("last_query"):
                 st.caption("No results yet. Try a different query.")
             return
