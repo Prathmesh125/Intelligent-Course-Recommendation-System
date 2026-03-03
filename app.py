@@ -677,8 +677,9 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
                 query_info = understand_query(query_text)
             
             search_topic = query_info.get("topic", query_text) if isinstance(query_info, dict) else query_text
+            _live_prog(f"Analyzing: {search_topic}...", 75)
             
-            # Use the smart TF-IDF-based recommend() function for better semantic matching
+            # Strategy 1: Full search with difficulty filter, very low threshold
             local_results = recommend(
                 search_topic, 
                 top_n=min(top_n, 30),
@@ -687,25 +688,46 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
                 source_filter="All"
             )
             
-            # Filter out very low similarity scores (below 0.01)
+            # Accept ANY similarity score above 0 (don't filter)
             if not local_results.empty:
-                local_results = local_results[local_results["similarity_score"] > 0.01]
+                local_results = local_results[local_results["similarity_score"] > 0.0]
             
-            # If still empty, try broader search with just the main keyword
+            # Strategy 2: Remove difficulty filter if nothing found
+            if local_results.empty:
+                _live_prog(f"Broadening search (no difficulty filter)...", 80)
+                local_results = recommend(
+                    search_topic, 
+                    top_n=min(top_n, 30),
+                    difficulty_filter="All",  # Remove difficulty filter
+                    min_rating=0.0,
+                    source_filter="All"
+                )
+                if not local_results.empty:
+                    local_results = local_results[local_results["similarity_score"] > 0.0]
+            
+            # Strategy 3: Try individual keywords
             if local_results.empty and len(search_topic.split()) > 1:
                 words = [w for w in search_topic.split() if len(w) > 3]
                 if words:
-                    local_results = recommend(words[0], top_n=min(top_n, 20))
+                    _live_prog(f"Searching by keyword: {words[0]}...", 85)
+                    local_results = recommend(words[0], top_n=min(top_n, 20), difficulty_filter="All")
                     if not local_results.empty:
-                        local_results = local_results[local_results["similarity_score"] > 0.01]
+                        local_results = local_results[local_results["similarity_score"] > 0.0]
             
-            # Last resort: try with the corrected query text
+            # Strategy 4: Try corrected/expanded query
             if local_results.empty:
                 corrected = query_info.get("corrected", query_text) if isinstance(query_info, dict) else query_text
-                if corrected != search_topic:
-                    local_results = recommend(corrected, top_n=min(top_n, 15))
+                if corrected and corrected != search_topic and corrected != query_text:
+                    _live_prog(f"Trying alternate search...", 90)
+                    local_results = recommend(corrected, top_n=min(top_n, 15), difficulty_filter="All")
                     if not local_results.empty:
-                        local_results = local_results[local_results["similarity_score"] > 0.01]
+                        local_results = local_results[local_results["similarity_score"] > 0.0]
+            
+            # Strategy 5: ABSOLUTE LAST RESORT - just return top courses sorted by rating
+            if local_results.empty:
+                _live_prog("Showing top-rated courses...", 95)
+                # Just get ANY courses without filtering, sorted by rating
+                local_results = recommend("course programming learning", top_n=min(top_n, 20), difficulty_filter="All")
             
             if not local_results.empty:
                 df_live = local_results.copy()
@@ -890,24 +912,40 @@ def _render_discover(profile: dict):
         
         # Show if fallback to local dataset was used
         if st.session_state.get("search_fallback_used", False):
-            st.info("📚 Showing results from our curated course database (211 courses from top platforms)")
+            st.info("""
+            🌐 **Using Smart Search Fallback**
+            
+            Live internet search is temporarily unavailable on Streamlit Cloud (rate limiting).
+            Showing curated results from our database of 211 top courses from Coursera, edX, freeCodeCamp, Khan Academy, and more.
+            
+            💡 **Tip:** For live web scraping of the entire internet, run this app locally with `streamlit run app.py`
+            """)
         
         # Display any search errors ONLY if no results were found
         if df_live.empty and st.session_state.get("last_search_error"):
             err = st.session_state.last_search_error
-            st.error(f"⚠️ Search failed: {err['message']}")
-            st.info("💡 **Tip:** Try simpler keywords like 'python', 'machine learning', 'web development', etc.")
+            st.error(f"⚠️ Search system error: {err['message']}")
+            st.info("""
+            💡 **What you can do:**
+            - Try simpler keywords: 'python', 'design', 'business'
+            - Use suggested searches below
+            - Browse trending topics
+            - Or run locally for full internet search: `streamlit run app.py`
+            """)
             with st.expander("Technical details"):
                 st.code(err['details'])
 
         if df_live.empty:
-            st.warning("❌ No courses found matching your search.")
+            st.error("⚠️ **No courses found** - This should rarely happen with our multi-strategy search!")
             st.markdown("""
-            **Suggestions:**
-            - Try simpler, broader keywords (e.g., 'python' instead of 'advanced python for data science')
-            - Check your spelling
-            - Use general topics: programming, design, business, data science, etc.
-            - Browse trending topics below or use suggested searches
+            **This usually means:**
+            - Live internet search failed (Streamlit Cloud rate limiting)
+            - Local database didn't match your query
+            
+            **Try these:**
+            1. Use **simpler, general keywords**: `python`, `design`, `business`, `data science`
+            2. Click one of the **Suggested** or **Trending** topics below
+            3. Check your **filters** above (difficulty, platform, price)
             """)
             return
 
