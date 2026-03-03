@@ -678,15 +678,34 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
             
             search_topic = query_info.get("topic", query_text) if isinstance(query_info, dict) else query_text
             
-            # Try multiple search strategies for better results
-            local_results = keyword_search(search_topic, top_n=min(top_n, 30))
+            # Use the smart TF-IDF-based recommend() function for better semantic matching
+            local_results = recommend(
+                search_topic, 
+                top_n=min(top_n, 30),
+                difficulty_filter=difficulty,
+                min_rating=0.0,
+                source_filter="All"
+            )
             
-            # If keyword search returns nothing, try a broader search with just key terms
+            # Filter out very low similarity scores (below 0.01)
+            if not local_results.empty:
+                local_results = local_results[local_results["similarity_score"] > 0.01]
+            
+            # If still empty, try broader search with just the main keyword
             if local_results.empty and len(search_topic.split()) > 1:
-                # Try searching for individual important words
                 words = [w for w in search_topic.split() if len(w) > 3]
                 if words:
-                    local_results = keyword_search(words[0], top_n=min(top_n, 20))
+                    local_results = recommend(words[0], top_n=min(top_n, 20))
+                    if not local_results.empty:
+                        local_results = local_results[local_results["similarity_score"] > 0.01]
+            
+            # Last resort: try with the corrected query text
+            if local_results.empty:
+                corrected = query_info.get("corrected", query_text) if isinstance(query_info, dict) else query_text
+                if corrected != search_topic:
+                    local_results = recommend(corrected, top_n=min(top_n, 15))
+                    if not local_results.empty:
+                        local_results = local_results[local_results["similarity_score"] > 0.01]
             
             if not local_results.empty:
                 df_live = local_results.copy()
