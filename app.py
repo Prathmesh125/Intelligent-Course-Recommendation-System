@@ -650,33 +650,54 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
         if status_txt:
             status_txt.caption(msg)
 
-    raw_results, query_info = search_courses_live(
-        query_text,
-        top_n=top_n,
-        difficulty_filter=difficulty,
-        progress_callback=_live_prog,
-    )
-    df_live = results_to_df(raw_results)
+    # Try live search, with fallback if it fails or returns nothing
+    df_live = pd.DataFrame()
+    query_info = {}
     
-    # SMART FALLBACK: If live search returns 0 results, try local dataset
+    try:
+        raw_results, query_info = search_courses_live(
+            query_text,
+            top_n=top_n,
+            difficulty_filter=difficulty,
+            progress_callback=_live_prog,
+        )
+        df_live = results_to_df(raw_results)
+    except Exception as e:
+        # Live search failed completely (DuckDuckGo blocked, network error, etc.)
+        _live_prog(f"Live search unavailable — searching local dataset...", 60)
+        query_info = {}
+    
+    # SMART FALLBACK: If live search failed or returned 0 results, try local dataset
     if df_live.empty:
-        _live_prog("No live results found — searching local dataset...", 70)
-        # Try keyword search on local dataset
+        _live_prog("Searching curated course database...", 70)
         try:
-            # Use the topic from query_info for better matching
+            # Use query understanding to extract the topic
+            from query_engine import understand_query
+            if not query_info:
+                query_info = understand_query(query_text)
+            
             search_topic = query_info.get("topic", query_text) if isinstance(query_info, dict) else query_text
+            
+            # Try multiple search strategies for better results
             local_results = keyword_search(search_topic, top_n=min(top_n, 30))
+            
+            # If keyword search returns nothing, try a broader search with just key terms
+            if local_results.empty and len(search_topic.split()) > 1:
+                # Try searching for individual important words
+                words = [w for w in search_topic.split() if len(w) > 3]
+                if words:
+                    local_results = keyword_search(words[0], top_n=min(top_n, 20))
+            
             if not local_results.empty:
-                # Add a note that these are from local dataset
                 df_live = local_results.copy()
-                # Mark these as fallback results
                 st.session_state.search_fallback_used = True
-                _live_prog(f"Found {len(df_live)} courses in local dataset", 100)
+                _live_prog(f"Found {len(df_live)} courses in local database", 100)
             else:
                 st.session_state.search_fallback_used = False
+                _live_prog("No matching courses found", 100)
         except Exception as e:
             st.session_state.search_fallback_used = False
-            _live_prog(f"Local fallback also failed: {str(e)}", 100)
+            _live_prog(f"Search failed: {str(e)}", 100)
     else:
         st.session_state.search_fallback_used = False
 
@@ -821,11 +842,13 @@ def _render_discover(profile: dict):
                 _run_live_search(pending, top_n=top_n, difficulty=difficulty, prog_bar=prog_bar, status_txt=status_txt)
                 st.session_state.last_search_error = None
             except Exception as e:
-                import traceback
-                error_details = traceback.format_exc()
-                st.session_state.last_search_error = {"message": str(e), "details": error_details}
-                st.session_state.live_results = pd.DataFrame()
-                st.session_state.live_query_info = {}
+                # Only show error if fallback also failed (check if results are still empty)
+                if st.session_state.get("live_results", pd.DataFrame()).empty:
+                    import traceback
+                    error_details = traceback.format_exc()
+                    st.session_state.last_search_error = {"message": str(e), "details": error_details}
+                    st.session_state.live_results = pd.DataFrame()
+                    st.session_state.live_query_info = {}
             finally:
                 st.session_state.pending_search_query = None
                 st.session_state.pending_search_original = None
@@ -844,21 +867,29 @@ def _render_discover(profile: dict):
 
         correction = query_info.get("display_correction") if isinstance(query_info, dict) else None
         if correction:
-            st.info(f"Interpreted as: {correction}")
+            st.info(f"💡 Interpreted as: **{correction}**")
         
         # Show if fallback to local dataset was used
         if st.session_state.get("search_fallback_used", False):
-            st.info("🔍 Live web search returned no results — showing matches from our curated dataset instead. Try different keywords for live web results.")
+            st.info("📚 Showing results from our curated course database (211 courses from top platforms)")
         
-        # Display any search errors
-        if st.session_state.last_search_error:
+        # Display any search errors ONLY if no results were found
+        if df_live.empty and st.session_state.get("last_search_error"):
             err = st.session_state.last_search_error
-            st.error(f"Search failed: {err['message']}")
+            st.error(f"⚠️ Search failed: {err['message']}")
+            st.info("💡 **Tip:** Try simpler keywords like 'python', 'machine learning', 'web development', etc.")
             with st.expander("Technical details"):
                 st.code(err['details'])
 
         if df_live.empty:
-            st.warning("No courses found. Try different keywords or filters.")
+            st.warning("❌ No courses found matching your search.")
+            st.markdown("""
+            **Suggestions:**
+            - Try simpler, broader keywords (e.g., 'python' instead of 'advanced python for data science')
+            - Check your spelling
+            - Use general topics: programming, design, business, data science, etc.
+            - Browse trending topics below or use suggested searches
+            """)
             return
 
         # Apply local filters (price/source/min_rating)
