@@ -432,9 +432,12 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     url = str(row.get("url", "#"))
     source = str(row.get("source", ""))
     difficulty = str(row.get("difficulty", "Intermediate"))
-    duration = str(row.get("duration", "") or "—")
+    duration = str(row.get("duration", "") or "").strip()
     price = str(row.get("price", "Free*"))
-    rating = float(row.get("rating", 0) or 0)
+    try:
+        rating = float(row.get("rating", 0) or 0)
+    except (TypeError, ValueError):
+        rating = 0.0
     sim = float(row.get("similarity_score", 0) or 0)
     match_pct = int(max(0, min(100, round(sim * 100))))
 
@@ -445,11 +448,11 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
 
     src_badge = _source_badge(source) if source else ""
     diff_badge = _difficulty_badge(difficulty)
-    dur_badge = f'<span class="nlprec-chip">{duration}</span>'
+    has_duration = duration and duration not in {"-", "—", "n/a", "na", "none"}
+    dur_badge = f'<span class="nlprec-chip">{duration}</span>' if has_duration else ""
     price_badge = _price_badge(price)
-    rating_badge = (
-        f'<span class="nlprec-chip">{rating:.1f}/5</span>' if rating and rating > 0 else '<span class="nlprec-chip">—/5</span>'
-    )
+    rating_badge = f'<span class="nlprec-chip">{rating:.1f}/5</span>' if rating > 0 else ""
+    secondary_badges = "".join([dur_badge, rating_badge, price_badge])
     match_badge = f'<span class="nlprec-chip accent">Match {match_pct}%</span>'
 
     is_saved = title in saved_titles
@@ -498,7 +501,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
         )
         st.markdown(
             f'<div style="display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px;">'
-            f'{dur_badge}{rating_badge}{price_badge}'
+            f'{secondary_badges}'
             f'</div>',
             unsafe_allow_html=True,
         )
