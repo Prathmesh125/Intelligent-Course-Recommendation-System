@@ -8,9 +8,12 @@ Run with: streamlit run app.py
 
 import os
 import json
+import logging
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+
+log = logging.getLogger("NLPRec-App")
 
 # ── Page config (must be FIRST Streamlit call) ────────────────────────────────
 st.set_page_config(
@@ -653,6 +656,7 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
     # Try live search, with fallback if it fails or returns nothing
     df_live = pd.DataFrame()
     query_info = {}
+    search_error_msg = None
     
     try:
         raw_results, query_info = search_courses_live(
@@ -663,8 +667,15 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
         )
         df_live = results_to_df(raw_results)
     except Exception as e:
-        # Live search failed completely (DuckDuckGo blocked, network error, etc.)
-        _live_prog(f"Live search unavailable — searching local dataset...", 60)
+        # Detect rate limiting vs other errors
+        error_str = str(e).lower()
+        if any(sig in error_str for sig in ['rate limit', 'ratelimit', '429', 'too many requests']):
+            search_error_msg = "⏱️ Search rate limited — using cached & local results..."
+            _live_prog(search_error_msg, 60)
+        else:
+            search_error_msg = "🌐 Live search unavailable — searching local database..."
+            _live_prog(search_error_msg, 60)
+        log.warning(f"Live search failed: {e}")
         query_info = {}
     
     # SMART FALLBACK: If live search failed or returned 0 results, try local dataset
@@ -936,16 +947,22 @@ def _render_discover(profile: dict):
                 st.code(err['details'])
 
         if df_live.empty:
-            st.error("⚠️ **No courses found** - This should rarely happen with our multi-strategy search!")
+            st.error("⚠️ **No courses found** - All search strategies exhausted!")
             st.markdown("""
-            **This usually means:**
-            - Live internet search failed (Streamlit Cloud rate limiting)
-            - Local database didn't match your query
+            **What happened:**
+            - 🌐 **Live internet search** may be temporarily rate-limited (Streamlit Cloud uses shared IPs)
+            - 💾 **Local database** didn't have matching courses
+            - 🔄 **Cache** is building up — previously searched topics load instantly!
             
-            **Try these:**
-            1. Use **simpler, general keywords**: `python`, `design`, `business`, `data science`
-            2. Click one of the **Suggested** or **Trending** topics below
-            3. Check your **filters** above (difficulty, platform, price)
+            **What you can do right now:**
+            1. **Wait 10-30 seconds** and try the same search again (cache will help!)
+            2. Use **broader keywords**: Try `python` instead of "advanced python for data engineering"
+            3. Click **Suggested** or **Trending** topics below — they often have cached results
+            4. Adjust **filters** (difficulty/price) — you might be filtering too strictly
+            
+            **Why this happens:**
+            Streamlit Cloud shares IP addresses across apps, so DuckDuckGo occasionally rate-limits requests.
+            The app now caches results for 24h, so repeat searches are instant! 🚀
             """)
             return
 

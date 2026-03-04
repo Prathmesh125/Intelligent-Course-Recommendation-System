@@ -23,9 +23,57 @@ internet that teaches the topic.
 import re
 import time
 import logging
+import json
+import hashlib
+from pathlib import Path
 from urllib.parse import urlparse
+from functools import wraps
 
 log = logging.getLogger("NLPRec-LiveSearch")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Search result caching to reduce API calls
+# ═══════════════════════════════════════════════════════════════════════════════
+CACHE_DIR = Path("dataset/.search_cache")
+CACHE_DIR.mkdir(exist_ok=True, parents=True)
+CACHE_EXPIRY_HOURS = 24  # Cache results for 24 hours
+
+def _get_cache_key(query: str, filters: dict) -> str:
+    """Generate a cache key from query and filters."""
+    key_str = f"{query}|{json.dumps(filters, sort_keys=True)}"
+    return hashlib.md5(key_str.encode()).hexdigest()
+
+def _load_from_cache(cache_key: str) -> tuple[list[dict], dict] | None:
+    """Load cached search results if they exist and are not expired."""
+    cache_file = CACHE_DIR / f"{cache_key}.json"
+    if not cache_file.exists():
+        return None
+    
+    try:
+        cache_data = json.loads(cache_file.read_text())
+        cache_time = cache_data.get("timestamp", 0)
+        if time.time() - cache_time > CACHE_EXPIRY_HOURS * 3600:
+            cache_file.unlink()  # Delete expired cache
+            return None
+        log.info(f"Cache HIT for key {cache_key[:8]}... (age: {(time.time()-cache_time)/3600:.1f}h)")
+        return cache_data["results"], cache_data["query_info"]
+    except Exception as e:
+        log.warning(f"Cache read failed: {e}")
+        return None
+
+def _save_to_cache(cache_key: str, results: list[dict], query_info: dict):
+    """Save search results to cache."""
+    cache_file = CACHE_DIR / f"{cache_key}.json"
+    try:
+        cache_data = {
+            "timestamp": time.time(),
+            "results": results,
+            "query_info": query_info
+        }
+        cache_file.write_text(json.dumps(cache_data))
+        log.info(f"Cached {len(results)} results for key {cache_key[:8]}...")
+    except Exception as e:
+        log.warning(f"Cache write failed: {e}")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Platform inference from domain
@@ -398,11 +446,20 @@ def search_courses_live(
         list[dict]: ranked course results
         query_info: from understand_query() — includes corrected text, topic, difficulty
     """
-    try:
-        from ddgs import DDGS
-    except ImportError:
-        from duckduckgo_search import DDGS
-
+    # ── Check cache first ─────────────────────────────────────────────────
+    cache_key = _get_cache_key(query, {
+        "top_n": top_n,
+        "difficulty": difficulty_filter,
+        "price": price_filter
+    })
+    cached = _load_from_cache(cache_key)
+    if cached:
+        results, query_info = cached
+        if progress_callback:
+            progress_callback(f"Loaded {len(results)} cached results", 100)
+        return results, query_info
+    
+    from ddgs import DDGS
     from query_engine import understand_query
 
     def _prog(msg, pct):
@@ -434,7 +491,42 @@ def search_courses_live(
     all_search_passes = effective_search_queries + site_passes
     per_query = max(10, (top_n * 4) // len(all_search_passes))  # Increased multiplier for more results
 
-    ddgs = DDGS()
+    # ── Rate limiting protection with exponential backoff ────────────────
+    def _search_with_retry(search_query: str, max_attempts: int = 3) -> list:
+        """Execute search with exponential backoff on rate limit errors."""
+        for attempt in range(max_attempts):
+            try:
+                # Increase delay progressively
+                if attempt > 0:
+                    wait_time = (2 ** attempt) * 0.5  # 0.5s, 1s, 2s
+                    log.info(f"Retry {attempt+1}/{max_attempts} after {wait_time}s delay...")
+                    time.sleep(wait_time)
+                
+                # Create new DDGS instance for each attempt (no headers parameter for this version)
+                ddgs = DDGS()
+                hits = ddgs.text(search_query, max_results=per_query)
+                return hits or []
+                
+            except Exception as e:
+                error_str = str(e).lower()
+                # Check for rate limiting signals
+                is_rate_limit = any(sig in error_str for sig in 
+                    ['ratelimit', 'rate limit', '429', 'too many requests', 'blocked'])
+                
+                if is_rate_limit:
+                    if attempt < max_attempts - 1:
+                        log.warning(f"Rate limited on attempt {attempt+1}, will retry...")
+                        continue
+                    else:
+                        log.error("Rate limit exceeded after all retries")
+                        raise Exception("Search rate limited - please try again in a few moments")
+                else:
+                    # Non-rate-limit error, don't retry
+                    log.warning(f"Search error: {e}")
+                    raise
+        
+        return []
+    
     search_errors = []
     filtered_count = 0  # Track how many results were filtered out
     
@@ -442,9 +534,9 @@ def search_courses_live(
         pct = 5 + int((i / len(all_search_passes)) * 55)
         _prog(f"Scanning: {sq[:65]} ...", pct)
         try:
-            hits = ddgs.text(sq, max_results=per_query)
-            fetched = len(hits or [])
-            for h in (hits or []):
+            hits = _search_with_retry(sq, max_attempts=3)
+            fetched = len(hits)
+            for h in hits:
                 url   = (h.get("href") or h.get("url", "")).strip()
                 title = (h.get("title", "")).strip()
                 body  = (h.get("body",  "") or h.get("description", "")).strip()
@@ -464,7 +556,9 @@ def search_courses_live(
             error_msg = f"Search failed for '{sq[:40]}': {str(e)}"
             log.warning(error_msg)
             search_errors.append(error_msg)
-        time.sleep(0.1)  # Reduced delay for faster searches
+        
+        # Increased delay between search passes to avoid rate limiting
+        time.sleep(0.5 if i < len(all_search_passes) - 1 else 0)
 
     _prog(f"Found {len(raw)} raw results — filtering & ranking ...", 62)
     
@@ -529,6 +623,10 @@ def search_courses_live(
 
     final = courses[:top_n]
     _prog(f"Done — {len(final)} courses found.", 100)
+    
+    # ── Save to cache ─────────────────────────────────────────────────────
+    _save_to_cache(cache_key, final, query_info)
+    
     return final, query_info
 
 
