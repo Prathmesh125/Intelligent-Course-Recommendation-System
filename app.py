@@ -83,28 +83,47 @@ st.markdown(
   }
   section[data-testid="stSidebar"] > div{ padding-top: 18px !important; }
 
-  /* Sidebar collapse button/arrow */
+  /* Sidebar collapse button/arrow - comprehensive targeting */
   button[kind="header"],
   button[data-testid="baseButton-header"],
-  button[data-testid="collapsedControl"]{
-    background: var(--surface) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid var(--border) !important;
+  button[data-testid="collapsedControl"],
+  .css-1dp5vir,
+  [data-testid="stSidebarCollapse"],
+  section[data-testid="stSidebar"] button[kind="header"] {
+    background: rgba(124,92,255,0.15) !important;
+    color: rgba(255,255,255,0.95) !important;
+    border: 1.5px solid rgba(124,92,255,0.4) !important;
     border-radius: 8px !important;
+    padding: 8px !important;
     transition: all 180ms ease !important;
+    box-shadow: 0 2px 8px rgba(124,92,255,0.2) !important;
   }
   button[kind="header"]:hover,
   button[data-testid="baseButton-header"]:hover,
-  button[data-testid="collapsedControl"]:hover{
-    background: var(--surface-elevated) !important;
-    border-color: rgba(255,255,255,0.18) !important;
+  button[data-testid="collapsedControl"]:hover,
+  [data-testid="stSidebarCollapse"]:hover,
+  section[data-testid="stSidebar"] button[kind="header"]:hover {
+    background: rgba(124,92,255,0.25) !important;
+    border-color: rgba(124,92,255,0.6) !important;
     transform: translateX(2px);
+    box-shadow: 0 4px 12px rgba(124,92,255,0.35) !important;
   }
   button[kind="header"] svg,
   button[data-testid="baseButton-header"] svg,
-  button[data-testid="collapsedControl"] svg{
-    fill: var(--text-primary) !important;
-    opacity: 0.85 !important;
+  button[data-testid="collapsedControl"] svg,
+  [data-testid="stSidebarCollapse"] svg,
+  section[data-testid="stSidebar"] button[kind="header"] svg {
+    fill: rgba(255,255,255,0.95) !important;
+    color: rgba(255,255,255,0.95) !important;
+    opacity: 1 !important;
+  }
+  /* Force visibility on all path elements inside arrow */
+  button[kind="header"] svg path,
+  button[data-testid="baseButton-header"] svg path,
+  button[data-testid="collapsedControl"] svg path,
+  [data-testid="stSidebarCollapse"] svg path {
+    fill: rgba(255,255,255,0.95) !important;
+    stroke: rgba(255,255,255,0.95) !important;
   }
 
   /* Typography */
