@@ -83,6 +83,30 @@ st.markdown(
   }
   section[data-testid="stSidebar"] > div{ padding-top: 18px !important; }
 
+  /* Sidebar collapse button/arrow */
+  button[kind="header"],
+  button[data-testid="baseButton-header"],
+  button[data-testid="collapsedControl"]{
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    transition: all 180ms ease !important;
+  }
+  button[kind="header"]:hover,
+  button[data-testid="baseButton-header"]:hover,
+  button[data-testid="collapsedControl"]:hover{
+    background: var(--surface-elevated) !important;
+    border-color: rgba(255,255,255,0.18) !important;
+    transform: translateX(2px);
+  }
+  button[kind="header"] svg,
+  button[data-testid="baseButton-header"] svg,
+  button[data-testid="collapsedControl"] svg{
+    fill: var(--text-primary) !important;
+    opacity: 0.85 !important;
+  }
+
   /* Typography */
   h1, h2, h3{ letter-spacing: -0.01em; }
   h1{ font-size: 22px !important; font-weight: 700 !important; color: var(--text-primary) !important; }
