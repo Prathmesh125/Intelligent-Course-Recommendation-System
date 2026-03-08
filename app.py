@@ -71,10 +71,20 @@ st.markdown(
     max-width: 1240px !important;
   }
 
-  /* Hide Streamlit chrome */
-  header[data-testid="stHeader"], section[data-testid="stToolbar"], div[data-testid="stToolbar"], .stDeployButton{ display:none !important; }
+    /* Hide Streamlit chrome (keep header so sidebar toggle remains accessible) */
+    section[data-testid="stToolbar"], div[data-testid="stToolbar"], .stDeployButton{ display:none !important; }
+    header[data-testid="stHeader"]{
+        background: transparent !important;
+    }
   #MainMenu{ visibility:hidden !important; }
   footer{ visibility:hidden !important; }
+
+    /* Ensure collapsed sidebar control stays visible */
+    [data-testid="stSidebarCollapsedControl"]{
+        display: inline-flex !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
 
   /* Sidebar */
   section[data-testid="stSidebar"]{
