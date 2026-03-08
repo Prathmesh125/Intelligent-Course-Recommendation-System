@@ -603,6 +603,29 @@ def _app_header(title: str, subtitle: str | None = None):
         st.markdown(f'<div class="nlprec-subtitle">{subtitle}</div>', unsafe_allow_html=True)
 
 
+def _render_top_navigation(current_page: str) -> str:
+    nav_options = ["Discover", "Saved", "Model comparison", "Performance"]
+    if current_page not in nav_options:
+        current_page = "Discover"
+
+    if st.session_state.get("top_nav_page") != current_page:
+        st.session_state.top_nav_page = current_page
+
+    with st.container(border=True):
+        page = st.radio(
+            "Navigation",
+            nav_options,
+            key="top_nav_page",
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+
+    if st.session_state.get("nav_page") != page:
+        st.session_state.nav_page = page
+
+    return page
+
+
 def _render_sidebar() -> tuple[str, dict, dict]:
     with st.sidebar:
         st.markdown(
@@ -1241,6 +1264,7 @@ def _render_performance():
 
 # ── App entry ───────────────────────────────────────────────────────────────
 page, profile, stats = _render_sidebar()
+page = _render_top_navigation(page)
 
 if page == "Discover":
     _render_discover(profile)
