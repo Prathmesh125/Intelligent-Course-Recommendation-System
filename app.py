@@ -71,7 +71,7 @@ st.markdown(
     max-width: 1240px !important;
   }
 
-    /* Hide Streamlit chrome (keep header so sidebar toggle remains accessible) */
+        /* Hide Streamlit chrome */
     section[data-testid="stToolbar"], div[data-testid="stToolbar"], .stDeployButton{ display:none !important; }
     header[data-testid="stHeader"]{
         background: transparent !important;
@@ -79,62 +79,24 @@ st.markdown(
   #MainMenu{ visibility:hidden !important; }
   footer{ visibility:hidden !important; }
 
-    /* Ensure collapsed sidebar control stays visible */
-    [data-testid="stSidebarCollapsedControl"]{
-        display: inline-flex !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
+        /* Keep sidebar static (no collapse arrow) */
+        [data-testid="stSidebarCollapseControl"],
+        [data-testid="stSidebarCollapsedControl"],
+        button[kind="header"],
+        button[data-testid="baseButton-header"],
+        button[data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapse"]{
+                display: none !important;
+        }
 
   /* Sidebar */
   section[data-testid="stSidebar"]{
     background: rgba(17,21,34,0.72) !important;
     border-right: 1px solid var(--border) !important;
+        transform: translateX(0) !important;
+        margin-left: 0 !important;
   }
   section[data-testid="stSidebar"] > div{ padding-top: 18px !important; }
-
-  /* Sidebar collapse button/arrow - comprehensive targeting */
-  button[kind="header"],
-  button[data-testid="baseButton-header"],
-  button[data-testid="collapsedControl"],
-  .css-1dp5vir,
-  [data-testid="stSidebarCollapse"],
-  section[data-testid="stSidebar"] button[kind="header"] {
-    background: rgba(124,92,255,0.15) !important;
-    color: rgba(255,255,255,0.95) !important;
-    border: 1.5px solid rgba(124,92,255,0.4) !important;
-    border-radius: 8px !important;
-    padding: 8px !important;
-    transition: all 180ms ease !important;
-    box-shadow: 0 2px 8px rgba(124,92,255,0.2) !important;
-  }
-  button[kind="header"]:hover,
-  button[data-testid="baseButton-header"]:hover,
-  button[data-testid="collapsedControl"]:hover,
-  [data-testid="stSidebarCollapse"]:hover,
-  section[data-testid="stSidebar"] button[kind="header"]:hover {
-    background: rgba(124,92,255,0.25) !important;
-    border-color: rgba(124,92,255,0.6) !important;
-    transform: translateX(2px);
-    box-shadow: 0 4px 12px rgba(124,92,255,0.35) !important;
-  }
-  button[kind="header"] svg,
-  button[data-testid="baseButton-header"] svg,
-  button[data-testid="collapsedControl"] svg,
-  [data-testid="stSidebarCollapse"] svg,
-  section[data-testid="stSidebar"] button[kind="header"] svg {
-    fill: rgba(255,255,255,0.95) !important;
-    color: rgba(255,255,255,0.95) !important;
-    opacity: 1 !important;
-  }
-  /* Force visibility on all path elements inside arrow */
-  button[kind="header"] svg path,
-  button[data-testid="baseButton-header"] svg path,
-  button[data-testid="collapsedControl"] svg path,
-  [data-testid="stSidebarCollapse"] svg path {
-    fill: rgba(255,255,255,0.95) !important;
-    stroke: rgba(255,255,255,0.95) !important;
-  }
 
   /* Typography */
   h1, h2, h3{ letter-spacing: -0.01em; }
