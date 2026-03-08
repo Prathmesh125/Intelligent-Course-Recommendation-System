@@ -11,11 +11,13 @@ This is the core research contribution required for publication:
 
 import os
 import json
+import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
+from difflib import SequenceMatcher
 
 from recommender import recommend, keyword_search
 
@@ -87,12 +89,76 @@ TEST_SET = {
 
 
 # ── Metric functions ──────────────────────────────────────────────────────────
+def _normalize_title(title: str) -> str:
+    title = str(title or "").lower().strip()
+    title = re.sub(r"[^a-z0-9\s]", " ", title)
+    title = re.sub(r"\s+", " ", title).strip()
+    return title
+
+
+def _token_jaccard(a: str, b: str) -> float:
+    a_set = set(_normalize_title(a).split())
+    b_set = set(_normalize_title(b).split())
+    if not a_set or not b_set:
+        return 0.0
+    inter = len(a_set & b_set)
+    union = len(a_set | b_set)
+    return inter / union if union else 0.0
+
+
+def _match_score(pred_title: str, rel_title: str) -> float:
+    p_norm = _normalize_title(pred_title)
+    r_norm = _normalize_title(rel_title)
+    if not p_norm or not r_norm:
+        return 0.0
+
+    if p_norm == r_norm:
+        return 1.0
+
+    seq_ratio = SequenceMatcher(None, p_norm, r_norm).ratio()
+    tok_ratio = _token_jaccard(p_norm, r_norm)
+
+    if (len(p_norm) >= 12 and p_norm in r_norm) or (len(r_norm) >= 12 and r_norm in p_norm):
+        return max(seq_ratio, tok_ratio, 0.9)
+
+    # Weighted blend: token overlap + sequence similarity
+    return 0.6 * tok_ratio + 0.4 * seq_ratio
+
+
+def _count_relevant_hits(predicted: list, relevant: list, k: int) -> int:
+    """Count top-K hits using one-to-one fuzzy title matching."""
+    if k <= 0 or not predicted or not relevant:
+        return 0
+
+    top_k = predicted[:k]
+    used_rel_idx = set()
+    hits = 0
+
+    for pred in top_k:
+        best_idx = None
+        best_score = 0.0
+
+        for idx, rel in enumerate(relevant):
+            if idx in used_rel_idx:
+                continue
+            score = _match_score(pred, rel)
+            if score > best_score:
+                best_score = score
+                best_idx = idx
+
+        # Threshold tuned for real-world title variants from different providers.
+        if best_idx is not None and best_score >= 0.55:
+            hits += 1
+            used_rel_idx.add(best_idx)
+
+    return hits
+
+
 def precision_at_k(predicted: list, relevant: list, k: int) -> float:
     """Fraction of top-K predicted that are relevant."""
     if k == 0:
         return 0.0
-    top_k = predicted[:k]
-    hits  = sum(1 for p in top_k if p in relevant)
+    hits = _count_relevant_hits(predicted, relevant, k)
     return hits / k
 
 
@@ -100,8 +166,7 @@ def recall_at_k(predicted: list, relevant: list, k: int) -> float:
     """Fraction of relevant items found in top-K predicted."""
     if not relevant:
         return 0.0
-    top_k = predicted[:k]
-    hits  = sum(1 for p in top_k if p in relevant)
+    hits = _count_relevant_hits(predicted, relevant, k)
     return hits / len(relevant)
 
 

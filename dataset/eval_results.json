@@ -2,9 +2,9 @@
   "nlp": {
     "label": "NLP Semantic (TF-IDF + Cosine)",
     "k": 6,
-    "precision_mean": 0.0,
-    "recall_mean": 0.0,
-    "f1_mean": 0.0,
+    "precision_mean": 0.0333,
+    "recall_mean": 0.075,
+    "f1_mean": 0.045,
     "per_query": [
       {
         "query": "learn python programming basics for beginners",
@@ -17,7 +17,7 @@
           "Data Analysis with Python",
           "Scientific Computing with Python",
           "Get Started with iOS App Development",
-          "The Linux Essentials"
+          "AP Computer Science Principles"
         ],
         "relevant": [
           "Python for Everybody",
@@ -33,10 +33,10 @@
         "predicted": [
           "Analyze and Create Your AI Marketing Plan",
           "Developing AI Policy",
+          "Voice AI: Introduction to Building Voice Applications",
           "Math",
           "Differential Equations",
-          "SAT",
-          "Voice AI: Introduction to Building Voice Applications"
+          "SAT"
         ],
         "relevant": [
           "Introduction to Artificial Intelligence",
@@ -54,8 +54,8 @@
           "Machine Learning with Python",
           "Modelos predictivos con Machine Learning",
           "Getting started with the Vertex AI Gemini 1.5 Pro Model",
-          "Predictive Analytics with SPSS: Analyze & Apply",
           "Develop Code with Gemini in BigQuery",
+          "Predictive Analytics with SPSS: Analyze & Apply",
           "Analyze Box Office Data with Seaborn and Python"
         ],
         "relevant": [
@@ -76,8 +76,8 @@
           "Social Network Analysis",
           "Introduction To Network Models",
           "Machine Learning with Python",
-          "Advanced DAX and Performance Optimization",
-          "CyberSec First Responder (CFR-310)"
+          "CyberSec First Responder (CFR-310)",
+          "Advanced DAX and Performance Optimization"
         ],
         "relevant": [
           "Deep Learning Specialization",
@@ -87,9 +87,9 @@
       },
       {
         "query": "web development HTML CSS JavaScript front end",
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0,
+        "precision": 0.1667,
+        "recall": 0.5,
+        "f1": 0.25,
         "predicted": [
           "Computer Programming",
           "GenAI for Front-End Developers",
@@ -110,11 +110,11 @@
         "f1": 0.0,
         "predicted": [
           "Introduction to SQL and relational databases",
-          "Relational Database",
-          "Performing Data Aggregation using SQL Aggregate Functions",
           "Data Analysis with Python",
-          "Star Schemas & Track Changes",
-          "Migrating to Cloud SQL from Amazon RDS for MySQL Using Database Migration Service"
+          "Performing Data Aggregation using SQL Aggregate Functions",
+          "Relational Database",
+          "Computing And Data Analysis For Environmental Applications",
+          "Statistics & Probability"
         ],
         "relevant": [
           "SQL for Data Analysis",
@@ -129,10 +129,10 @@
         "f1": 0.0,
         "predicted": [
           "Voice AI: Introduction to Building Voice Applications",
-          "Analyze Multimodal AI for Business Insights",
           "Grammar",
-          "Data Storage and Management for Big Data",
+          "Analyze Multimodal AI for Business Insights",
           "Fundamentals of Blockchain Architecture",
+          "Data Storage and Management for Big Data",
           "Gamification"
         ],
         "relevant": [
@@ -150,8 +150,8 @@
           "Choosing your AWS identity service",
           "Develop Code with Gemini in BigQuery",
           "Getting started with the Vertex AI Gemini 1.5 Pro Model",
-          "Securing Compute Engine Applications and Resources using Chrome Enterprise Premium",
           "Debugging Apps on Google Kubernetes Engine",
+          "Securing Compute Engine Applications and Resources using Chrome Enterprise Premium",
           "Multimodality with Gemini"
         ],
         "relevant": [
@@ -162,16 +162,16 @@
       },
       {
         "query": "mathematics for machine learning linear algebra calculus",
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0,
+        "precision": 0.1667,
+        "recall": 0.25,
+        "f1": 0.2,
         "predicted": [
           "Linear Algebra",
+          "Machine Learning with Python",
           "Algebra",
           "College Algebra with Python",
-          "Machine Learning with Python",
           "Computer Vision Basics",
-          "Calculus 1"
+          "Getting started with the Vertex AI Gemini 1.5 Pro Model"
         ],
         "relevant": [
           "Linear Algebra for Machine Learning",
