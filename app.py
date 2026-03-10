@@ -875,9 +875,14 @@ def _render_discover(profile: dict):
 
         if clear_clicked:
             st.session_state.search_query_value = ""
+            # Also clear the widget state so the input field resets visually
+            if "main_query" in st.session_state:
+                st.session_state["main_query"] = ""
             st.session_state.live_results = pd.DataFrame()
             st.session_state.live_query_info = {}
             st.session_state.live_page = 0
+            st.session_state.search_fallback_used = False
+            st.session_state.last_search_error = None
             st.rerun()
 
         # Dynamic suggestions based on query/profile
