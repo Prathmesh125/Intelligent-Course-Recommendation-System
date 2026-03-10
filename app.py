@@ -1063,20 +1063,23 @@ def _render_discover(profile: dict):
 
         top_a, top_b, top_c = st.columns([2, 3, 2], vertical_alignment="center")
         with top_a:
-            st.markdown(f'<div class="nlprec-muted">{total} results</div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="nlprec-muted"><span class="nlprec-chip accent" style="font-size:12px;">{total} results</span></div>',
+                unsafe_allow_html=True,
+            )
         with top_c:
             nav_l, nav_r = st.columns(2)
             with nav_l:
-                if st.button("Prev", disabled=(current_pg == 0), use_container_width=True):
+                if st.button("← Prev", disabled=(current_pg == 0), use_container_width=True):
                     st.session_state.live_page = current_pg - 1
                     st.rerun()
             with nav_r:
-                if st.button("Next", disabled=(current_pg >= total_pages - 1), use_container_width=True):
+                if st.button("Next →", disabled=(current_pg >= total_pages - 1), use_container_width=True):
                     st.session_state.live_page = current_pg + 1
                     st.rerun()
         with top_b:
             st.markdown(
-                f'<div class="nlprec-muted" style="text-align:center;">Page {current_pg + 1} of {total_pages}</div>',
+                f'<div class="nlprec-muted" style="text-align:center;">Page <strong>{current_pg + 1}</strong> of <strong>{total_pages}</strong></div>',
                 unsafe_allow_html=True,
             )
 
