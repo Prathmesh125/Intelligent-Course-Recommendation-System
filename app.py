@@ -1071,7 +1071,17 @@ def _render_saved(profile: dict):
     _app_header("Saved", "Courses you have bookmarked.")
 
     if not saved_entries:
-        st.info("No saved courses yet.")
+        st.markdown(
+            """
+            <div style="text-align:center; padding: 56px 24px;">
+              <div style="font-size: 44px; margin-bottom: 16px;">🔖</div>
+              <div style="font-weight: 700; font-size: 17px; color: var(--text-primary); margin-bottom: 8px;">No saved courses yet</div>
+              <div class="nlprec-subtitle">Head over to <strong>Discover</strong> and save courses that interest you.
+              They will appear here for quick access.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         return
 
     # Backfill metadata from local TF-IDF dataset if we only have titles
