@@ -131,14 +131,17 @@ st.markdown(
 
   /* Course card hover lift (only when the container contains .nlprec-course) */
   div[data-testid="stContainer"]:has(.nlprec-course){
-    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
-    will-change: transform;
+    transition: transform 220ms cubic-bezier(0.25,0.46,0.45,0.94),
+                box-shadow 220ms cubic-bezier(0.25,0.46,0.45,0.94),
+                border-color 220ms ease,
+                background 220ms ease;
+    will-change: transform, box-shadow;
   }
   div[data-testid="stContainer"]:has(.nlprec-course):hover{
-    transform: translateY(-3px);
+    transform: translateY(-4px) scale(1.002);
     background: linear-gradient(135deg, rgba(21,26,43,1), rgba(17,21,34,1));
-    box-shadow: 0 12px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(124,92,255,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
-    border-color: rgba(124,92,255,0.25);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.50), 0 4px 12px rgba(124,92,255,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+    border-color: rgba(124,92,255,0.30);
   }
 
   /* Buttons */
@@ -155,15 +158,18 @@ st.markdown(
     text-overflow: ellipsis !important;
     max-width: 100% !important;
     display: block !important;
-    transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
+    transition: transform 200ms cubic-bezier(0.25,0.46,0.45,0.94),
+                box-shadow 200ms cubic-bezier(0.25,0.46,0.45,0.94),
+                background 200ms ease,
+                border-color 200ms ease;
   }
   .stButton > button:hover{
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     background: var(--surface-elevated) !important;
-    border-color: rgba(255,255,255,0.14) !important;
+    border-color: rgba(255,255,255,0.18) !important;
     box-shadow: var(--shadow-soft) !important;
   }
-  .stButton > button:active{ transform: translateY(0px); box-shadow: none !important; }
+  .stButton > button:active{ transform: translateY(0px) scale(0.98); box-shadow: none !important; }
 
   .stButton > button[kind="primary"]{
     background: var(--accent) !important;
