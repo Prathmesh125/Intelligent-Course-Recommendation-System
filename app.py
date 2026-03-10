@@ -595,7 +595,10 @@ def _render_sidebar() -> tuple[str, dict, dict]:
         st.markdown(
             """
             <div style="padding: 10px 10px 14px 10px;">
-              <div style="font-weight: 800; font-size: 18px; letter-spacing: -0.02em; color: var(--text-primary);">NLPRec</div>
+              <div style="font-weight: 800; font-size: 20px; letter-spacing: -0.03em;
+                          background: linear-gradient(90deg, #7C5CFF 0%, #A78BFA 50%, #60A5FA 100%);
+                          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                          background-clip: text;">NLPRec</div>
               <div class="nlprec-muted" style="margin-top: 4px;">Course intelligence and recommendation</div>
             </div>
             """,
