@@ -485,7 +485,15 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     price_badge = _price_badge(price)
     rating_badge = f'<span class="nlprec-chip">{rating:.1f}/5</span>' if rating > 0 else ""
     secondary_badges = "".join([dur_badge, rating_badge, price_badge])
-    match_badge = f'<span class="nlprec-chip accent">Match {match_pct}%</span>'
+
+    # Dynamic match badge: green ≥70%, yellow ≥40%, gray <40%
+    if match_pct >= 70:
+        _match_style = "border-color:rgba(46,204,113,0.45); background:rgba(46,204,113,0.12); color:rgba(46,204,113,0.95);"
+    elif match_pct >= 40:
+        _match_style = "border-color:rgba(245,180,36,0.45); background:rgba(245,180,36,0.10); color:rgba(245,180,36,0.95);"
+    else:
+        _match_style = "border-color:rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:var(--text-secondary);"
+    match_badge = f'<span class="nlprec-chip" style="{_match_style}">Match {match_pct}%</span>'
 
     is_saved = title in saved_titles
 
