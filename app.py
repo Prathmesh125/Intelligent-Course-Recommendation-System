@@ -687,6 +687,12 @@ def _render_sidebar() -> tuple[str, dict, dict]:
             st.session_state.profile = profile
             st.rerun()
 
+        st.divider()
+        st.markdown(
+            '<div class="nlprec-muted" style="text-align:center; padding: 4px 0 2px 0;">NLPRec v2.0 · Phase 8</div>',
+            unsafe_allow_html=True,
+        )
+
     return page, profile, stats
 
 
