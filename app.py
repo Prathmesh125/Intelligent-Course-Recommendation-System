@@ -479,9 +479,13 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     sim = float(row.get("similarity_score", 0) or 0)
     match_pct = int(max(0, min(100, round(sim * 100))))
 
-    # Clean description: remove "Missing:" artifacts and truncate
-    raw_desc = str(row.get("description", ""))
+    # Clean description: remove "Missing:" artifacts, HTML tags, and excess whitespace
+    raw_desc = str(row.get("description", "") or "")
     clean_desc = raw_desc.split("Missing:")[0].strip()
+    # Strip any HTML tags that may come from scraping
+    import re as _re
+    clean_desc = _re.sub(r'<[^>]+>', ' ', clean_desc).strip()
+    clean_desc = _re.sub(r'\s{2,}', ' ', clean_desc)
     desc = _truncate(clean_desc, 140) if clean_desc else ""
 
     src_badge = _source_badge(source) if source else ""
