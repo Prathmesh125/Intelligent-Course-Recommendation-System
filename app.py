@@ -508,8 +508,10 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
         # Header: title + save button
         top_l, top_r = st.columns([8, 2], vertical_alignment="top")
         with top_l:
+            rank_label = f'<span style="color:var(--text-secondary); font-size:12px; font-weight:600; margin-right:6px;">#{index}</span>' if index else ""
             st.markdown(
                 f'<div style="font-weight:700; font-size:15.5px; line-height:1.4; margin-bottom:12px;">'
+                f'{rank_label}'
                 f'<a href="{url}" target="_blank" style="color: var(--text-primary); text-decoration:none;">'
                 f'{_truncate(title, 85)}'
                 f'</a></div>',
