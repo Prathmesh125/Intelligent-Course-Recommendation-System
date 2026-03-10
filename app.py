@@ -922,7 +922,7 @@ def _render_discover(profile: dict):
             "machine learning", st.session_state.profile, n=4
         )
 
-        st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Suggested</div>", unsafe_allow_html=True)
+        st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>✨ Suggested</div>", unsafe_allow_html=True)
         sug_cols = st.columns(4)
         triggered_preset = None
         for i, preset in enumerate((suggestions or [])[:4]):
@@ -932,7 +932,7 @@ def _render_discover(profile: dict):
 
         trending = get_trending_chips(4)
         if trending:
-            st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Trending</div>", unsafe_allow_html=True)
+            st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>🔥 Trending</div>", unsafe_allow_html=True)
             tr_cols = st.columns(4)
             for i, chip in enumerate(trending[:4]):
                 with tr_cols[i]:
