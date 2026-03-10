@@ -458,12 +458,14 @@ def _truncate(text: str, limit: int) -> str:
 
 def render_course_card(row, index: int, saved_titles: list, show_save: bool = True, key_prefix: str = "course"):
     """Premium course card rendered inside a Streamlit container (so buttons are truly inside the card)."""
-    title = str(row.get("course_title", ""))
-    url = str(row.get("url", "#"))
-    source = str(row.get("source", ""))
-    difficulty = str(row.get("difficulty", "Intermediate"))
-    duration = str(row.get("duration", "") or "").strip()
-    price = str(row.get("price", "Free*"))
+    title = str(row.get("course_title", "") or "")
+    url = str(row.get("url", "#") or "#")
+    source = str(row.get("source", "") or "")
+    difficulty = str(row.get("difficulty", "Intermediate") or "Intermediate")
+    _raw_duration = row.get("duration", "")
+    duration = "" if (not _raw_duration or str(_raw_duration).lower() in {"nan", "none", "-", "—", "n/a", "na"}) else str(_raw_duration).strip()
+    _raw_price = row.get("price", "Free*")
+    price = "Free*" if (not _raw_price or str(_raw_price).lower() in {"nan", "none", ""}) else str(_raw_price).strip()
     try:
         rating = float(row.get("rating", 0) or 0)
     except (TypeError, ValueError):
@@ -478,7 +480,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
 
     src_badge = _source_badge(source) if source else ""
     diff_badge = _difficulty_badge(difficulty)
-    has_duration = duration and duration not in {"-", "—", "n/a", "na", "none"}
+    has_duration = bool(duration)
     dur_badge = f'<span class="nlprec-chip">{duration}</span>' if has_duration else ""
     price_badge = _price_badge(price)
     rating_badge = f'<span class="nlprec-chip">{rating:.1f}/5</span>' if rating > 0 else ""
