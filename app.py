@@ -891,6 +891,11 @@ def _render_discover(profile: dict):
         with btn_r:
             clear_clicked = st.button("Clear", use_container_width=True)
 
+        st.markdown(
+            '<div class="nlprec-muted" style="margin-top:6px; font-size:11.5px;">💡 Press <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:4px;padding:1px 5px;font-size:11px;">Enter</kbd> or click Search</div>',
+            unsafe_allow_html=True,
+        )
+
         if clear_clicked:
             st.session_state.search_query_value = ""
             # Also clear the widget state so the input field resets visually
