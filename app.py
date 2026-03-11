@@ -402,9 +402,17 @@ st.session_state["last_heartbeat_ts"] = _now
 
 
 # ── Difficulty badge helper ────────────────────────────────────────────────────
+_DIFFICULTY_STYLES: dict[str, str] = {
+    "Beginner":     "border-color:rgba(46,204,113,0.40); background:rgba(46,204,113,0.12); color:rgba(46,204,113,0.95);",
+    "Intermediate": "border-color:rgba(96,165,250,0.40); background:rgba(96,165,250,0.12); color:rgba(96,165,250,0.95);",
+    "Advanced":     "border-color:rgba(245,165,36,0.45); background:rgba(245,165,36,0.10); color:rgba(245,165,36,0.95);",
+    "Expert":       "border-color:rgba(239,68,68,0.45);  background:rgba(239,68,68,0.10);  color:rgba(239,68,68,0.95);",
+}
+
 def _difficulty_badge(level: str) -> str:
     level = (level or "Intermediate").strip() or "Intermediate"
-    return f'<span class="nlprec-chip">{level}</span>'
+    style = _DIFFICULTY_STYLES.get(level, "")
+    return f'<span class="nlprec-chip" style="{style}">{level}</span>'
 
 
 # ── Source badge helper ────────────────────────────────────────────────────────
