@@ -1,4 +1,11 @@
 # NLPRec — Intelligent Course Recommendation System
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.x-FF4B4B?logo=streamlit&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-TF--IDF-F7931E?logo=scikitlearn&logoColor=white)
+![NLTK](https://img.shields.io/badge/NLTK-NLP-green)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+
 ---
 
 ## Problem Statement
