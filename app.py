@@ -467,10 +467,17 @@ def _render_skeleton_grid(total_cards: int = 6, cols: int = 1):
 
 
 def _truncate(text: str, limit: int) -> str:
+    """Return *text* truncated to at most *limit* characters, cutting at a word
+    boundary.  Falls back to a hard character cut when the nearest preceding
+    space would leave fewer than half the requested characters visible."""
     text = (text or "").strip()
     if len(text) <= limit:
         return text
-    return text[:limit].rsplit(" ", 1)[0] + "…"
+    word_cut = text[:limit].rsplit(" ", 1)[0]
+    # Guard: if the word-boundary cut is too aggressive use a hard cut instead
+    if len(word_cut) < limit // 2:
+        return text[:limit].rstrip() + "…"
+    return word_cut + "…"
 
 
 def render_course_card(row, index: int, saved_titles: list, show_save: bool = True, key_prefix: str = "course"):
