@@ -457,6 +457,9 @@ def _price_badge(price_val: str) -> str:
 
 
 # ── Render a single course card ───────────────────────────────────────────────
+# Maximum characters shown in the course description preview on each card.
+CARD_DESC_LIMIT: int = 140
+
 def _render_skeleton_grid(total_cards: int = 6, cols: int = 1):
     """Render skeleton placeholders for loading state (full-width horizontal cards)."""
     for i in range(total_cards):
@@ -494,7 +497,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
     import re as _re
     clean_desc = _re.sub(r'<[^>]+>', ' ', clean_desc).strip()
     clean_desc = _re.sub(r'\s{2,}', ' ', clean_desc)
-    desc = _truncate(clean_desc, 140) if clean_desc else ""
+    desc = _truncate(clean_desc, CARD_DESC_LIMIT) if clean_desc else ""
 
     src_badge = _source_badge(source) if source else ""
     diff_badge = _difficulty_badge(difficulty)
