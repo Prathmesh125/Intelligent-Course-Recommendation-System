@@ -524,7 +524,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
             st.markdown(
                 f'<div style="font-weight:700; font-size:15.5px; line-height:1.4; margin-bottom:12px;">'
                 f'{rank_label}'
-                f'<a href="{url}" target="_blank" style="color: var(--text-primary); text-decoration:none;">'
+                f'<a href="{url}" target="_blank" rel="noopener noreferrer" style="color: var(--text-primary); text-decoration:none;">' 
                 f'{_truncate(title, 85)}'
                 f'</a></div>',
                 unsafe_allow_html=True,
@@ -580,7 +580,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
         with footer_r:
             st.markdown(
                 f'<div style="display:flex; justify-content:flex-end;">'
-                f'<a class="nlprec-linkbtn" href="{url}" target="_blank">Open course</a>'
+                f'<a class="nlprec-linkbtn" href="{url}" target="_blank" rel="noopener noreferrer">Open course</a>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
