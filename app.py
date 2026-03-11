@@ -650,6 +650,7 @@ def _render_sidebar() -> tuple[str, dict, dict]:
         st.divider()
         st.markdown("**Profile**")
         username = st.text_input("Username", value=st.session_state.profile.get("username", "guest"), key="username_input")
+        display_name = (username.strip().capitalize()) or "Guest"
         if username != st.session_state.profile.get("username"):
             st.session_state.profile = load_profile(username)
 
@@ -724,7 +725,9 @@ def _render_sidebar() -> tuple[str, dict, dict]:
 
         st.divider()
         st.markdown(
-            '<div class="nlprec-muted" style="text-align:center; padding: 4px 0 2px 0;">NLPRec v2.0 · Phase 8</div>',
+            f'<div class="nlprec-muted" style="text-align:center; padding: 4px 0 2px 0;">'
+            f'NLPRec v2.0 · Phase 8<br>'
+            f'<span style="font-size:11px;">Signed in as <strong>{display_name}</strong></span></div>',
             unsafe_allow_html=True,
         )
 
