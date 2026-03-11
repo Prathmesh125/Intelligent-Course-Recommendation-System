@@ -418,13 +418,18 @@ def _difficulty_badge(level: str) -> str:
 # ── Source badge helper ────────────────────────────────────────────────────────
 # Use cleaner colors for the refresh
 _SOURCE_COLORS = {
-    "Coursera":     ("#DBEAFE", "#1E40AF"),  # Blue-100/800
-    "MIT OCW":      ("#FEE2E2", "#991B1B"),  # Red-100/800
-    "freeCodeCamp": ("#1F2937", "#F9FAFB"),  # Gray-800/50
-    "Khan Academy": ("#D1FAE5", "#065F46"),  # Emerald-100/800
-    "Udemy":        ("#F3E8FF", "#6B21A8"),  # Purple-100/800
-    "YouTube":      ("#FEE2E2", "#DC2626"),  # Red-100/600
-    "edX":          ("#E0E7FF", "#3730A3"),  # Indigo-100/800
+    "Coursera":           ("#DBEAFE", "#1E40AF"),  # Blue-100/800
+    "MIT OCW":            ("#FEE2E2", "#991B1B"),  # Red-100/800
+    "freeCodeCamp":       ("#1F2937", "#F9FAFB"),  # Gray-800/50
+    "Khan Academy":       ("#D1FAE5", "#065F46"),  # Emerald-100/800
+    "Udemy":              ("#F3E8FF", "#6B21A8"),  # Purple-100/800
+    "YouTube":            ("#FEE2E2", "#DC2626"),  # Red-100/600
+    "edX":                ("#E0E7FF", "#3730A3"),  # Indigo-100/800
+    "LinkedIn Learning":  ("#DBEAFE", "#1D4ED8"),  # Blue-100/700
+    "Pluralsight":        ("#F5F3FF", "#6D28D9"),  # Violet-50/700
+    "DataCamp":           ("#D1FAE5", "#047857"),  # Emerald-100/700
+    "Codecademy":         ("#FEF3C7", "#92400E"),  # Amber-100/800
+    "FutureLearn":        ("#FEE2E2", "#B91C1C"),  # Red-100/700
 }
 # Fallback to existing logic but preferring above
 def _source_badge(source: str) -> str:
