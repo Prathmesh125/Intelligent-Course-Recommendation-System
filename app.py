@@ -719,6 +719,9 @@ def _render_sidebar() -> tuple[str, dict, dict]:
         m1, m2 = st.columns(2)
         m1.metric("Searches", stats.get("total_searches", 0))
         m2.metric("Saved", stats.get("saved_courses", 0))
+        m3, m4 = st.columns(2)
+        m3.metric("Clicks", stats.get("click_count", 0))
+        m4.metric("Sessions", stats.get("session_count", 0))
 
         if st.button("Clear history", use_container_width=True):
             profile = clear_history(profile)
