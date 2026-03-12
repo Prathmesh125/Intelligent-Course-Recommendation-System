@@ -49,8 +49,17 @@ def recommend(
     """
     _ensure_model()
 
-    if not user_query.strip():
+    # Input validation
+    if not user_query or not user_query.strip():
         return pd.DataFrame()
+    
+    if top_n < 1:
+        top_n = 1
+    elif top_n > 100:
+        top_n = 100
+    
+    if not (0.0 <= min_rating <= 5.0):
+        min_rating = max(0.0, min(5.0, min_rating))
 
     # 1. Vectorize user query
     query_vec = transform_query(user_query, _vectorizer)
