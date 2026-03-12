@@ -8,10 +8,14 @@ recommender can load them instantly without re-computing.
 
 import os
 import pickle
+import logging
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from text_preprocessing import build_corpus, preprocess_text
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+log = logging.getLogger("NLPRec-Vectorizer")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
@@ -78,20 +82,24 @@ def load_tfidf_model():
     Builds the model if pickle files are not found.
     """
     if not all(os.path.exists(p) for p in [TFIDF_PATH, MATRIX_PATH, COURSES_PATH]):
+        log.info("Pre-built model not found — building now")
         print("[Vectorizer] Pre-built model not found — building now …")
         return build_and_save_tfidf()
 
     try:
+        log.debug("Loading TF-IDF model from disk")
         with open(TFIDF_PATH, "rb") as f:
             vectorizer = pickle.load(f)
         with open(MATRIX_PATH, "rb") as f:
             tfidf_matrix = pickle.load(f)
         with open(COURSES_PATH, "rb") as f:
             df = pickle.load(f)
+        log.info(f"Successfully loaded model with {len(df)} courses")
         return vectorizer, tfidf_matrix, df
     except Exception as e:
         # Pickles can be brittle across library versions (notably NumPy / SciPy).
         # If loading fails, rebuild deterministically from the CSV dataset.
+        log.warning(f"Failed to load pre-built model ({type(e).__name__}: {e}) — rebuilding")
         print(f"[Vectorizer] Failed to load pre-built model ({type(e).__name__}: {e}) — rebuilding now …")
         for path in (TFIDF_PATH, MATRIX_PATH, COURSES_PATH):
             try:
