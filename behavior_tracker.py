@@ -47,6 +47,15 @@ CLICK_WEIGHT  = 0.015   # per normalized click → added to cosine score
 SAVE_WEIGHT   = 0.025   # per normalized save
 MAX_BOOST     = 0.12    # cap so popular courses don't dominate completely
 
+# ── Time windows for trending analysis ────────────────────────────────────────
+DEFAULT_TRENDING_DAYS = 7     # Default lookback window for trending topics
+DEFAULT_TRENDING_LIMIT = 10   # Default number of trending items to return
+
+# ── Session and analytics thresholds ───────────────────────────────────────────
+MIN_SESSION_DURATION = 10      # Minimum session duration in seconds to count
+MAX_SESSION_DURATION = 7200    # Maximum reasonable session (2 hours)
+ENGAGEMENT_DECAY_FACTOR = 0.9  # Time-based decay for older engagement
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Internal helpers
