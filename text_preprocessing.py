@@ -49,13 +49,25 @@ _STOP_WORDS = _stop_words - _KEEP_WORDS
 # ── Core preprocessing function ───────────────────────────────────────────────
 def preprocess_text(text: str) -> str:
     """
-    Full NLP pipeline:
-      1. Lowercase
-      2. Remove URLs, special characters, numbers
-      3. Tokenize
-      4. Remove stopwords (with domain exceptions)
-      5. Lemmatize
-    Returns a single cleaned string (space-joined tokens).
+    Full NLP preprocessing pipeline for text normalization.
+    
+    Applies the following transformations in sequence:
+      1. Lowercase conversion
+      2. Remove URLs and web links
+      3. Remove special characters, punctuation, and numbers
+      4. Tokenize into words
+      5. Remove stopwords (preserving domain-relevant terms)
+      6. Lemmatize to base forms
+    
+    Args:
+        text (str): Raw input text to preprocess
+    
+    Returns:
+        str: Cleaned text as space-joined tokens, or empty string if input is invalid
+        
+    Example:
+        >>> preprocess_text("I want to learn Python programming!")
+        "want learn python programming"
     """
     if not isinstance(text, str) or not text.strip():
         return ""
