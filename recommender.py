@@ -7,6 +7,7 @@ then blends in a small engagement-boost signal learned from
 collective user behaviour (clicks + saves via behavior_tracker).
 """
 
+from typing import Optional
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
@@ -16,12 +17,12 @@ from behavior_tracker import get_engagement_boost
 
 
 # ── Load model once at module level (cached) ──────────────────────────────────
-_vectorizer   = None
-_tfidf_matrix = None
-_courses_df   = None
+_vectorizer: Optional[object] = None
+_tfidf_matrix: Optional[np.ndarray] = None
+_courses_df: Optional[pd.DataFrame] = None
 
 
-def _ensure_model():
+def _ensure_model() -> None:
     global _vectorizer, _tfidf_matrix, _courses_df
     if _vectorizer is None:
         _vectorizer, _tfidf_matrix, _courses_df = load_tfidf_model()
