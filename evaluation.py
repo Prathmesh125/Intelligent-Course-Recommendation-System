@@ -12,6 +12,8 @@ This is the core research contribution required for publication:
 import os
 import json
 import re
+from datetime import datetime
+from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -25,6 +27,7 @@ from recommender import recommend, keyword_search
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR   = os.path.join(BASE_DIR, "assets")
 RESULTS_PATH = os.path.join(BASE_DIR, "dataset", "eval_results.json")
+METRICS_HISTORY_PATH = os.path.join(BASE_DIR, "dataset", "metrics_history.json")
 os.makedirs(ASSETS_DIR, exist_ok=True)
 
 
@@ -215,6 +218,96 @@ def evaluate_model(recommend_fn, k: int = 5, label: str = "Model") -> dict:
     }
 
 
+# ── Metrics history tracking ──────────────────────────────────────────────────
+def save_metrics_to_history(nlp_res: Dict, base_res: Dict, notes: str = "") -> None:
+    """
+    Append current evaluation results to historical metrics log.
+    Useful for tracking performance improvements over time.
+    
+    Args:
+        nlp_res: NLP model evaluation results
+        base_res: Baseline model evaluation results
+        notes: Optional notes about this evaluation run
+    """
+    history = load_metrics_history()
+    
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "k": nlp_res["k"],
+        "nlp": {
+            "precision": nlp_res["precision_mean"],
+            "recall": nlp_res["recall_mean"],
+            "f1": nlp_res["f1_mean"],
+        },
+        "baseline": {
+            "precision": base_res["precision_mean"],
+            "recall": base_res["recall_mean"],
+            "f1": base_res["f1_mean"],
+        },
+        "improvement": {
+            "precision_pct": ((nlp_res["precision_mean"] - base_res["precision_mean"]) / 
+                             max(base_res["precision_mean"], 0.0001)) * 100,
+            "recall_pct": ((nlp_res["recall_mean"] - base_res["recall_mean"]) / 
+                          max(base_res["recall_mean"], 0.0001)) * 100,
+            "f1_pct": ((nlp_res["f1_mean"] - base_res["f1_mean"]) / 
+                      max(base_res["f1_mean"], 0.0001)) * 100,
+        },
+        "notes": notes,
+    }
+    
+    history.append(entry)
+    
+    with open(METRICS_HISTORY_PATH, "w") as f:
+        json.dump(history, f, indent=2)
+    
+    print(f"[Metrics] Saved to history: {METRICS_HISTORY_PATH}")
+
+
+def load_metrics_history() -> List[Dict]:
+    """Load historical metrics from disk."""
+    if os.path.exists(METRICS_HISTORY_PATH):
+        try:
+            with open(METRICS_HISTORY_PATH, "r") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return []
+
+
+def get_metrics_summary() -> Dict:
+    """
+    Get summary statistics from metrics history.
+    
+    Returns:
+        Dict with average, min, max, and latest metrics
+    """
+    history = load_metrics_history()
+    if not history:
+        return {"status": "no_data", "message": "No evaluation history available"}
+    
+    nlp_f1_scores = [entry["nlp"]["f1"] for entry in history]
+    improvements = [entry["improvement"]["f1_pct"] for entry in history]
+    
+    latest = history[-1]
+    
+    return {
+        "status": "ok",
+        "total_evaluations": len(history),
+        "latest": latest,
+        "nlp_f1": {
+            "current": latest["nlp"]["f1"],
+            "average": round(np.mean(nlp_f1_scores), 4),
+            "best": round(max(nlp_f1_scores), 4),
+            "worst": round(min(nlp_f1_scores), 4),
+        },
+        "improvement_over_baseline": {
+            "current": round(latest["improvement"]["f1_pct"], 2),
+            "average": round(np.mean(improvements), 2),
+            "best": round(max(improvements), 2),
+        }
+    }
+
+
 # ── Run full comparison ────────────────────────────────────────────────────────
 def run_evaluation(k: int = 5, save: bool = True) -> tuple:
     """
@@ -262,6 +355,9 @@ def run_evaluation(k: int = 5, save: bool = True) -> tuple:
         with open(RESULTS_PATH, "w") as f:
             json.dump(payload, f, indent=2)
         print(f"\n[Saved] {RESULTS_PATH}")
+        
+        # Save to metrics history for tracking over time
+        save_metrics_to_history(nlp_res, base_res, notes=f"K={k} evaluation")
 
     return nlp_res, base_res
 
