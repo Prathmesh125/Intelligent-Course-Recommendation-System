@@ -8,8 +8,10 @@ Provides file operations, validation, formatting, and other helpers.
 import os
 import json
 import logging
-from typing import Any, Dict, Optional
+import time
+from typing import Any, Dict, Optional, Callable
 from datetime import datetime
+from functools import wraps
 
 log = logging.getLogger("NLPRec-Utils")
 
@@ -162,3 +164,97 @@ def merge_dicts(*dicts: Dict) -> Dict:
     for d in dicts:
         result.update(d)
     return result
+
+def retry_on_failure(
+    max_attempts: int = 3,
+    delay: float = 1.0,
+    backoff: float = 2.0,
+    exceptions: tuple = (Exception,)
+):
+    """
+    Decorator to retry a function on failure with exponential backoff.
+    
+    Args:
+        max_attempts: Maximum number of retry attempts
+        delay: Initial delay between retries in seconds
+        backoff: Multiplier for delay after each failure
+        exceptions: Tuple of exception types to catch and retry
+        
+    Returns:
+        Decorated function with retry logic
+        
+    Example:
+        @retry_on_failure(max_attempts=3, delay=1.0)
+        def fetch_data():
+            # May fail transiently
+            return requests.get(url)
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            current_delay = delay
+            last_exception = None
+            
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    last_exception = e
+                    if attempt == max_attempts:
+                        log.error(
+                            f"Function {func.__name__} failed after {max_attempts} attempts: {e}"
+                        )
+                        raise
+                    
+                    log.warning(
+                        f"Attempt {attempt}/{max_attempts} failed for {func.__name__}: {e}. "
+                        f"Retrying in {current_delay:.1f}s..."
+                    )
+                    time.sleep(current_delay)
+                    current_delay *= backoff
+            
+            # Should not reach here, but raise last exception if it does
+            if last_exception:
+                raise last_exception
+        
+        return wrapper
+    return decorator
+
+
+def retry_operation(
+    operation: Callable,
+    max_attempts: int = 3,
+    delay: float = 1.0,
+    on_error: Optional[Callable[[Exception], None]] = None
+) -> Any:
+    """
+    Retry an operation with exponential backoff (functional approach).
+    
+    Args:
+        operation: Function to execute
+        max_attempts: Maximum number of attempts
+        delay: Initial delay between retries in seconds
+        on_error: Optional callback for handling errors
+        
+    Returns:
+        Result of the operation
+        
+    Raises:
+        Last exception if all attempts fail
+    """
+    current_delay = delay
+    
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return operation()
+        except Exception as e:
+            if on_error:
+                on_error(e)
+            
+            if attempt == max_attempts:
+                log.error(f"Operation failed after {max_attempts} attempts: {e}")
+                raise
+            
+            log.warning(f"Attempt {attempt}/{max_attempts} failed: {e}. Retrying in {current_delay:.1f}s...")
+            time.sleep(current_delay)
+            current_delay *= 2
