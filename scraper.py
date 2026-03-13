@@ -28,6 +28,7 @@ log = logging.getLogger("NLPRec-Scraper")
 
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(BASE_DIR, "dataset", "courses.csv")
+BACKUP_PATH  = os.path.join(BASE_DIR, "dataset", "courses_backup.csv")
 os.makedirs(os.path.join(BASE_DIR, "dataset"), exist_ok=True)
 
 # HTTP session shared across all requests
@@ -452,6 +453,32 @@ def fetch_khan_academy(**_kwargs) -> list[dict]:
 # AGGREGATOR — combines all sources, deduplicates, saves CSV
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _backup_dataset():
+    """Create a backup of the current dataset before scraping."""
+    if os.path.exists(DATASET_PATH):
+        try:
+            import shutil
+            shutil.copy2(DATASET_PATH, BACKUP_PATH)
+            log.info(f"Created dataset backup: {BACKUP_PATH}")
+            return True
+        except Exception as e:
+            log.warning(f"Failed to create backup: {e}")
+    return False
+
+
+def _restore_from_backup():
+    """Restore dataset from backup in case of catastrophic failure."""
+    if os.path.exists(BACKUP_PATH):
+        try:
+            import shutil
+            shutil.copy2(BACKUP_PATH, DATASET_PATH)
+            log.info(f"Restored dataset from backup: {BACKUP_PATH}")
+            return True
+        except Exception as e:
+            log.error(f"Failed to restore from backup: {e}")
+    return False
+
+
 def scrape_all(
     coursera_limit:  int  = 100,
     mit_ocw_limit:   int  = 80,
@@ -474,6 +501,17 @@ def scrape_all(
     if mit_ocw_limit == 80 and edx_limit != 80:
         mit_ocw_limit = edx_limit
 
+    # Create backup before scraping
+    _backup_dataset()
+    
+    # Track scraping results for error reporting
+    scrape_results = {
+        "sources_attempted": 0,
+        "sources_succeeded": 0,
+        "sources_failed": [],
+        "courses_fetched": 0,
+    }
+
     def _progress(msg, pct):
         log.info(f"[{pct:3d}%] {msg}")
         if progress_callback:
@@ -483,48 +521,74 @@ def scrape_all(
 
     # ── 1. Coursera ────────────────────────────────────────────────────────
     _progress("Fetching Coursera courses …", 5)
+    scrape_results["sources_attempted"] += 1
     try:
         coursera_courses = fetch_coursera(limit=coursera_limit)
         all_courses.extend(coursera_courses)
+        scrape_results["sources_succeeded"] += 1
+        scrape_results["courses_fetched"] += len(coursera_courses)
         _progress(f"Coursera: {len(coursera_courses)} courses fetched.", 30)
     except Exception as e:
-        log.error(f"Coursera scraper failed: {e}")
+        log.error(f"Coursera scraper failed: {e}", exc_info=True)
+        scrape_results["sources_failed"].append(("Coursera", str(e)))
         _progress("Coursera: failed — skipping.", 30)
 
     # ── 2. MIT OpenCourseWare ─────────────────────────────────────────────
     _progress("Fetching MIT OpenCourseWare courses …", 32)
+    scrape_results["sources_attempted"] += 1
     try:
         ocw_courses = fetch_mit_ocw(limit=mit_ocw_limit)
         all_courses.extend(ocw_courses)
+        scrape_results["sources_succeeded"] += 1
+        scrape_results["courses_fetched"] += len(ocw_courses)
         _progress(f"MIT OCW: {len(ocw_courses)} courses fetched.", 60)
     except Exception as e:
-        log.error(f"MIT OCW scraper failed: {e}")
+        log.error(f"MIT OCW scraper failed: {e}", exc_info=True)
+        scrape_results["sources_failed"].append(("MIT OCW", str(e)))
         _progress("MIT OCW: failed — skipping.", 60)
 
     # ── 3. freeCodeCamp ────────────────────────────────────────────────────
     if include_fcc:
         _progress("Fetching freeCodeCamp tracks …", 62)
+        scrape_results["sources_attempted"] += 1
         try:
             fcc = fetch_freecodecamp()
             all_courses.extend(fcc)
+            scrape_results["sources_succeeded"] += 1
+            scrape_results["courses_fetched"] += len(fcc)
             _progress(f"freeCodeCamp: {len(fcc)} tracks fetched.", 75)
         except Exception as e:
-            log.error(f"freeCodeCamp scraper failed: {e}")
+            log.error(f"freeCodeCamp scraper failed: {e}", exc_info=True)
+            scrape_results["sources_failed"].append(("freeCodeCamp", str(e)))
             _progress("freeCodeCamp: failed — skipping.", 75)
 
     # ── 4. Khan Academy ────────────────────────────────────────────────────
     if include_khan:
         _progress("Fetching Khan Academy subjects …", 77)
+        scrape_results["sources_attempted"] += 1
         try:
             khan = fetch_khan_academy()
             all_courses.extend(khan)
+            scrape_results["sources_succeeded"] += 1
+            scrape_results["courses_fetched"] += len(khan)
             _progress(f"Khan Academy: {len(khan)} subjects loaded.", 88)
         except Exception as e:
-            log.error(f"Khan Academy loader failed: {e}")
+            log.error(f"Khan Academy loader failed: {e}", exc_info=True)
+            scrape_results["sources_failed"].append(("Khan Academy", str(e)))
             _progress("Khan Academy: failed — skipping.", 88)
 
+    # Log scraping summary
+    log.info(
+        f"Scraping complete: {scrape_results['sources_succeeded']}/{scrape_results['sources_attempted']} sources succeeded, "
+        f"{scrape_results['courses_fetched']} courses fetched"
+    )
+    if scrape_results["sources_failed"]:
+        log.warning(f"Failed sources: {[name for name, _ in scrape_results['sources_failed']]}")
+
     if not all_courses:
+        log.error("All sources failed — attempting to restore from backup")
         _progress("All sources failed — no data to save.", 100)
+        _restore_from_backup()
         return pd.DataFrame()
 
     # ── Build DataFrame ────────────────────────────────────────────────────
