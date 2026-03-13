@@ -8,6 +8,7 @@ Provides timing, caching, and monitoring decorators.
 import time
 import logging
 import functools
+from collections import defaultdict
 from typing import Callable, Any
 
 log = logging.getLogger("NLPRec-Decorators")
@@ -172,6 +173,96 @@ def deprecated(message: str = "This function is deprecated"):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             log.warning(f"{func.__name__} is deprecated: {message}")
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def rate_limit(max_calls: int, time_window: float):
+    """
+    Decorator to rate limit function calls.
+    
+    Args:
+        max_calls: Maximum number of calls allowed in time window
+        time_window: Time window in seconds
+        
+    Returns:
+        Decorator function
+        
+    Example:
+        @rate_limit(max_calls=10, time_window=60)
+        def api_call():
+            # Limited to 10 calls per minute
+            pass
+    """
+    call_times = defaultdict(list)
+    
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            now = time.time()
+            func_key = func.__name__
+            
+            # Remove old calls outside the time window
+            call_times[func_key] = [
+                t for t in call_times[func_key] 
+                if now - t < time_window
+            ]
+            
+            # Check if limit exceeded
+            if len(call_times[func_key]) >= max_calls:
+                oldest_call = call_times[func_key][0]
+                wait_time = time_window - (now - oldest_call)
+                log.warning(
+                    f"Rate limit exceeded for {func_key}. "
+                    f"Wait {wait_time:.1f}s before calling again."
+                )
+                raise RuntimeError(
+                    f"Rate limit exceeded: {max_calls} calls per {time_window}s. "
+                    f"Retry after {wait_time:.1f}s"
+                )
+            
+            # Record this call
+            call_times[func_key].append(now)
+            return func(*args, **kwargs)
+        
+        return wrapper
+    return decorator
+
+
+def validate_input(**type_checks):
+    """
+    Decorator to validate function input types.
+    
+    Args:
+        **type_checks: Mapping of parameter names to expected types
+        
+    Returns:
+        Decorator function
+        
+    Example:
+        @validate_input(name=str, age=int, score=float)
+        def process_user(name, age, score):
+            pass
+    """
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Get function signature
+            import inspect
+            sig = inspect.signature(func)
+            bound_args = sig.bind(*args, **kwargs)
+            bound_args.apply_defaults()
+            
+            # Validate types
+            for param_name, expected_type in type_checks.items():
+                if param_name in bound_args.arguments:
+                    actual_value = bound_args.arguments[param_name]
+                    if not isinstance(actual_value, expected_type):
+                        raise TypeError(
+                            f"{func.__name__}() argument '{param_name}' must be "
+                            f"{expected_type.__name__}, got {type(actual_value).__name__}"
+                        )
+            
             return func(*args, **kwargs)
         return wrapper
     return decorator
