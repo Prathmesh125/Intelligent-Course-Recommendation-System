@@ -56,6 +56,11 @@ MIN_SESSION_DURATION = 10      # Minimum session duration in seconds to count
 MAX_SESSION_DURATION = 7200    # Maximum reasonable session (2 hours)
 ENGAGEMENT_DECAY_FACTOR = 0.9  # Time-based decay for older engagement
 
+# ── Performance cache ──────────────────────────────────────────────────────────
+_ENGAGEMENT_CACHE = None       # Cached engagement boost data
+_CACHE_TIMESTAMP = 0           # Unix timestamp of last cache update
+CACHE_TTL = 60                 # Cache time-to-live in seconds
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Internal helpers
@@ -269,9 +274,21 @@ def get_engagement_boost(course_title: str) -> float:
     based on aggregate clicks and saves from all users.
     Uses log-normalization so a single mega-popular course doesn't
     overshadow everything else.
+    
+    Performance: Uses a 60-second cache to avoid repeated disk I/O
+    during recommendation batch processing.
     """
-    store = _load_store()
-    eng   = store["course_engagement"].get(course_title)
+    global _ENGAGEMENT_CACHE, _CACHE_TIMESTAMP
+    
+    # Check if cache is still valid
+    current_time = time.time()
+    if _ENGAGEMENT_CACHE is None or (current_time - _CACHE_TIMESTAMP) > CACHE_TTL:
+        # Refresh cache
+        store = _load_store()
+        _ENGAGEMENT_CACHE = store.get("course_engagement", {})
+        _CACHE_TIMESTAMP = current_time
+    
+    eng = _ENGAGEMENT_CACHE.get(course_title)
     if not eng:
         return 0.0
 
@@ -346,3 +363,12 @@ def get_all_users_stats() -> dict:
         "trending_topics": get_trending_topics(8, days=7),
         "top_courses":     sorted_courses[:5],
     }
+
+def invalidate_engagement_cache():
+    """
+    Manually invalidate the engagement boost cache.
+    Useful when you want fresh data immediately after writes.
+    """
+    global _ENGAGEMENT_CACHE, _CACHE_TIMESTAMP
+    _ENGAGEMENT_CACHE = None
+    _CACHE_TIMESTAMP = 0
