@@ -8,12 +8,15 @@ collective user behaviour (clicks + saves via behavior_tracker).
 """
 
 from typing import Optional
+import logging
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
 from vectorizer import load_tfidf_model, transform_query
 from behavior_tracker import get_engagement_boost
+
+log = logging.getLogger("NLPRec-Recommender")
 
 
 # ── Load model once at module level (cached) ──────────────────────────────────
@@ -51,15 +54,31 @@ def recommend(
 
     # Input validation
     if not user_query or not user_query.strip():
+        log.warning("Empty query provided to recommend()")
         return pd.DataFrame()
     
-    if top_n < 1:
-        top_n = 1
+    if len(user_query) > 1000:
+        log.warning(f"Query too long ({len(user_query)} chars), truncating to 1000")
+        user_query = user_query[:1000]
+    
+    # Validate top_n range
+    if not isinstance(top_n, int) or top_n < 1:
+        log.warning(f"Invalid top_n={top_n}, defaulting to 5")
+        top_n = 5
     elif top_n > 100:
+        log.warning(f"top_n={top_n} exceeds limit, capping to 100")
         top_n = 100
     
-    if not (0.0 <= min_rating <= 5.0):
-        min_rating = max(0.0, min(5.0, min_rating))
+    # Validate rating range
+    if not isinstance(min_rating, (int, float)) or not (0.0 <= min_rating <= 5.0):
+        log.warning(f"Invalid min_rating={min_rating}, defaulting to 0.0")
+        min_rating = 0.0
+    
+    # Validate difficulty filter
+    valid_difficulties = ["All", "Beginner", "Intermediate", "Advanced"]
+    if difficulty_filter not in valid_difficulties:
+        log.warning(f"Invalid difficulty_filter={difficulty_filter}, defaulting to 'All'")
+        difficulty_filter = "All"
 
     # 1. Vectorize user query
     query_vec = transform_query(user_query, _vectorizer)
