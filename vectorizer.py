@@ -9,7 +9,10 @@ recommender can load them instantly without re-computing.
 import os
 import pickle
 import logging
+from typing import Optional, Tuple
 import pandas as pd
+import numpy as np
+from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from text_preprocessing import build_corpus, preprocess_text
@@ -38,12 +41,20 @@ def load_dataset(path: str = DATASET_PATH) -> pd.DataFrame:
 
 
 # ── Build & save TF-IDF model ─────────────────────────────────────────────────
-def build_and_save_tfidf(df: pd.DataFrame = None):
+def build_and_save_tfidf(
+    df: Optional[pd.DataFrame] = None
+) -> Tuple[TfidfVectorizer, csr_matrix, pd.DataFrame]:
     """
     1. Loads dataset (if df not supplied)
     2. Builds cleaned corpus
     3. Fits TF-IDF vectorizer
     4. Saves vectorizer + matrix + dataframe with pickle
+    
+    Args:
+        df: Optional DataFrame of courses. If None, loads from CSV.
+        
+    Returns:
+        Tuple of (vectorizer, tfidf_matrix, courses_dataframe)
     """
     os.makedirs(MODELS_DIR, exist_ok=True)
 
@@ -76,10 +87,13 @@ def build_and_save_tfidf(df: pd.DataFrame = None):
 
 
 # ── Load pre-built model (used by recommender) ────────────────────────────────
-def load_tfidf_model():
+def load_tfidf_model() -> Tuple[TfidfVectorizer, csr_matrix, pd.DataFrame]:
     """
     Returns (vectorizer, tfidf_matrix, courses_df).
     Builds the model if pickle files are not found.
+    
+    Returns:
+        Tuple of (vectorizer, tfidf_matrix, courses_dataframe)
     """
     if not all(os.path.exists(p) for p in [TFIDF_PATH, MATRIX_PATH, COURSES_PATH]):
         log.info("Pre-built model not found — building now")
@@ -110,8 +124,17 @@ def load_tfidf_model():
 
 
 # ── Transform a single user query ─────────────────────────────────────────────
-def transform_query(query: str, vectorizer: TfidfVectorizer):
-    """Preprocesses query and converts to TF-IDF vector."""
+def transform_query(query: str, vectorizer: TfidfVectorizer) -> csr_matrix:
+    """
+    Preprocesses query and converts to TF-IDF vector.
+    
+    Args:
+        query: User's natural language query
+        vectorizer: Fitted TfidfVectorizer instance
+        
+    Returns:
+        Sparse TF-IDF vector representation of the query
+    """
     cleaned = preprocess_text(query)
     return vectorizer.transform([cleaned])
 
