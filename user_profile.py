@@ -65,12 +65,44 @@ def save_profile(profile: dict):
 
 
 # ── Log a new search ──────────────────────────────────────────────────────────
+def _sanitize_query(query: str) -> str:
+    """
+    Sanitize user query to prevent injection and clean up input.
+    
+    Returns:
+        Clean query string with normalized whitespace
+    """
+    if not query or not isinstance(query, str):
+        return ""
+    
+    # Strip leading/trailing whitespace
+    query = query.strip()
+    
+    # Remove control characters and null bytes
+    query = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', query)
+    
+    # Normalize multiple spaces/tabs to single space
+    query = re.sub(r'\s+', ' ', query)
+    
+    # Limit query length to prevent storage issues
+    max_length = 500
+    if len(query) > max_length:
+        query = query[:max_length]
+    
+    return query
+
+
 def log_search(profile: dict, query: str, difficulty: str = "All") -> dict:
     """
     Appends query to search_history and extracts keywords into interests.
     Also updates v2 adaptive fields (topic_frequency, difficulty_counts).
     Call save_profile() afterwards to persist.
     """
+    # Sanitize query before processing
+    query = _sanitize_query(query)
+    if not query:
+        return profile
+    
     entry = {
         "query":      query,
         "difficulty": difficulty,
