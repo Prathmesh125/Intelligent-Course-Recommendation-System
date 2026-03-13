@@ -7,6 +7,7 @@ paths, hyperparameters, and feature flags.
 """
 
 import os
+import logging
 
 # ── Base Paths ────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -14,6 +15,7 @@ DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 BEHAVIOR_DIR = os.path.join(DATASET_DIR, "behavior")
 PROFILES_DIR = os.path.join(DATASET_DIR, "profiles")
+LOGS_DIR = os.path.join(BASE_DIR, "logs")
 
 # ── Dataset Paths ─────────────────────────────────────────────────────────────
 COURSES_CSV = os.path.join(DATASET_DIR, "courses.csv")
@@ -49,8 +51,64 @@ ENABLE_SPELL_CORRECTION = True
 ENABLE_QUERY_SUGGESTIONS = True
 
 # ── Logging Configuration ─────────────────────────────────────────────────────
-LOG_LEVEL = "INFO"
+# Environment variable override: export NLPREC_LOG_LEVEL=DEBUG
+LOG_LEVEL = os.getenv("NLPREC_LOG_LEVEL", "INFO")
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+# Log file settings
+LOG_TO_FILE = True
+LOG_FILE = os.path.join(LOGS_DIR, "nlprec.log")
+LOG_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+LOG_BACKUP_COUNT = 5  # Keep 5 backup log files
+
+# Module-specific log levels (override default LOG_LEVEL)
+MODULE_LOG_LEVELS = {
+    "NLPRec-App": "INFO",
+    "NLPRec-Recommender": "INFO",
+    "NLPRec-Vectorizer": "INFO",
+    "NLPRec-Scraper": "WARNING",
+    "NLPRec-Utils": "WARNING",
+}
+
+
+def setup_logging():
+    """
+    Configure logging for the entire NLPRec system.
+    Call this once at application startup (e.g., in app.py).
+    """
+    # Create logs directory if needed
+    os.makedirs(LOGS_DIR, exist_ok=True)
+    
+    # Configure root logger
+    log_level = getattr(logging, LOG_LEVEL.upper(), logging.INFO)
+    
+    handlers = [logging.StreamHandler()]  # Console output
+    
+    if LOG_TO_FILE:
+        from logging.handlers import RotatingFileHandler
+        file_handler = RotatingFileHandler(
+            LOG_FILE,
+            maxBytes=LOG_MAX_BYTES,
+            backupCount=LOG_BACKUP_COUNT,
+        )
+        handlers.append(file_handler)
+    
+    logging.basicConfig(
+        level=log_level,
+        format=LOG_FORMAT,
+        datefmt=LOG_DATE_FORMAT,
+        handlers=handlers,
+        force=True,
+    )
+    
+    # Apply module-specific log levels
+    for module_name, level_str in MODULE_LOG_LEVELS.items():
+        logger = logging.getLogger(module_name)
+        logger.setLevel(getattr(logging, level_str.upper(), logging.INFO))
+    
+    logging.info(f"Logging initialized: level={LOG_LEVEL}, file={LOG_FILE if LOG_TO_FILE else 'disabled'}")
+
 
 # ── UI Settings ───────────────────────────────────────────────────────────────
 PAGE_TITLE = "NLPRec — Course Intelligence"
