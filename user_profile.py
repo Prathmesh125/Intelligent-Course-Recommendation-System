@@ -288,6 +288,29 @@ def clear_history(profile: dict) -> dict:
     return profile
 
 
+# ── Search streak ─────────────────────────────────────────────────────────────
+def get_search_streak(profile: dict) -> int:
+    """Return the number of consecutive calendar days the user searched, ending today."""
+    history = profile.get("search_history", [])
+    if not history:
+        return 0
+
+    days_with_searches = set()
+    for entry in history:
+        try:
+            day = datetime.fromisoformat(entry["timestamp"]).date()
+            days_with_searches.add(day)
+        except (KeyError, ValueError):
+            continue
+
+    streak = 0
+    current = datetime.now().date()
+    while current in days_with_searches:
+        streak += 1
+        current -= timedelta(days=1)
+    return streak
+
+
 # ── CLI test ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     test_user = "demo_user"
