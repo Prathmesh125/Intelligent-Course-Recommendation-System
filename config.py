@@ -44,6 +44,11 @@ MAX_ENGAGEMENT_BOOST = 0.12  # cap so popular courses don't dominate completely
 # ── Query Engine Settings ─────────────────────────────────────────────────────
 MIN_SPELL_CHECK_LENGTH = 3  # don't spell-check words shorter than this
 MAX_QUERY_LENGTH = 500      # truncate queries longer than this
+MAX_RECENT_QUERIES = 20     # max queries kept in user search history
+
+# ── Recommendation Thresholds ────────────────────────────────────────────────
+SIMILARITY_THRESHOLD = 0.05   # minimum cosine score to surface a result
+CACHE_TTL_SECONDS = 3600      # how long in-memory model cache stays valid (1 h)
 
 # ── Feature Flags ─────────────────────────────────────────────────────────────
 ENABLE_ENGAGEMENT_BOOST = True
