@@ -9,7 +9,7 @@ import os
 import json
 import logging
 import time
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Optional, Callable, List
 from datetime import datetime
 from functools import wraps
 
@@ -258,3 +258,22 @@ def retry_operation(
             log.warning(f"Attempt {attempt}/{max_attempts} failed: {e}. Retrying in {current_delay:.1f}s...")
             time.sleep(current_delay)
             current_delay *= 2
+
+
+# ── Pagination helper ─────────────────────────────────────────────────────────
+def paginate_results(items: List[Any], page: int, page_size: int = 10) -> Dict[str, Any]:
+    """Slice a list into a page and return metadata alongside the page items."""
+    total = len(items)
+    page = max(1, page)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    page = min(page, total_pages)
+    start = (page - 1) * page_size
+    return {
+        "items": items[start: start + page_size],
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
+        "has_prev": page > 1,
+    }
