@@ -173,6 +173,38 @@ def invalidate_cache():
     _courses_df   = None
 
 
+# ── Cold-start helper: top-rated courses with no query required ───────────────
+def get_top_rated_courses(
+    top_n: int = 5,
+    difficulty_filter: str = "All",
+    source_filter: str = "All",
+    min_rating: float = 4.0,
+) -> pd.DataFrame:
+    """Return highest-rated courses; useful for landing pages and cold-start."""
+    _ensure_model()
+    results = _courses_df.copy()
+
+    if difficulty_filter != "All":
+        results = results[results["difficulty"].str.lower() == difficulty_filter.lower()]
+
+    if source_filter != "All" and "source" in results.columns:
+        results = results[results["source"] == source_filter]
+
+    if min_rating > 0:
+        results = results[results["rating"] >= min_rating]
+
+    results = results.sort_values("rating", ascending=False)
+    results = results.head(top_n).reset_index(drop=True)
+    results["rank"] = results.index + 1
+    results["similarity_score"] = 0.0
+
+    cols = ["rank", "course_title", "difficulty", "rating",
+            "similarity_score", "description", "skills", "url"]
+    if "source" in results.columns:
+        cols.append("source")
+    return results[cols]
+
+
 # ── Get available difficulties ─────────────────────────────────────────────────
 def get_difficulties():
     try:
