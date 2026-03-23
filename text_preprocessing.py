@@ -97,6 +97,20 @@ def preprocess_text(text: str) -> str:
     return " ".join(tokens)
 
 
+# ── Lightweight query normalizer (display-safe, no stopword removal) ──────────
+def normalize_query(text: str) -> str:
+    """
+    Lightweight normalization for user-facing display: strips extra whitespace,
+    collapses consecutive spaces, and title-cases the result.
+    Unlike preprocess_text(), this does NOT remove stopwords or lemmatize,
+    so the returned string remains human-readable.
+    """
+    if not isinstance(text, str):
+        return ""
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:500] if text else ""
+
+
 # ── Corpus builder (used by vectorizer) ───────────────────────────────────────
 def build_corpus(df):
     """
