@@ -16,6 +16,7 @@ from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from text_preprocessing import build_corpus, preprocess_text
+import config
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 log = logging.getLogger("NLPRec-Vectorizer")
@@ -66,10 +67,10 @@ def build_and_save_tfidf(
     corpus = build_corpus(df)
 
     vectorizer = TfidfVectorizer(
-        max_features=5000,
-        ngram_range=(1, 2),   # unigrams + bigrams
-        min_df=1,
-        sublinear_tf=True,    # apply log normalization to term frequency
+        max_features=config.TFIDF_MAX_FEATURES,
+        ngram_range=config.TFIDF_NGRAM_RANGE,
+        min_df=config.TFIDF_MIN_DF,
+        sublinear_tf=config.TFIDF_SUBLINEAR_TF,
     )
     tfidf_matrix = vectorizer.fit_transform(corpus)
 
