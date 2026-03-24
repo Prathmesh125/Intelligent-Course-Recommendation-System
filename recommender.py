@@ -205,6 +205,36 @@ def get_top_rated_courses(
     return results[cols]
 
 
+# ── Content-based "more like this" lookup ────────────────────────────────────
+def get_similar_courses(course_title: str, top_n: int = 5) -> pd.DataFrame:
+    """Return courses most similar to the given course title using TF-IDF cosine similarity."""
+    _ensure_model()
+    if _courses_df is None or _tfidf_matrix is None:
+        return pd.DataFrame()
+
+    titles_lower = _courses_df["course_title"].str.lower()
+    match = titles_lower[titles_lower == course_title.lower()]
+    if match.empty:
+        match = titles_lower[titles_lower.str.contains(course_title.lower(), regex=False)]
+    if match.empty:
+        log.warning(f"get_similar_courses: no match for '{course_title}'")
+        return pd.DataFrame()
+
+    idx = match.index[0]
+    scores = cosine_similarity(_tfidf_matrix[idx], _tfidf_matrix).flatten()
+    scores[idx] = -1  # exclude the course itself
+
+    results = _courses_df.copy()
+    results["similarity_score"] = scores
+    results = results.sort_values("similarity_score", ascending=False).head(top_n).reset_index(drop=True)
+    results["rank"] = results.index + 1
+
+    cols = ["rank", "course_title", "difficulty", "rating", "similarity_score", "description", "skills", "url"]
+    if "source" in results.columns:
+        cols.append("source")
+    return results[cols]
+
+
 # ── Get available difficulties ─────────────────────────────────────────────────
 def get_difficulties():
     try:
