@@ -311,6 +311,15 @@ def get_search_streak(profile: dict) -> int:
     return streak
 
 
+def get_favorite_difficulty(profile: dict) -> str:
+    """Return the difficulty level the user has searched most often, or 'All' if unknown."""
+    counts = profile.get("difficulty_counts", {})
+    valid = {k: v for k, v in counts.items() if k in ("Beginner", "Intermediate", "Advanced") and v > 0}
+    if not valid:
+        return "All"
+    return max(valid, key=lambda k: valid[k])
+
+
 # ── CLI test ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     test_user = "demo_user"
