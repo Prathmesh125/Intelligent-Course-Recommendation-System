@@ -179,6 +179,17 @@ def f1_at_k(precision: float, recall: float) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+def compute_ndcg(predicted: list, relevant: list, k: int) -> float:
+    """Compute Normalized Discounted Cumulative Gain at k for a single query."""
+    def _dcg(hits):
+        return sum(hit / np.log2(i + 2) for i, hit in enumerate(hits[:k]))
+
+    hits = [1 if any(_match_score(p, r) >= 0.5 for r in relevant) else 0 for p in predicted[:k]]
+    ideal = sorted(hits, reverse=True)
+    idcg = _dcg(ideal)
+    return _dcg(hits) / idcg if idcg > 0 else 0.0
+
+
 # ── Evaluate a single model over all test queries ─────────────────────────────
 def evaluate_model(recommend_fn, k: int = 5, label: str = "Model") -> dict:
     """
