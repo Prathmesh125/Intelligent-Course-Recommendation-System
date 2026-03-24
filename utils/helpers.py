@@ -277,3 +277,19 @@ def paginate_results(items: List[Any], page: int, page_size: int = 10) -> Dict[s
         "has_next": page < total_pages,
         "has_prev": page > 1,
     }
+
+
+# ── Human-readable duration formatter ────────────────────────────────────────
+def format_duration(seconds: float) -> str:
+    """Convert a duration in seconds to a compact human-readable string (e.g. '2h 4m 30s')."""
+    seconds = max(0, int(seconds))
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    parts = []
+    if hours:
+        parts.append(f"{hours}h")
+    if minutes:
+        parts.append(f"{minutes}m")
+    if secs or not parts:
+        parts.append(f"{secs}s")
+    return " ".join(parts)
