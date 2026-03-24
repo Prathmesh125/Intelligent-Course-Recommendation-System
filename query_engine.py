@@ -323,6 +323,15 @@ def _spell_correct(text: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# HELPER: is_tech_query
+# ═══════════════════════════════════════════════════════════════════════════════
+def is_tech_query(query: str) -> bool:
+    """Return True if the query contains at least one recognised tech vocabulary word."""
+    tokens = set(re.sub(r"[^a-z0-9 ]", " ", query.lower()).split())
+    return bool(tokens & _TECH_VOCAB)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # MAIN: understand_query
 # ═══════════════════════════════════════════════════════════════════════════════
 def understand_query(raw_query: str) -> dict:
