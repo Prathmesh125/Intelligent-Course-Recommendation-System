@@ -372,3 +372,12 @@ def invalidate_engagement_cache():
     global _ENGAGEMENT_CACHE, _CACHE_TIMESTAMP
     _ENGAGEMENT_CACHE = None
     _CACHE_TIMESTAMP = 0
+
+
+def get_most_clicked_course() -> str | None:
+    """Return the course title with the highest click count across all users, or None if empty."""
+    store = _load_store()
+    eng = store.get("course_engagement", {})
+    if not eng:
+        return None
+    return max(eng, key=lambda c: eng[c].get("clicks", 0))
