@@ -140,6 +140,14 @@ def transform_query(query: str, vectorizer: TfidfVectorizer) -> csr_matrix:
     return vectorizer.transform([cleaned])
 
 
+def get_vocabulary_size(vectorizer: TfidfVectorizer) -> int:
+    """Return the number of unique n-gram features in a fitted TF-IDF vectorizer."""
+    try:
+        return len(vectorizer.vocabulary_)
+    except AttributeError:
+        return 0
+
+
 # ── CLI entry-point ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
     vec, mat, courses = build_and_save_tfidf()
