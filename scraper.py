@@ -646,6 +646,28 @@ def get_last_scrape_info() -> dict:
         return {"exists": False, "count": 0, "last_updated": None, "sources": []}
 
 
+def get_dataset_stats() -> dict:
+    """Return summary statistics about the current courses dataset (difficulty breakdown, rating stats)."""
+    if not os.path.exists(DATASET_PATH):
+        return {}
+    try:
+        df = pd.read_csv(DATASET_PATH)
+        stats: dict = {"total_courses": len(df)}
+        if "difficulty" in df.columns:
+            stats["by_difficulty"] = df["difficulty"].value_counts().to_dict()
+        if "rating" in df.columns:
+            ratings = pd.to_numeric(df["rating"], errors="coerce").dropna()
+            stats["avg_rating"]  = round(float(ratings.mean()), 2)
+            stats["max_rating"]  = round(float(ratings.max()), 2)
+            stats["rated_count"] = int(ratings.count())
+        if "source" in df.columns:
+            stats["by_source"] = df["source"].value_counts().to_dict()
+        return stats
+    except Exception as e:
+        log.warning(f"get_dataset_stats error: {e}")
+        return {}
+
+
 # ── CLI ────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NLPRec Real-Time Course Scraper")
