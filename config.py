@@ -35,6 +35,9 @@ TFIDF_SUBLINEAR_TF = True
 # ── Recommendation Engine Settings ────────────────────────────────────────────
 DEFAULT_TOP_N = 5
 DEFAULT_MIN_RATING = 0.0
+DEFAULT_PAGE_SIZE = 10        # results per page in paginated views
+MAX_CACHE_SIZE = 256          # max entries held by in-process LRU caches
+SEARCH_HISTORY_LIMIT = 50     # hard cap on stored search-history entries per user
 
 # ── Behavior Tracker Settings ─────────────────────────────────────────────────
 CLICK_WEIGHT = 0.015   # per normalized click → added to cosine score
