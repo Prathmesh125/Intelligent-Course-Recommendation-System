@@ -111,6 +111,21 @@ def normalize_query(text: str) -> str:
     return text[:500] if text else ""
 
 
+# ── Keyword extractor (top-N content words from preprocessed text) ────────────
+def extract_keywords(text: str, top_n: int = 10) -> list:
+    """
+    Return up to top_n high-frequency content words from text after
+    full preprocessing (stopword removal + lemmatization).
+    Useful for building interest tags and topic chips.
+    """
+    cleaned = preprocess_text(text)
+    if not cleaned:
+        return []
+    from collections import Counter
+    counts = Counter(cleaned.split())
+    return [word for word, _ in counts.most_common(top_n)]
+
+
 # ── Corpus builder (used by vectorizer) ───────────────────────────────────────
 def build_corpus(df):
     """
