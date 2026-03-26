@@ -190,13 +190,17 @@ def save_course(profile: dict, course_title: str, metadata: dict = None) -> dict
     if not metadata:
         saved.append(course_title)
     else:
+        url = str(metadata.get("url", ""))[:500]
+        desc = str(metadata.get("description", ""))[:1000]
+        rating = metadata.get("rating", 0)
+        rating = round(max(0.0, min(5.0, float(rating))), 1) if isinstance(rating, (int, float)) else 0.0
         entry = {
             "title": course_title,
-            "url": metadata.get("url", ""),
-            "description": metadata.get("description", ""),
+            "url": url,
+            "description": desc,
             "difficulty": metadata.get("difficulty", ""),
             "source": metadata.get("source", ""),
-            "rating": metadata.get("rating", 0),
+            "rating": rating,
         }
         saved.append(entry)
 
