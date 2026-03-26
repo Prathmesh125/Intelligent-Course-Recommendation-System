@@ -218,7 +218,13 @@ def log_session_end(username: str, session_start_ts: float):
     *session_start_ts* is a Unix timestamp (time.time()).
     Accumulates total retention time for the user.
     """
-    duration = max(0, time.time() - session_start_ts)
+    if not isinstance(session_start_ts, (int, float)) or session_start_ts < 0:
+        print(f"[BehaviorTracker] Invalid session_start_ts={session_start_ts!r}, skipping")
+        return
+    current_time = time.time()
+    if session_start_ts > current_time:
+        session_start_ts = current_time
+    duration = min(current_time - session_start_ts, MAX_SESSION_DURATION)
     store    = _load_store()
     _ensure_user(store, username)
 
