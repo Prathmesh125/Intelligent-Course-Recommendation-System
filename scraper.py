@@ -147,12 +147,13 @@ def fetch_coursera(limit: int = 100, start: int = 0) -> list[dict]:
             # Rating
             rating_info = item.get("rating", {}) or {}
             if isinstance(rating_info, dict):
-                rating = round(float(rating_info.get("averageFiveStars", 0) or 0), 1)
+                rating = float(rating_info.get("averageFiveStars", 0) or 0)
             else:
                 try:
-                    rating = round(float(rating_info), 1)
+                    rating = float(rating_info)
                 except (TypeError, ValueError):
                     rating = 0.0
+            rating = round(max(0.0, min(5.0, rating)), 1)
 
             slug        = item.get("slug", "")
             name        = (item.get("name", "") or "").strip()
