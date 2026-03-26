@@ -96,9 +96,21 @@ def load_tfidf_model() -> Tuple[TfidfVectorizer, csr_matrix, pd.DataFrame]:
     Returns:
         Tuple of (vectorizer, tfidf_matrix, courses_dataframe)
     """
-    if not all(os.path.exists(p) for p in [TFIDF_PATH, MATRIX_PATH, COURSES_PATH]):
+    model_paths = [TFIDF_PATH, MATRIX_PATH, COURSES_PATH]
+    missing = [p for p in model_paths if not os.path.exists(p)]
+
+    if len(missing) == 3:
         log.info("Pre-built model not found — building now")
         print("[Vectorizer] Pre-built model not found — building now …")
+        return build_and_save_tfidf()
+    elif missing:
+        log.warning("Partial model files detected (%d/3 present), rebuilding", len(model_paths) - len(missing))
+        print("[Vectorizer] Partial model files found, rebuilding …")
+        for path in model_paths:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
         return build_and_save_tfidf()
 
     try:
