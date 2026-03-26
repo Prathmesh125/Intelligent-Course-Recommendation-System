@@ -135,6 +135,16 @@ def validate_rating(rating: float) -> bool:
     return 0.0 <= rating <= 5.0
 
 
+def validate_difficulty(difficulty: str, valid_options: list = None) -> str:
+    """Validate a difficulty level; returns the value or 'All' if invalid."""
+    if valid_options is None:
+        valid_options = ["All", "Beginner", "Intermediate", "Advanced"]
+    if difficulty in valid_options:
+        return difficulty
+    log.warning("Invalid difficulty %r, defaulting to 'All'", difficulty)
+    return "All"
+
+
 def clamp(value: float, min_val: float, max_val: float) -> float:
     """
     Clamp a value between min and max bounds.
