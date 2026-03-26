@@ -104,11 +104,14 @@ def normalize_query(text: str) -> str:
     collapses consecutive spaces, and title-cases the result.
     Unlike preprocess_text(), this does NOT remove stopwords or lemmatize,
     so the returned string remains human-readable.
+    Returns empty string if input is blank or under 2 characters after cleanup.
     """
     if not isinstance(text, str):
         return ""
     text = re.sub(r"\s+", " ", text).strip()
-    return text[:500] if text else ""
+    if len(text) < 2:
+        return ""
+    return text[:500]
 
 
 # ── Keyword extractor (top-N content words from preprocessed text) ────────────
