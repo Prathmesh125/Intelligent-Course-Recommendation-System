@@ -34,6 +34,8 @@ TFIDF_SUBLINEAR_TF = True
 
 # ── Recommendation Engine Settings ────────────────────────────────────────────
 DEFAULT_TOP_N = 5
+MIN_TOP_N = 1               # minimum allowed top_n value
+MAX_TOP_N = 100             # maximum allowed top_n value
 DEFAULT_MIN_RATING = 0.0
 DEFAULT_PAGE_SIZE = 10        # results per page in paginated views
 MAX_CACHE_SIZE = 256          # max entries held by in-process LRU caches
