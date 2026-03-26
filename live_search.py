@@ -278,21 +278,22 @@ def _infer_duration(text: str) -> str:
     """Infer a compact duration label from snippets.
 
     Returns values like '12h', '6w', '45m' or '' when unknown.
+    Caps at realistic limits: 500h, 52w, 300m.
     """
     if not text:
         return ""
 
     m = _DURATION_HOURS.search(text)
     if m:
-        return f"{m.group(1)}h"
+        return f"{min(int(m.group(1)), 500)}h"
 
     m = _DURATION_WEEKS.search(text)
     if m:
-        return f"{m.group(1)}w"
+        return f"{min(int(m.group(1)), 52)}w"
 
     m = _DURATION_MINS.search(text)
     if m:
-        return f"{m.group(1)}m"
+        return f"{min(int(m.group(1)), 300)}m"
 
     return ""
 
