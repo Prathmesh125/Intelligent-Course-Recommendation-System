@@ -12,7 +12,10 @@ import logging
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import config
 
+# ── Activate logging infrastructure (RotatingFileHandler, per-module levels) ──
+config.setup_logging()
 log = logging.getLogger("NLPRec-App")
 
 # ── Page config (must be FIRST Streamlit call) ────────────────────────────────
