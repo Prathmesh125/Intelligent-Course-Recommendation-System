@@ -30,5 +30,5 @@ def main() -> None:
     print('TF-IDF model built successfully.')
 
 
-if __name__ == "__main__": .
+if __name__ == "__main__":
     main()
