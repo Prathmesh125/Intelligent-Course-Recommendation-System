@@ -2,7 +2,7 @@
 from recommender import recommend
 from query_engine import understand_query
 
-def test_improved_fallback(query_text):
+def run_improved_fallback_test(query_text):
     print(f"\n{'='*70}")
     print(f"Testing: '{query_text}'")
     print('='*70)
@@ -49,5 +49,6 @@ test_queries = [
     "data science with python",
 ]
 
-for q in test_queries:
-    test_improved_fallback(q)
+if __name__ == "__main__":
+    for q in test_queries:
+        run_improved_fallback_test(q)

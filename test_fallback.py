@@ -4,7 +4,7 @@ from recommender import keyword_search
 from query_engine import understand_query
 
 # Simulate what happens when live search fails
-def test_fallback(query_text):
+def run_fallback_test(query_text):
     print(f"\n{'='*70}")
     print(f"Testing fallback for: '{query_text}'")
     print('='*70)
@@ -45,5 +45,6 @@ test_queries = [
     "chemistry basics",
 ]
 
-for q in test_queries:
-    result = test_fallback(q)
+if __name__ == "__main__":
+    for q in test_queries:
+        result = run_fallback_test(q)
