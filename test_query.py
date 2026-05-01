@@ -1,7 +1,16 @@
 """Quick test for query understanding"""
+import argparse
 from query_engine import understand_query
 
 def main():
+    """
+    Runs the query understanding test. 
+    Accepts an optional custom query from command line; otherwise runs default test queries.
+    """
+    parser = argparse.ArgumentParser(description="Test query understanding.")
+    parser.add_argument("-q", "--query", type=str, help="Custom query to test")
+    args = parser.parse_args()
+
     test_queries = [
         "i want to learn python",
         "python",
@@ -10,6 +19,9 @@ def main():
         "how do i learn blockchain",
         "i wanna learn react",
     ]
+
+    if args.query:
+        test_queries = [args.query]
 
     print("=" * 80)
     print("Query Understanding Test")
