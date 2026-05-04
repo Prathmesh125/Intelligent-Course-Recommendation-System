@@ -196,7 +196,7 @@ def evaluate_model(recommend_fn, k: int = 5, label: str = "Model") -> dict:
     Runs recommend_fn on every test query and aggregates metrics.
     Returns dict of mean Precision@K, Recall@K, F1@K.
     """
-    precisions, recalls, f1s = [], [], []
+    precisions, recalls, f1s, ndcgs = [], [], [], []
 
     per_query = []
     for query, relevant in TEST_SET.items():
@@ -206,15 +206,18 @@ def evaluate_model(recommend_fn, k: int = 5, label: str = "Model") -> dict:
         p = precision_at_k(predicted, relevant, k)
         r = recall_at_k(predicted, relevant, k)
         f = f1_at_k(p, r)
+        n = compute_ndcg(predicted, relevant, k)
 
         precisions.append(p)
         recalls.append(r)
         f1s.append(f)
+        ndcgs.append(n)
         per_query.append({
             "query":     query,
             "precision": round(p, 4),
             "recall":    round(r, 4),
             "f1":        round(f, 4),
+            "ndcg":      round(n, 4),
             "predicted": predicted,
             "relevant":  relevant,
         })
@@ -225,6 +228,7 @@ def evaluate_model(recommend_fn, k: int = 5, label: str = "Model") -> dict:
         "precision_mean": round(np.mean(precisions), 4),
         "recall_mean":    round(np.mean(recalls),    4),
         "f1_mean":        round(np.mean(f1s),        4),
+        "ndcg_mean":      round(np.mean(ndcgs),      4),
         "per_query":     per_query,
     }
 
@@ -249,11 +253,13 @@ def save_metrics_to_history(nlp_res: Dict, base_res: Dict, notes: str = "") -> N
             "precision": nlp_res["precision_mean"],
             "recall": nlp_res["recall_mean"],
             "f1": nlp_res["f1_mean"],
+            "ndcg": nlp_res.get("ndcg_mean", 0.0),
         },
         "baseline": {
             "precision": base_res["precision_mean"],
             "recall": base_res["recall_mean"],
             "f1": base_res["f1_mean"],
+            "ndcg": base_res.get("ndcg_mean", 0.0),
         },
         "improvement": {
             "precision_pct": ((nlp_res["precision_mean"] - base_res["precision_mean"]) / 
@@ -262,6 +268,8 @@ def save_metrics_to_history(nlp_res: Dict, base_res: Dict, notes: str = "") -> N
                           max(base_res["recall_mean"], 0.0001)) * 100,
             "f1_pct": ((nlp_res["f1_mean"] - base_res["f1_mean"]) / 
                       max(base_res["f1_mean"], 0.0001)) * 100,
+            "ndcg_pct": ((nlp_res.get("ndcg_mean", 0.0) - base_res.get("ndcg_mean", 0.0)) / 
+                        max(base_res.get("ndcg_mean", 0.0), 0.0001)) * 100,
         },
         "notes": notes,
     }
@@ -344,19 +352,19 @@ def run_evaluation(k: int = 5, save: bool = True) -> tuple:
     )
 
     # Print summary table
-    print(f"\n{'Model':<35} {'Precision@'+str(k):<16} {'Recall@'+str(k):<14} {'F1@'+str(k)}")
-    print("-" * 75)
+    print(f"\n{'Model':<35} {'Precision@'+str(k):<16} {'Recall@'+str(k):<14} {'F1@'+str(k):<14} {'NDCG@'+str(k)}")
+    print("-" * 90)
     for res in [nlp_res, base_res]:
         print(f"{res['label']:<35} {res['precision_mean']:<16.4f} "
-              f"{res['recall_mean']:<14.4f} {res['f1_mean']:.4f}")
+              f"{res['recall_mean']:<14.4f} {res['f1_mean']:<14.4f} {res.get('ndcg_mean', 0.0):.4f}")
 
     # Improvement percentages
-    for metric in ["precision_mean", "recall_mean", "f1_mean"]:
-        nlp_val  = nlp_res[metric]
-        base_val = base_res[metric]
+    for metric in ["precision_mean", "recall_mean", "f1_mean", "ndcg_mean"]:
+        nlp_val  = nlp_res.get(metric, 0.0)
+        base_val = base_res.get(metric, 0.0)
         if base_val > 0:
             delta = (nlp_val - base_val) / base_val * 100
-            name  = metric.replace("_mean", "").capitalize()
+            name  = metric.replace("_mean", "").upper() if metric == "ndcg_mean" else metric.replace("_mean", "").capitalize()
             print(f"\n  ✔ NLP model improved {name} by {delta:+.1f}% over baseline")
         else:
             print(f"\n  ✔ NLP model {metric}: {nlp_val:.4f} (baseline=0)")
