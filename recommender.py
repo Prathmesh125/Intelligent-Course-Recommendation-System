@@ -75,10 +75,16 @@ def recommend(
         min_rating = 0.0
     
     # Validate difficulty filter
-    valid_difficulties = ["All", "Beginner", "Intermediate", "Advanced"]
+    valid_difficulties = get_difficulties()
     if difficulty_filter not in valid_difficulties:
         log.warning(f"Invalid difficulty_filter={difficulty_filter}, defaulting to 'All'")
         difficulty_filter = "All"
+
+    # Validate source filter
+    valid_sources = get_sources()
+    if source_filter not in valid_sources:
+        log.warning(f"Invalid source_filter={source_filter}, defaulting to 'All'")
+        source_filter = "All"
 
     # 1. Vectorize user query
     query_vec = transform_query(user_query, _vectorizer)
