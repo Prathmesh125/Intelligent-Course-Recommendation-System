@@ -11,6 +11,8 @@ import logging
 import argparse
 from vectorizer import build_and_save_tfidf
 
+NLTK_RESOURCES = ['punkt', 'punkt_tab', 'stopwords', 'wordnet', 'omw-1.4']
+
 
 def setup_logging(verbose: bool) -> None:
     """Configures the logging level based on verbosity."""
@@ -29,8 +31,7 @@ def download_nltk_resources(quiet: bool = True) -> None:
     except AttributeError:
         pass
     
-    resources = ['punkt', 'punkt_tab', 'stopwords', 'wordnet']
-    for r in resources:
+    for r in NLTK_RESOURCES:
         logging.debug(f'Downloading NLTK resource: {r}')
         nltk.download(r, quiet=quiet)
     logging.info('NLTK resources ready.')
@@ -43,11 +44,15 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser(description="Build TF-IDF model and download NLTK resources.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
+    parser.add_argument("--skip-nltk", action="store_true", help="Skip downloading NLTK resources")
     args = parser.parse_args()
 
     setup_logging(args.verbose)
 
-    download_nltk_resources(quiet=not args.verbose)
+    if not args.skip_nltk:
+        download_nltk_resources(quiet=not args.verbose)
+    else:
+        logging.info("Skipping NLTK resource downloads as requested.")
 
     logging.info('Building TF-IDF model...')
     try:
