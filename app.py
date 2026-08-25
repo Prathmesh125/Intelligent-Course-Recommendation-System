@@ -195,10 +195,38 @@ st.markdown(
       border-color: var(--accent) !important;
       box-shadow: 0 0 0 2px rgba(242,140,116,0.2) !important;
   }
+  [data-testid="stAppViewContainer"] div[data-testid="stTextInput"] [data-baseweb="input"] {
+      background: transparent !important;
+  }
+  [data-testid="stAppViewContainer"] div[data-testid="stTextInput"] [data-baseweb="base-input"] {
+      background: transparent !important;
+  }
   [data-testid="stAppViewContainer"] div[data-testid="stTextInput"] [data-baseweb="input"] > div {
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
+  }
+
+
+  /* Selectbox (Dropdowns) */
+  div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+      background-color: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px !important;
+  }
+  div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+      background-color: transparent !important;
+      color: var(--text-primary) !important;
+  }
+  div[data-testid="stSelectbox"] span {
+      color: var(--text-primary) !important;
+  }
+  div[data-testid="stSelectbox"] svg {
+      fill: var(--text-secondary) !important;
+  }
+  /* Fix popover menu text color */
+  ul[role="listbox"] li {
+      color: var(--text-primary) !important;
   }
 
   /* Buttons */
