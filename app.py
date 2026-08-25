@@ -561,8 +561,8 @@ def _render_sidebar() -> tuple[str, dict, dict]:
 
         page = option_menu(
             menu_title=None,
-            options=["Discover", "Saved", "Model comparison", "Performance"],
-            icons=["compass", "bookmark", "layout-split", "graph-up"],
+            options=["Discover", "Saved", "Model comparison", "Performance", "AI Advisor"],
+            icons=["compass", "bookmark", "layout-split", "graph-up", "robot"],
             default_index=0,
             styles={
                 "container": {"padding": "0!important", "background-color": "transparent"},
@@ -1237,6 +1237,54 @@ def _render_performance():
         st.dataframe(pq_df, use_container_width=True)
 
 
+
+def _render_ai_advisor(profile: dict):
+    _app_header("AI Advisor", "Chat with your AI assistant to find the perfect course.")
+    
+    with st.container(border=True):
+        # We look for env var first, then fallback to UI input
+        import os
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if not api_key:
+            api_key = st.text_input("Gemini API Key", type="password", help="Get a free key from Google AI Studio")
+            
+        if not api_key:
+            st.warning("Please provide a Gemini API Key to chat.")
+            return
+
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = [{"role": "assistant", "content": "Hi there! I am your AI Course Advisor. What kind of courses are you looking for?"}]
+        
+        for msg in st.session_state.chat_history:
+            st.chat_message(msg["role"]).write(msg["content"])
+            
+        user_input = st.chat_input("Ask for course recommendations...")
+        if user_input:
+            st.chat_message("user").write(user_input)
+            st.session_state.chat_history.append({"role": "user", "content": user_input})
+            
+            with st.chat_message("assistant"):
+                with st.spinner("Thinking..."):
+                    try:
+                        import recommender as rec
+                        import pandas as pd
+                        offline_results_df = rec.recommend(user_input, top_n=5)
+                        if isinstance(offline_results_df, pd.DataFrame) and not offline_results_df.empty:
+                            courses = offline_results_df.to_dict('records')
+                        else:
+                            courses = []
+                    except Exception as e:
+                        courses = []
+                    
+                    try:
+                        from ai_advisor import generate_recommendation
+                        response = generate_recommendation(user_input, courses, api_key)
+                    except Exception as e:
+                        response = f"Error: {e}"
+                        
+                    st.write(response)
+                    st.session_state.chat_history.append({"role": "assistant", "content": response})
+
 # ── App entry ───────────────────────────────────────────────────────────────
 page, profile, stats = _render_sidebar()
 
@@ -1248,3 +1296,5 @@ elif page == "Model comparison":
     _render_model_comparison(profile)
 elif page == "Performance":
     _render_performance()
+elif page == "AI Advisor":
+    _render_ai_advisor(profile)
