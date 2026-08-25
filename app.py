@@ -58,361 +58,218 @@ def load_lottieurl(url: str):
 st.markdown(
     """
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
 
   :root{
-    --background:#0B0D12;
-    --surface:#111522;
-    --surface-elevated:#151A2B;
-    --border:rgba(255,255,255,0.08);
-    --text-primary:rgba(255,255,255,0.92);
-    --text-secondary:rgba(255,255,255,0.64);
-    --accent:#7C5CFF;
-
-    --shadow-soft: 0 10px 26px rgba(0,0,0,0.28);
-    --shadow-elevated: 0 16px 40px rgba(0,0,0,0.42);
-    --radius:14px;
-    --radius-lg:18px;
+    --background: #F4F7F6;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    --text-primary: #2B2B36;
+    --text-secondary: #64748B;
+    --accent: #F28C74;
+    --dark-slate: #2B2B36;
+    --radius: 12px;
   }
 
   html, body, [data-testid="stAppViewContainer"]{
-    background: linear-gradient(-45deg, #0B0D12, #151122, #0B0D12) !important;
-    background-size: 400% 400% !important;
-    animation: gradientBG 15s ease infinite !important;
+    background: var(--background) !important;
     color: var(--text-primary) !important;
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    font-family: 'Outfit', sans-serif !important;
   }
-  @keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
+  
   .block-container{
-    padding-top: 26px !important;
+    padding-top: 10px !important;
     padding-bottom: 44px !important;
-    max-width: 1240px !important;
+    max-width: 1400px !important;
   }
 
-        /* Hide Streamlit chrome */
-    section[data-testid="stToolbar"], div[data-testid="stToolbar"], .stDeployButton{ display:none !important; }
-    header[data-testid="stHeader"]{
-        background: transparent !important;
-    }
-  #MainMenu{ visibility:hidden !important; }
-  footer{ visibility:hidden !important; }
+  /* Hide Streamlit chrome */
+  section[data-testid="stToolbar"], div[data-testid="stToolbar"], .stDeployButton{ display:none !important; }
+  header[data-testid="stHeader"]{ background: transparent !important; }
+  #MainMenu, footer{ visibility:hidden !important; }
 
-        /* Keep sidebar static (no collapse arrow) */
-        [data-testid="stSidebarCollapseControl"],
-        [data-testid="stSidebarCollapsedControl"],
-        button[kind="header"],
-        button[data-testid="baseButton-header"],
-        button[data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapse"]{
-                display: none !important;
-        }
-
-  /* Sidebar */
+  /* Sidebar - Dark, Icon Only */
   section[data-testid="stSidebar"]{
-    background: rgba(17,21,34,0.72) !important;
-    border-right: 1px solid var(--border) !important;
-        transform: translateX(0) !important;
-        margin-left: 0 !important;
-        width: 320px !important;
-        min-width: 320px !important;
-        max-width: 320px !important;
+    background: var(--dark-slate) !important;
+    border-right: none !important;
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
   }
-    section[data-testid="stSidebar"] > div{
-        padding-top: 18px !important;
-        width: 320px !important;
-        min-width: 320px !important;
-        max-width: 320px !important;
-    }
-    section[data-testid="stSidebar"][aria-expanded="false"]{
-        transform: translateX(0) !important;
-        margin-left: 0 !important;
-        width: 320px !important;
-        min-width: 320px !important;
-        max-width: 320px !important;
-    }
+  [data-testid="stSidebarCollapseControl"] { display: none !important; }
+  
+  /* Style option_menu inside sidebar */
+  section[data-testid="stSidebar"] .nav-link-text { display: none !important; font-size: 0px !important; }
+  section[data-testid="stSidebar"] .nav-link { 
+      padding: 16px 0 !important; 
+      justify-content: center !important; 
+      text-align: center !important;
+      border-radius: 8px !important;
+      margin: 8px 12px !important;
+  }
+  section[data-testid="stSidebar"] .nav-link-selected {
+      background-color: transparent !important;
+      border: none !important;
+  }
+  section[data-testid="stSidebar"] .nav-link-selected i {
+      color: var(--accent) !important;
+  }
+  section[data-testid="stSidebar"] i {
+      font-size: 26px !important;
+      margin: 0 !important;
+      color: #FFFFFF !important;
+  }
+
+  /* Hide the profile section in the sidebar since we moved it to the top */
+  section[data-testid="stSidebar"] > div:nth-child(2) > div:nth-child(3),
+  section[data-testid="stSidebar"] > div:nth-child(2) > div:nth-child(4) {
+      display: none !important; 
+  }
 
   /* Typography */
-  h1, h2, h3{ letter-spacing: -0.01em; }
-  h1{ font-size: 22px !important; font-weight: 700 !important; color: var(--text-primary) !important; }
-  h2{ font-size: 16px !important; font-weight: 650 !important; color: var(--text-primary) !important; }
-  p, span, label{ color: var(--text-primary); }
+  h1, h2, h3{ color: var(--text-primary) !important; font-weight: 600 !important; }
 
-  /* Containers (used as cards/panels) */
+  /* Transparent native containers */
   div[data-testid="stContainer"]{
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
   }
-  div[data-testid="stContainer"] > div{ padding: 10px 0px !important; }
-  
-  /* Course card container specifically */
-  div[data-testid="stContainer"]:has(.nlprec-course){
-    background: linear-gradient(135deg, rgba(21,26,43,0.6), rgba(17,21,34,0.6)) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    border-radius: var(--radius);
-    backdrop-filter: blur(12px) !important;
-    padding: 10px !important;
-  }
 
-  /* Course card hover lift (only when the container contains .nlprec-course) */
-  div[data-testid="stContainer"]:has(.nlprec-course){
-    transition: transform 220ms cubic-bezier(0.25,0.46,0.45,0.94),
-                box-shadow 220ms cubic-bezier(0.25,0.46,0.45,0.94),
-                border-color 220ms ease,
-                background 220ms ease;
-    will-change: transform, box-shadow;
+  /* Dash Card styling */
+  .dash-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
   }
-  div[data-testid="stContainer"]:has(.nlprec-course):hover{
-    transform: translateY(-4px) scale(1.002);
-    background: linear-gradient(135deg, rgba(21,26,43,1), rgba(17,21,34,1));
-    box-shadow: 0 16px 40px rgba(0,0,0,0.50), 0 4px 12px rgba(124,92,255,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
-    border-color: rgba(124,92,255,0.30);
+  .dash-card-header {
+      background: var(--dark-slate);
+      color: #FFF;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
   }
-
-  /* Buttons */
-  .stButton > button{
-    border-radius: 12px !important;
-    border: 1px solid var(--border) !important;
-    background: rgba(17,21,34,0.66) !important;
-    color: var(--text-primary) !important;
-    padding: 10px 14px !important;
-    font-weight: 600 !important;
-    white-space: nowrap !important;
-    word-break: keep-all !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: 100% !important;
-    display: block !important;
-    transition: transform 200ms cubic-bezier(0.25,0.46,0.45,0.94),
-                box-shadow 200ms cubic-bezier(0.25,0.46,0.45,0.94),
-                background 200ms ease,
-                border-color 200ms ease;
+  .dash-card-body {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
   }
-  .stButton > button:hover{
-    transform: translateY(-2px);
-    background: var(--surface-elevated) !important;
-    border-color: rgba(255,255,255,0.18) !important;
-    box-shadow: var(--shadow-soft) !important;
+  .dash-card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
   }
-  .stButton > button:active{ transform: translateY(0px) scale(0.98); box-shadow: none !important; }
-
-  .stButton > button[kind="primary"]{
-    background: linear-gradient(90deg, #7C5CFF, #60A5FA) !important;
-    border: none !important;
-    color: #fff !important;
-    height: 54px !important;
-    font-size: 18px !important;
-    border-radius: 27px !important;
-    font-weight: 650 !important;
-    box-shadow: 0 8px 24px rgba(124,92,255,0.4) !important;
-  }
-  .stButton > button[kind="primary"]:hover{ 
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 32px rgba(124,92,255,0.6) !important; 
-  }
-  
-  [data-testid="stAppViewContainer"] > div.block-container .stButton > button[kind="secondary"] {
-    height: 54px !important;
-    font-size: 18px !important;
-    border-radius: 27px !important;
-    background: rgba(255,255,255,0.05) !important;
+  .dash-card-title:hover {
+      color: var(--accent);
   }
 
   /* Inputs */
-    /* Streamlit/BaseWeb: background is usually applied to nested wrapper divs.
-         Force dark theme on wrapper + inner wrapper + actual input/textarea. */
-    div[data-testid="stTextInput"] [data-baseweb="input"],
-    div[data-testid="stTextArea"]  [data-baseweb="textarea"]{
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
+  div[data-testid="stTextInput"] input {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 20px !important;
+      padding: 10px 16px !important;
+      color: var(--text-primary) !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02) !important;
+      font-size: 16px !important;
+      height: 48px !important;
+  }
+  div[data-testid="stTextInput"] input:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px rgba(242,140,116,0.2) !important;
+  }
+  [data-testid="stAppViewContainer"] div[data-testid="stTextInput"] [data-baseweb="input"] > div {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+  }
 
-    /* Inner wrapper (this is the one that often stays white on Cloud) */
-    div[data-testid="stTextInput"] [data-baseweb="input"] > div,
-    div[data-testid="stTextArea"]  [data-baseweb="textarea"] > div{
-        background: var(--surface) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 12px !important;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
-        transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-    }
-    div[data-testid="stTextInput"] [data-baseweb="input"] > div:hover,
-    div[data-testid="stTextArea"]  [data-baseweb="textarea"] > div:hover{
-        background: var(--surface-elevated) !important;
-        border-color: rgba(255,255,255,0.14) !important;
-    }
-    div[data-testid="stTextInput"] [data-baseweb="input"] > div:focus-within,
-    div[data-testid="stTextArea"]  [data-baseweb="textarea"] > div:focus-within{
-        border-color: rgba(124,92,255,0.38) !important;
-        box-shadow: 0 0 0 2px rgba(124,92,255,0.35) !important;
-    }
-
-    /* Actual editable elements */
-    div[data-testid="stTextInput"] input,
-    div[data-testid="stTextArea"] textarea{
-        background: transparent !important;
-        color: var(--text-primary) !important;
-        caret-color: var(--text-primary) !important;
-    }
-    
-    /* Hero Search Bar (Main Area Only) */
-    [data-testid="stAppViewContainer"] > div.block-container div[data-testid="stTextInput"] input {
-        font-size: 22px !important;
-        padding: 24px 28px !important;
-        height: 70px !important;
-        border-radius: 35px !important;
-        background: rgba(255,255,255,0.03) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
-        backdrop-filter: blur(12px) !important;
-        transition: all 0.3s ease !important;
-    }
-    [data-testid="stAppViewContainer"] > div.block-container div[data-testid="stTextInput"] input:focus {
-        background: rgba(255,255,255,0.06) !important;
-        border-color: rgba(124,92,255,0.6) !important;
-        box-shadow: 0 0 30px rgba(124,92,255,0.3) !important;
-    }
-    /* Hide the inner wrapper styling for the hero input so our custom input styling shows */
-    [data-testid="stAppViewContainer"] > div.block-container div[data-testid="stTextInput"] [data-baseweb="input"] > div {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-
-    /* Sidebar Inputs */
-    [data-testid="stSidebar"] div[data-testid="stTextInput"] input {
-        font-size: 14px !important;
-        padding: 10px !important;
-    }
-
-    div[data-testid="stTextInput"] input::placeholder,
-    div[data-testid="stTextArea"] textarea::placeholder{
-        color: rgba(255,255,255,0.40) !important;
-    }
-
-    /* Remove the default outline that can look harsh on dark */
-    div[data-testid="stTextInput"] input:focus,
-    div[data-testid="stTextArea"] textarea:focus{
-        outline: none !important;
-    }
-
-  /* Select */
-  [data-baseweb="select"] > div{
-    background: rgba(17,21,34,0.62) !important;
+  /* Buttons */
+  .stButton > button {
+    border-radius: 8px !important;
+    background: var(--surface) !important;
     border: 1px solid var(--border) !important;
-    border-radius: 12px !important;
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    height: 48px !important;
   }
-  [data-baseweb="select"] *{ color: var(--text-primary) !important; }
-
-  /* Radio as segmented control (works well for small sets) */
-  div[role="radiogroup"]{
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 6px 8px;
+  .stButton > button[kind="primary"]{
+    background: var(--dark-slate) !important;
+    color: #FFF !important;
+    border: none !important;
   }
-
-  /* Chips / badges */
-  .nlprec-chip{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.03);
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
-  .nlprec-chip.accent{
-    background: rgba(124,92,255,0.12);
-    border-color: rgba(124,92,255,0.25);
-    color: rgba(255,255,255,0.88);
+  .stButton > button:hover {
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
   }
 
-  /* Links styled as buttons */
-  a.nlprec-linkbtn{
-    display:inline-flex;
-    align-items:center;
-    padding: 8px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: rgba(17,21,34,0.55);
-    color: var(--text-primary);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 13px;
-    transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  /* Top Bar */
+  .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      padding: 16px 24px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      margin-bottom: 32px;
+      margin-top: -10px;
   }
-  a.nlprec-linkbtn:hover{
-    transform: translateY(-1px);
-    background: var(--surface-elevated);
-    box-shadow: var(--shadow-soft);
+  .top-bar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: 0.05em;
   }
-
-  /* Metrics */
-  [data-testid="stMetric"]{
-    background: linear-gradient(180deg, rgba(255,255,255,0.030), rgba(255,255,255,0.012));
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-soft);
-    padding: 12px 12px;
+  .logo-circle {
+      width: 36px;
+      height: 36px;
+      background: var(--dark-slate);
+      color: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
   }
-  div[data-testid="stMetricValue"]{ color: rgba(255,255,255,0.94) !important; }
-  div[data-testid="stMetricLabel"]{ color: var(--text-secondary) !important; }
-
-  /* Dataframe */
-  .stDataFrame{
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 1px solid var(--border);
+  .top-bar-search {
+      flex: 1;
+      max-width: 300px;
+      background: #F4F7F6;
+      border-radius: 20px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #A0AABF;
+      margin-left: 40px;
   }
-
-    /* Alerts (st.info / st.warning / st.error) */
-    div[data-testid="stAlert"]{
-        border-radius: var(--radius) !important;
-        border: 1px solid rgba(255,255,255,0.10) !important;
-        background: rgba(124,92,255,0.08) !important;
-        box-shadow: var(--shadow-soft) !important;
-    }
-    div[data-testid="stAlert"] *{ color: var(--text-primary) !important; }
-
-  /* Skeleton */
-  @keyframes nlprecShimmer{ 0%{ background-position: 0% 0%; } 100%{ background-position: 200% 0%; } }
-  .nlprec-skeleton{
-    border-radius: var(--radius);
-    border: 1.5px solid rgba(255,255,255,0.10);
-    background: linear-gradient(90deg,
-      rgba(21,26,43,0.7) 0%,
-      rgba(21,26,43,0.85) 30%,
-      rgba(21,26,43,0.7) 60%);
-    background-size: 200% 100%;
-    animation: nlprecShimmer 1.2s ease-in-out infinite;
-    height: 145px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      color: var(--text-secondary);
   }
-
-  /* Small utility text */
-  .nlprec-muted{ color: var(--text-secondary); font-size: 12.5px; }
-  .nlprec-title{ font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
-  .nlprec-subtitle{ color: var(--text-secondary); font-size: 13.5px; line-height: 1.45; }
-  
-  /* Course Grid */
-  .nlprec-course-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
+  .avatar-circle {
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      border-radius: 50%;
   }
 </style>
 """,
@@ -640,7 +497,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
                     profile = st.session_state.profile
                     if is_saved:
                         profile = remove_course(profile, title)
-                        st.toast(f"🗑️ Removed **{title[:20]}...**")
+                        st.toast(f"Removed **{title[:20]}...**")
                         time.sleep(0.5)
                     else:
                         meta = {
@@ -652,7 +509,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
                         }
                         profile = save_course(profile, title, metadata=meta)
                         bt.log_save(profile.get("username", "guest"), title)
-                        st.toast(f"✅ Saved **{title[:20]}...**")
+                        st.toast(f"Saved **{title[:20]}...**")
                         time.sleep(0.5)
                     save_profile(profile)
                     st.session_state.profile = profile
@@ -711,25 +568,37 @@ def _normalize_saved_courses(profile: dict) -> tuple[list[dict], list[str]]:
 
 
 def _app_header(title: str, subtitle: str | None = None):
-    st.markdown(f'<div class="nlprec-title">{title}</div>', unsafe_allow_html=True)
+    st.markdown(
+        '''
+        <div class="top-bar">
+            <div style="display: flex; align-items: center;">
+                <div class="top-bar-logo">
+                    <div class="logo-circle">L</div>
+                    LOGOTYPE
+                </div>
+                <div class="top-bar-search">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+                    <span style="font-size: 14px;">Search...</span>
+                </div>
+            </div>
+            <div class="top-bar-right">
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div class="avatar-circle"></div>
+                <span style="font-size: 13px; font-weight: 700; text-transform: uppercase;">BETHANY SPARKS</span>
+            </div>
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
+    st.markdown(f'<h1 style="margin-top: -10px;">{title.upper()}</h1>', unsafe_allow_html=True)
     if subtitle:
-        st.markdown(f'<div class="nlprec-subtitle">{subtitle}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="color: #64748B; font-size: 14px; margin-bottom: 24px; font-weight: 500; text-transform: uppercase;">HOME > {title.upper()}</div>', unsafe_allow_html=True)
 
 
 def _render_sidebar() -> tuple[str, dict, dict]:
     with st.sidebar:
-        st.markdown(
-            """
-            <div style="padding: 10px 10px 14px 10px;">
-              <div style="font-weight: 800; font-size: 20px; letter-spacing: -0.03em;
-                          background: linear-gradient(90deg, #7C5CFF 0%, #A78BFA 50%, #60A5FA 100%);
-                          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-                          background-clip: text;">NLPRec</div>
-              <div class="nlprec-muted" style="margin-top: 4px;">Course intelligence and recommendation</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+
 
         page = option_menu(
             menu_title=None,
@@ -1061,7 +930,7 @@ def _render_discover(profile: dict):
             "machine learning", st.session_state.profile, n=4
         )
 
-        st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>✨ Suggested</div>", unsafe_allow_html=True)
+        st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Suggested</div>", unsafe_allow_html=True)
         sug_cols = st.columns(4)
         triggered_preset = None
         for i, preset in enumerate((suggestions or [])[:4]):
@@ -1071,7 +940,7 @@ def _render_discover(profile: dict):
 
         trending = get_trending_chips(4)
         if trending:
-            st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>🔥 Trending</div>", unsafe_allow_html=True)
+            st.markdown("<div class='nlprec-muted' style='margin-top: 10px;'>Trending</div>", unsafe_allow_html=True)
             tr_cols = st.columns(4)
             for i, chip in enumerate(trending[:4]):
                 with tr_cols[i]:
@@ -1148,7 +1017,7 @@ def _render_discover(profile: dict):
         # Display any search errors ONLY if no results were found
         if df_live.empty and st.session_state.get("last_search_error"):
             err = st.session_state.last_search_error
-            st.error(f"⚠️ Search system error: {err['message']}")
+            st.error(f" Search system error: {err['message']}")
             st.info("""
             💡 **What you can do:**
             - Try simpler keywords: 'python', 'design', 'business'
@@ -1160,7 +1029,7 @@ def _render_discover(profile: dict):
                 st.code(err['details'])
 
         if df_live.empty:
-            st.error("⚠️ **No courses found** - All search strategies exhausted!")
+            st.error(" **No courses found** - All search strategies exhausted!")
             st.markdown("""
             **What happened:**
             - 🌐 **Live internet search** may be temporarily rate-limited (Streamlit Cloud uses shared IPs)
