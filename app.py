@@ -76,9 +76,16 @@ st.markdown(
   }
 
   html, body, [data-testid="stAppViewContainer"]{
-    background: var(--background) !important;
+    background: linear-gradient(-45deg, #0B0D12, #151122, #0B0D12) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBG 15s ease infinite !important;
     color: var(--text-primary) !important;
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  }
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 
   .block-container{
@@ -137,13 +144,20 @@ st.markdown(
 
   /* Containers (used as cards/panels) */
   div[data-testid="stContainer"]{
-    background: linear-gradient(135deg, rgba(21,26,43,0.95), rgba(17,21,34,0.98));
-    border: 1.5px solid rgba(255,255,255,0.12);
-    border-radius: var(--radius);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
-    backdrop-filter: blur(8px);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
-  div[data-testid="stContainer"] > div{ padding: 20px 20px !important; }
+  div[data-testid="stContainer"] > div{ padding: 10px 0px !important; }
+  
+  /* Course card container specifically */
+  div[data-testid="stContainer"]:has(.nlprec-course){
+    background: linear-gradient(135deg, rgba(21,26,43,0.6), rgba(17,21,34,0.6)) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px) !important;
+    padding: 10px !important;
+  }
 
   /* Course card hover lift (only when the container contains .nlprec-course) */
   div[data-testid="stContainer"]:has(.nlprec-course){
@@ -188,11 +202,26 @@ st.markdown(
   .stButton > button:active{ transform: translateY(0px) scale(0.98); box-shadow: none !important; }
 
   .stButton > button[kind="primary"]{
-    background: var(--accent) !important;
-    border-color: rgba(124,92,255,0.55) !important;
-    color: rgba(255,255,255,0.96) !important;
+    background: linear-gradient(90deg, #7C5CFF, #60A5FA) !important;
+    border: none !important;
+    color: #fff !important;
+    height: 54px !important;
+    font-size: 18px !important;
+    border-radius: 27px !important;
+    font-weight: 650 !important;
+    box-shadow: 0 8px 24px rgba(124,92,255,0.4) !important;
   }
-  .stButton > button[kind="primary"]:hover{ box-shadow: var(--shadow-elevated) !important; }
+  .stButton > button[kind="primary"]:hover{ 
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(124,92,255,0.6) !important; 
+  }
+  
+  [data-testid="stAppViewContainer"] > div.block-container .stButton > button[kind="secondary"] {
+    height: 54px !important;
+    font-size: 18px !important;
+    border-radius: 27px !important;
+    background: rgba(255,255,255,0.05) !important;
+  }
 
   /* Inputs */
     /* Streamlit/BaseWeb: background is usually applied to nested wrapper divs.
@@ -231,6 +260,37 @@ st.markdown(
         color: var(--text-primary) !important;
         caret-color: var(--text-primary) !important;
     }
+    
+    /* Hero Search Bar (Main Area Only) */
+    [data-testid="stAppViewContainer"] > div.block-container div[data-testid="stTextInput"] input {
+        font-size: 22px !important;
+        padding: 24px 28px !important;
+        height: 70px !important;
+        border-radius: 35px !important;
+        background: rgba(255,255,255,0.03) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
+        backdrop-filter: blur(12px) !important;
+        transition: all 0.3s ease !important;
+    }
+    [data-testid="stAppViewContainer"] > div.block-container div[data-testid="stTextInput"] input:focus {
+        background: rgba(255,255,255,0.06) !important;
+        border-color: rgba(124,92,255,0.6) !important;
+        box-shadow: 0 0 30px rgba(124,92,255,0.3) !important;
+    }
+    /* Hide the inner wrapper styling for the hero input so our custom input styling shows */
+    [data-testid="stAppViewContainer"] > div.block-container div[data-testid="stTextInput"] [data-baseweb="input"] > div {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Sidebar Inputs */
+    [data-testid="stSidebar"] div[data-testid="stTextInput"] input {
+        font-size: 14px !important;
+        padding: 10px !important;
+    }
+
     div[data-testid="stTextInput"] input::placeholder,
     div[data-testid="stTextArea"] textarea::placeholder{
         color: rgba(255,255,255,0.40) !important;
@@ -557,7 +617,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
 
     is_saved = title in saved_titles
 
-    with st.container(border=True):
+    with st.container():
         st.markdown('<div class="nlprec-course">', unsafe_allow_html=True)
         # Header: title + save button
         top_l, top_r = st.columns([8, 2], vertical_alignment="top")
@@ -916,7 +976,7 @@ def _render_discover(profile: dict):
     saved_entries, saved_titles = _normalize_saved_courses(profile)
 
     # Horizontal filter bar (better alignment + less "left column" clutter)
-    with st.container(border=True):
+    with st.container():
         st.markdown("**Filters**")
 
         difficulties = get_difficulties()
@@ -949,7 +1009,7 @@ def _render_discover(profile: dict):
         with r2[2]:
             st.caption("Free to audit means course access is free; certificate may be paid.")
 
-    with st.container(border=True):
+    with st.container():
         st.markdown("**Search**")
         
         # Initialize search query value if not present
@@ -1232,7 +1292,7 @@ def _render_saved(profile: dict):
 def _render_model_comparison(profile: dict):
     _app_header("Model comparison", "Compare semantic ranking against keyword matching.")
 
-    with st.container(border=True):
+    with st.container():
         cmp_query = st.text_input(
             "Query",
             placeholder="Try: machine learning for beginners without math",
@@ -1285,7 +1345,7 @@ def _render_model_comparison(profile: dict):
 def _render_performance():
     _app_header("Performance", "Evaluation metrics and research plots.")
 
-    with st.container(border=True):
+    with st.container():
         k_val = st.slider("Top-K", 3, 10, 5, key="eval_k")
         run_eval_btn = st.button("Run evaluation", type="primary")
 
@@ -1324,25 +1384,25 @@ def _render_performance():
     st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
     pcol, rcol = st.columns(2, gap="large")
     with pcol:
-        with st.container(border=True):
+        with st.container():
             st.markdown("**Bar comparison**")
             fig = plot_comparison(nlp_ev, base_ev, save=True)
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
     with rcol:
-        with st.container(border=True):
+        with st.container():
             st.markdown("**Radar**")
             fig2 = plot_metric_radar(nlp_ev, base_ev, save=True)
             st.pyplot(fig2, use_container_width=True)
             plt.close(fig2)
 
-    with st.container(border=True):
+    with st.container():
         st.markdown("**Per-query heatmap**")
         fig3 = plot_per_query_heatmap(nlp_ev, save=True)
         st.pyplot(fig3, use_container_width=True)
         plt.close(fig3)
 
-    with st.container(border=True):
+    with st.container():
         st.markdown("**Per-query results**")
         pq_df = pd.DataFrame(nlp_ev["per_query"])[["query", "precision", "recall", "f1"]]
         pq_df.columns = ["Query", "Precision", "Recall", "F1"]
