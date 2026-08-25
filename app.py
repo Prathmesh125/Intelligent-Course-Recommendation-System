@@ -88,15 +88,11 @@ st.markdown(
   header[data-testid="stHeader"]{ background: transparent !important; }
   #MainMenu, footer{ visibility:hidden !important; }
 
-  /* Sidebar - Dark, Icon Only */
+  /* Sidebar - Dark, Responsive */
   section[data-testid="stSidebar"]{
     background: var(--dark-slate) !important;
     border-right: none !important;
-    width: 90px !important;
-    min-width: 90px !important;
-    max-width: 90px !important;
   }
-  [data-testid="stSidebarCollapseControl"] { display: none !important; }
   
   /* Style option_menu inside sidebar */
   section[data-testid="stSidebar"] .nav-link-text { display: none !important; font-size: 0px !important; }
@@ -129,12 +125,20 @@ st.markdown(
   /* Typography */
   h1, h2, h3{ color: var(--text-primary) !important; font-weight: 600 !important; }
 
-  /* Transparent native containers */
+  /* Container Styling */
   div[data-testid="stContainer"]{
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
   }
+  /* Style specifically bordered wrappers to look like soft white cards */
+  div[data-testid="stVerticalBlockBorderWrapper"] {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+  }
+
 
   /* Dash Card styling */
   .dash-card {
@@ -207,70 +211,20 @@ st.markdown(
     height: 48px !important;
   }
   .stButton > button[kind="primary"]{
-    background: var(--dark-slate) !important;
+    background: var(--accent) !important;
     color: #FFF !important;
     border: none !important;
+  }
+  .stButton > button[kind="primary"]:hover {
+    background: #F4A261 !important;
+    color: #FFF !important;
   }
   .stButton > button:hover {
       border-color: var(--accent) !important;
       color: var(--accent) !important;
   }
 
-  /* Top Bar */
-  .top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--surface);
-      padding: 16px 24px;
-      border-radius: var(--radius);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-      margin-bottom: 32px;
-      margin-top: -10px;
-  }
-  .top-bar-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 700;
-      font-size: 22px;
-      letter-spacing: 0.05em;
-  }
-  .logo-circle {
-      width: 36px;
-      height: 36px;
-      background: var(--dark-slate);
-      color: var(--accent);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-  }
-  .top-bar-search {
-      flex: 1;
-      max-width: 300px;
-      background: #F4F7F6;
-      border-radius: 20px;
-      padding: 8px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #A0AABF;
-      margin-left: 40px;
-  }
-  .top-bar-right {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      color: var(--text-secondary);
-  }
-  .avatar-circle {
-      width: 40px;
-      height: 40px;
-      background: var(--accent);
-      border-radius: 50%;
-  }
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -474,7 +428,7 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
 
     is_saved = title in saved_titles
 
-    with st.container():
+    with st.container(border=True):
         st.markdown('<div class="nlprec-course">', unsafe_allow_html=True)
         # Header: title + save button
         top_l, top_r = st.columns([8, 2], vertical_alignment="top")
@@ -568,30 +522,7 @@ def _normalize_saved_courses(profile: dict) -> tuple[list[dict], list[str]]:
 
 
 def _app_header(title: str, subtitle: str | None = None):
-    st.markdown(
-        '''
-        <div class="top-bar">
-            <div style="display: flex; align-items: center;">
-                <div class="top-bar-logo">
-                    <div class="logo-circle">L</div>
-                    LOGOTYPE
-                </div>
-                <div class="top-bar-search">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-                    <span style="font-size: 14px;">Search...</span>
-                </div>
-            </div>
-            <div class="top-bar-right">
-                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <div class="avatar-circle"></div>
-                <span style="font-size: 13px; font-weight: 700; text-transform: uppercase;">BETHANY SPARKS</span>
-            </div>
-        </div>
-        ''',
-        unsafe_allow_html=True
-    )
-    st.markdown(f'<h1 style="margin-top: -10px;">{title.upper()}</h1>', unsafe_allow_html=True)
+    st.markdown(f'<h1>{title.upper()}</h1>', unsafe_allow_html=True)
     if subtitle:
         st.markdown(f'<div style="color: #64748B; font-size: 14px; margin-bottom: 24px; font-weight: 500; text-transform: uppercase;">HOME > {title.upper()}</div>', unsafe_allow_html=True)
 
@@ -845,7 +776,7 @@ def _render_discover(profile: dict):
     saved_entries, saved_titles = _normalize_saved_courses(profile)
 
     # Horizontal filter bar (better alignment + less "left column" clutter)
-    with st.container():
+    with st.container(border=True):
         st.markdown("**Filters**")
 
         difficulties = get_difficulties()
@@ -878,7 +809,7 @@ def _render_discover(profile: dict):
         with r2[2]:
             st.caption("Free to audit means course access is free; certificate may be paid.")
 
-    with st.container():
+    with st.container(border=True):
         st.markdown("**Search**")
         
         # Initialize search query value if not present
@@ -1161,7 +1092,7 @@ def _render_saved(profile: dict):
 def _render_model_comparison(profile: dict):
     _app_header("Model comparison", "Compare semantic ranking against keyword matching.")
 
-    with st.container():
+    with st.container(border=True):
         cmp_query = st.text_input(
             "Query",
             placeholder="Try: machine learning for beginners without math",
@@ -1214,7 +1145,7 @@ def _render_model_comparison(profile: dict):
 def _render_performance():
     _app_header("Performance", "Evaluation metrics and research plots.")
 
-    with st.container():
+    with st.container(border=True):
         k_val = st.slider("Top-K", 3, 10, 5, key="eval_k")
         run_eval_btn = st.button("Run evaluation", type="primary")
 
@@ -1253,25 +1184,25 @@ def _render_performance():
     st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
     pcol, rcol = st.columns(2, gap="large")
     with pcol:
-        with st.container():
+        with st.container(border=True):
             st.markdown("**Bar comparison**")
             fig = plot_comparison(nlp_ev, base_ev, save=True)
             st.pyplot(fig, use_container_width=True)
             plt.close(fig)
     with rcol:
-        with st.container():
+        with st.container(border=True):
             st.markdown("**Radar**")
             fig2 = plot_metric_radar(nlp_ev, base_ev, save=True)
             st.pyplot(fig2, use_container_width=True)
             plt.close(fig2)
 
-    with st.container():
+    with st.container(border=True):
         st.markdown("**Per-query heatmap**")
         fig3 = plot_per_query_heatmap(nlp_ev, save=True)
         st.pyplot(fig3, use_container_width=True)
         plt.close(fig3)
 
-    with st.container():
+    with st.container(border=True):
         st.markdown("**Per-query results**")
         pq_df = pd.DataFrame(nlp_ev["per_query"])[["query", "precision", "recall", "f1"]]
         pq_df.columns = ["Query", "Precision", "Recall", "F1"]
