@@ -1,13 +1,8 @@
-import google.generativeai as genai
-
-def setup_gemini(api_key: str):
-    genai.configure(api_key=api_key)
+import requests
 
 def generate_recommendation(query: str, courses: list, api_key: str) -> str:
     if not api_key:
         return "Please provide a valid Gemini API Key in the sidebar to use the AI Advisor."
-    
-    setup_gemini(api_key)
     
     # Format context
     context_str = ""
@@ -15,7 +10,6 @@ def generate_recommendation(query: str, courses: list, api_key: str) -> str:
         context_str = "No specific courses found in the database for this query."
     else:
         for i, c in enumerate(courses[:5]):
-            # The courses come as dicts from pandas DataFrame rows usually
             title = c.get('title', 'Unknown Title')
             source = c.get('source', 'Unknown Platform')
             diff = c.get('difficulty', 'Unknown Difficulty')
@@ -42,9 +36,20 @@ Instructions:
 5. If the retrieved courses aren't a perfect match, politely explain what they are and why they might still be useful, or suggest what the user should search for instead.
 """
 
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "contents": [{"parts":[{"text": prompt}]}]
+    }
+
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt)
-        return response.text
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+        res_json = response.json()
+        return res_json['candidates'][0]['content']['parts'][0]['text']
+    except requests.exceptions.RequestException as e:
+        return f"Error communicating with AI (Network): {str(e)}"
+    except KeyError:
+        return f"Error: Unexpected response format from AI. Please check your API key."
     except Exception as e:
         return f"Error communicating with AI: {str(e)}"
