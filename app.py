@@ -95,13 +95,19 @@ st.markdown(
   }
   
   /* Style option_menu inside sidebar */
-  section[data-testid="stSidebar"] .nav-link-text { display: none !important; font-size: 0px !important; }
   section[data-testid="stSidebar"] .nav-link { 
-      padding: 16px 0 !important; 
-      justify-content: center !important; 
-      text-align: center !important;
+      padding: 12px 16px !important; 
       border-radius: 8px !important;
-      margin: 8px 12px !important;
+      margin: 4px 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 12px !important;
+  }
+  section[data-testid="stSidebar"] .nav-link-text { 
+      font-size: 15px !important;
+      font-weight: 500 !important;
+      color: #FFF !important;
   }
   section[data-testid="stSidebar"] .nav-link-selected {
       background-color: transparent !important;
