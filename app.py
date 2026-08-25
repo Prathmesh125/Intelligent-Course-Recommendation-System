@@ -1244,7 +1244,13 @@ def _render_ai_advisor(profile: dict):
     with st.container(border=True):
         # We look for env var first, then fallback to UI input
         import os
-        api_key = os.environ.get("GEMINI_API_KEY", "")
+        api_key = ""
+        # Check Streamlit secrets first, then os.environ
+        if "GEMINI_API_KEY" in st.secrets:
+            api_key = st.secrets["GEMINI_API_KEY"]
+        elif os.environ.get("GEMINI_API_KEY"):
+            api_key = os.environ.get("GEMINI_API_KEY")
+            
         if not api_key:
             api_key = st.text_input("Gemini API Key", type="password", help="Get a free key from Google AI Studio")
             
