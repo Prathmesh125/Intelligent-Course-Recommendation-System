@@ -40,6 +40,19 @@ from live_search   import search_courses_live, results_to_df, PLATFORM_COLORS as
 import behavior_tracker as bt
 from query_suggestions import generate_suggestions, get_trending_chips
 import time
+from streamlit_option_menu import option_menu
+from streamlit_lottie import st_lottie
+import httpx
+
+@st.cache_data
+def load_lottieurl(url: str):
+    try:
+        r = httpx.get(url, timeout=5)
+        if r.status_code == 200:
+            return r.json()
+    except:
+        pass
+    return None
 
 # ── Premium SaaS UI (dark) ───────────────────────────────────────────────────
 st.markdown(
@@ -333,6 +346,14 @@ st.markdown(
   .nlprec-muted{ color: var(--text-secondary); font-size: 12.5px; }
   .nlprec-title{ font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
   .nlprec-subtitle{ color: var(--text-secondary); font-size: 13.5px; line-height: 1.45; }
+  
+  /* Course Grid */
+  .nlprec-course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
 </style>
 """,
     unsafe_allow_html=True,
@@ -559,6 +580,8 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
                     profile = st.session_state.profile
                     if is_saved:
                         profile = remove_course(profile, title)
+                        st.toast(f"🗑️ Removed **{title[:20]}...**")
+                        time.sleep(0.5)
                     else:
                         meta = {
                             "url": url,
@@ -569,6 +592,8 @@ def render_course_card(row, index: int, saved_titles: list, show_save: bool = Tr
                         }
                         profile = save_course(profile, title, metadata=meta)
                         bt.log_save(profile.get("username", "guest"), title)
+                        st.toast(f"✅ Saved **{title[:20]}...**")
+                        time.sleep(0.5)
                     save_profile(profile)
                     st.session_state.profile = profile
                     st.rerun()
@@ -646,11 +671,17 @@ def _render_sidebar() -> tuple[str, dict, dict]:
             unsafe_allow_html=True,
         )
 
-        page = st.radio(
-            "Navigation",
-            ["Discover", "Saved", "Model comparison", "Performance"],
-            key="nav_page",
-            label_visibility="collapsed",
+        page = option_menu(
+            menu_title=None,
+            options=["Discover", "Saved", "Model comparison", "Performance"],
+            icons=["compass", "bookmark", "layout-split", "graph-up"],
+            default_index=0,
+            styles={
+                "container": {"padding": "0!important", "background-color": "transparent"},
+                "icon": {"color": "#7C5CFF", "font-size": "18px"},
+                "nav-link": {"font-size": "15px", "text-align": "left", "margin":"4px 0", "--hover-color": "rgba(255,255,255,0.05)"},
+                "nav-link-selected": {"background-color": "rgba(124,92,255,0.15)", "border": "1px solid rgba(124,92,255,0.3)"},
+            }
         )
 
         st.divider()
@@ -864,10 +895,23 @@ def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None
 
 
 def _render_discover(profile: dict):
-    _app_header(
-        "Discover",
-        "Search the live web for courses and save the best matches.",
-    )
+    lottie_url = "https://assets10.lottiefiles.com/packages/lf20_hxart9lz.json"
+    lottie_search = load_lottieurl(lottie_url)
+    
+    if lottie_search:
+        col1, col2 = st.columns([1, 8])
+        with col1:
+            st_lottie(lottie_search, height=80, key="discover_lottie")
+        with col2:
+            _app_header(
+                "Discover",
+                "Search the live web for courses and save the best matches.",
+            )
+    else:
+        _app_header(
+            "Discover",
+            "Search the live web for courses and save the best matches.",
+        )
 
     saved_entries, saved_titles = _normalize_saved_courses(profile)
 
