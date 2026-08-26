@@ -105,16 +105,24 @@ st.markdown(
   }
 
   /* Chat Input Styling - Force Light Theme */
-  [data-testid="stChatInput"] {
+  [data-testid="stChatInput"], 
+  [data-testid="stChatInput"] > div, 
+  [data-testid="stChatInput"] > div > div, 
+  .stChatInputContainer, 
+  .stChatInputContainer > div {
       background-color: #FFFFFF !important;
-      border: 1px solid #F28C74 !important;
-      border-radius: var(--radius) !important;
+      border-color: #F28C74 !important;
   }
-  [data-testid="stChatInput"] textarea {
+  [data-testid="stChatInput"] textarea, 
+  .stChatInputContainer textarea {
       color: #31333F !important;
+      -webkit-text-fill-color: #31333F !important;
       background-color: transparent !important;
   }
+  [data-testid="stChatInput"] button,
+  [data-testid="stChatInputSubmitButton"] svg, 
   [data-testid="stChatInputSubmitButton"] {
+      fill: #F28C74 !important;
       color: #F28C74 !important;
   }
 
