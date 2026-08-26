@@ -1380,6 +1380,8 @@ _render_settings_expander(profile, stats)
 
 if page == "Discover":
     _render_discover(profile)
+elif page == "Learning Path":
+    _render_learning_path(profile)
 elif page == "Saved":
     _render_saved(profile)
 elif page == "Model comparison":
