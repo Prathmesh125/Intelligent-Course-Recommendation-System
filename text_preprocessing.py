@@ -24,7 +24,7 @@ def download_nltk_resources():
     else:
         ssl._create_default_https_context = _create_unverified_https_context
 
-    resources = ["punkt", "stopwords", "wordnet"]
+    resources = ["punkt", "punkt_tab", "stopwords", "wordnet"]
     for name in resources:
         try:
             nltk.download(name, quiet=True)
