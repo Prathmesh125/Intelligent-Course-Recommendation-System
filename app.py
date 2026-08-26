@@ -1364,8 +1364,8 @@ stats = get_stats(profile)
 
 page = option_menu(
     menu_title=None,
-    options=["Discover", "AI Advisor", "Learning Path", "Saved", "Model comparison", "Performance"],
-    icons=["compass", "robot", "map", "bookmark", "layout-split", "graph-up"],
+    options=["Discover", "AI Advisor", "Learning Path", "Saved"],
+    icons=["compass", "robot", "map", "bookmark"],
     default_index=0,
     orientation="horizontal",
     styles={
@@ -1385,9 +1385,5 @@ elif page == "Learning Path":
     _render_learning_path(profile)
 elif page == "Saved":
     _render_saved(profile)
-elif page == "Model comparison":
-    _render_model_comparison(profile)
-elif page == "Performance":
-    _render_performance()
 elif page == "AI Advisor":
     _render_ai_advisor(profile)
