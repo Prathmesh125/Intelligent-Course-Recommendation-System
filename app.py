@@ -645,7 +645,7 @@ def _render_learning_path(profile: dict):
                             )
                             if not rec_df.empty:
                                 course = rec_df.iloc[0]
-                                st.markdown(f"**Recommended Course:** [{course['title']}]({course['url']})")
+                                st.markdown(f"**Recommended Course:** [{course['course_title']}]({course['url']})")
                                 st.caption(f"Platform: {course['source']} | Difficulty: {course.get('difficulty', 'Unknown')}")
                                 st.write(str(course.get('description', 'No description'))[:300] + "...")
                                 if st.button(f"Save Course {i+1}", key=f"save_path_{i}"):
