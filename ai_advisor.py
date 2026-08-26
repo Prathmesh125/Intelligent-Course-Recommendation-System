@@ -54,7 +54,8 @@ Instructions:
         res_json = response.json()
         return res_json['candidates'][0]['content']['parts'][0]['text']
     except requests.exceptions.RequestException as e:
-        return f"Error communicating with AI (Network): {str(e)}"
+        safe_msg = str(e).replace(api_key, "HIDDEN_API_KEY")
+        return f"Error communicating with AI (Network): {safe_msg}"
     except KeyError:
         return f"Error: Unexpected response format from AI. Please check your API key."
     except Exception as e:
@@ -82,10 +83,14 @@ Example output: ["Basic Python", "Data Structures", "Machine Learning Fundamenta
         "contents": [{"parts":[{"text": prompt}]}]
     }
 
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 404:
-        raise ValueError("API Access Denied (404 Not Found). Please check your API key permissions.")
-    response.raise_for_status()
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 404:
+            raise ValueError("API Access Denied (404 Not Found). Please check your API key permissions.")
+        response.raise_for_status()
+    except Exception as e:
+        safe_msg = str(e).replace(api_key, "HIDDEN_API_KEY")
+        raise ValueError(f"API Request Failed: {safe_msg}")
     res_json = response.json()
     try:
         text_out = res_json['candidates'][0]['content']['parts'][0]['text']
