@@ -38,7 +38,7 @@ Instructions:
 5. If the retrieved courses aren't a perfect match, politely explain what they are and why they might still be useful, or suggest what the user should search for instead.
 """
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
     headers = {'Content-Type': 'application/json'}
     data = {
         "contents": [{"parts":[{"text": prompt}]}]
