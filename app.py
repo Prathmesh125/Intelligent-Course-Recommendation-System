@@ -865,39 +865,12 @@ def _render_discover(profile: dict):
 
     saved_entries, saved_titles = _normalize_saved_courses(profile)
 
-    # Horizontal filter bar (better alignment + less "left column" clutter)
-    with st.container(border=True):
-        st.markdown("**Filters**")
-
-        difficulties = get_difficulties()
-        default_diff = profile.get("preferred_difficulty", "All")
-        diff_idx = difficulties.index(default_diff) if default_diff in difficulties else 0
-
-        sources_list = get_sources()
-
-        r1 = st.columns([1.15, 1.15, 1.35, 1.0], gap="large")
-        with r1[0]:
-            difficulty = st.selectbox("Difficulty", difficulties, index=diff_idx, key="flt_difficulty")
-        with r1[1]:
-            source_filter = st.selectbox("Platform", sources_list, index=0, key="flt_platform")
-        with r1[2]:
-            price_sel = st.radio(
-                "Price",
-                ["All", "Free", "Paid"],
-                horizontal=True,
-                key="flt_price",
-            )
-        with r1[3]:
-            # Empty column for layout balance
-            st.empty()
-
-        r2 = st.columns([1.4, 1.2, 1.4], gap="large")
-        with r2[0]:
-            min_rating = st.slider("Minimum rating", 0.0, 5.0, 0.0, 0.5, key="flt_min_rating")
-        with r2[1]:
-            top_n = st.select_slider("Results", options=[30, 60, 90, 120], value=60, key="flt_topn")
-        with r2[2]:
-            st.caption("Free to audit means course access is free; certificate may be paid.")
+    # Hardcoded defaults since filters were removed
+    difficulty = "All"
+    source_filter = "All"
+    price_sel = "All"
+    min_rating = 0.0
+    top_n = 60
 
     with st.container(border=True):
         st.markdown("**Search**")
@@ -1050,36 +1023,10 @@ def _render_discover(profile: dict):
                 st.code(err['details'])
 
         if df_live.empty:
-            st.error(" **No courses found** - All search strategies exhausted!")
-            st.markdown("""
-            **What happened:**
-            - 🌐 **Live internet search** may be temporarily rate-limited (Streamlit Cloud uses shared IPs)
-            - 💾 **Local database** didn't have matching courses
-            - 🔄 **Cache** is building up — previously searched topics load instantly!
-            
-            **What you can do right now:**
-            1. **Wait 10-30 seconds** and try the same search again (cache will help!)
-            2. Use **broader keywords**: Try `python` instead of "advanced python for data engineering"
-            3. Click **Suggested** or **Trending** topics below — they often have cached results
-            4. Adjust **filters** (difficulty/price) — you might be filtering too strictly
-            
-            **Why this happens:**
-            Streamlit Cloud shares IP addresses across apps, so DuckDuckGo occasionally rate-limits requests.
-            The app now caches results for 24h, so repeat searches are instant! 🚀
-            """)
+            st.warning("No courses found. Please try a different search.")
             return
 
-        # Apply local filters (price/source/min_rating)
         display_df = df_live.copy()
-        if source_filter and source_filter != "All" and "source" in display_df.columns:
-            display_df = display_df[display_df["source"] == source_filter]
-        if min_rating and min_rating > 0 and "rating" in display_df.columns:
-            display_df = display_df[display_df["rating"] >= min_rating]
-
-        if price_sel == "Free":
-            display_df = display_df[display_df["price"].isin(["Free", "Free*"])]
-        elif price_sel == "Paid":
-            display_df = display_df[display_df["price"] == "Paid"]
 
         total = len(display_df)
         if total == 0:
