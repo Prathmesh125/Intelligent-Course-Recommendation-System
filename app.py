@@ -85,11 +85,12 @@ st.markdown(
 
   /* Hide Streamlit chrome but KEEP toggle visible */
   section[data-testid="stToolbar"], div[data-testid="stToolbar"], .stDeployButton{ display:none !important; }
-  header[data-testid="stHeader"]{ background: transparent !important; }
+  header[data-testid="stHeader"]{ background: transparent !important; pointer-events: none !important; }
   #MainMenu, footer{ visibility:hidden !important; }
 
   /* Force sidebar toggle to be extremely visible */
   [data-testid="collapsedControl"], [data-testid="stSidebarCollapseControl"] {
+      pointer-events: auto !important;
       display: flex !important;
       opacity: 1 !important;
       visibility: visible !important;
