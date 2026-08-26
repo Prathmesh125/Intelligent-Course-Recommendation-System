@@ -604,7 +604,7 @@ def _app_header(title: str, subtitle: str | None = None):
 def _render_learning_path(profile: dict):
     _app_header("Learning Path", "AI-Powered Skill-Gap Analysis")
     
-    with st.container(border=True):
+    with st.container():
         st.markdown("### Tell us your goals")
         col1, col2 = st.columns(2)
         with col1:
