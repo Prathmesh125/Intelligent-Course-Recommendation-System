@@ -104,6 +104,20 @@ st.markdown(
       background-color: #D97762 !important;
   }
 
+  /* Chat Input Styling - Force Light Theme */
+  [data-testid="stChatInput"] {
+      background-color: #FFFFFF !important;
+      border: 1px solid #F28C74 !important;
+      border-radius: var(--radius) !important;
+  }
+  [data-testid="stChatInput"] textarea {
+      color: #31333F !important;
+      background-color: transparent !important;
+  }
+  [data-testid="stChatInputSubmitButton"] {
+      color: #F28C74 !important;
+  }
+
   /* Sidebar - Dark, Responsive */
   section[data-testid="stSidebar"]{
     background: var(--dark-slate) !important;

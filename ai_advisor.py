@@ -2,7 +2,11 @@ import requests
 
 def generate_recommendation(query: str, courses: list, api_key: str) -> str:
     if not api_key:
-        return "Please provide a valid Gemini API Key in the sidebar to use the AI Advisor."
+        return "Please provide a valid Gemini API Key in the settings to use the AI Advisor."
+    
+    api_key = api_key.strip()
+    if not api_key.startswith("AIzaSy"):
+        return "⚠️ **Invalid API Key Format:** Gemini API keys generated from Google AI Studio must start with `AIzaSy`. It looks like you might be using an incorrect key or a Google Cloud Vertex AI token. Please generate a free key from [Google AI Studio](https://aistudio.google.com/app/apikey) and try again."
     
     # Format context
     context_str = ""
@@ -44,6 +48,9 @@ Instructions:
 
     try:
         response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 404:
+            return "⚠️ **API Access Denied (404 Not Found):** Google's servers rejected your API Key for this model. Ensure you generated your key from [Google AI Studio](https://aistudio.google.com/app/apikey) and that the Generative Language API is enabled on your account."
+        
         response.raise_for_status()
         res_json = response.json()
         return res_json['candidates'][0]['content']['parts'][0]['text']
