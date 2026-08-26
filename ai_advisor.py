@@ -1,3 +1,4 @@
+import json
 import requests
 
 def generate_recommendation(query: str, courses: list, api_key: str) -> str:
@@ -58,3 +59,37 @@ Instructions:
         return f"Error: Unexpected response format from AI. Please check your API key."
     except Exception as e:
         return f"Error communicating with AI: {str(e)}"
+
+
+def generate_learning_path_steps(current_skills: str, target_goal: str, api_key: str) -> list[str]:
+    if not api_key:
+        raise ValueError("Please provide a valid Gemini API Key in the settings.")
+        
+    prompt = f"""You are an expert AI Career and Education Advisor. 
+The user wants to transition or upskill.
+
+Current Skills: "{current_skills}"
+Target Goal / Role: "{target_goal}"
+
+Identify exactly 3 to 5 sequential learning milestones/topics the user must learn to bridge this gap.
+Make the milestone titles concise, specific, and highly searchable for a course catalog (e.g. "Advanced Python", "Linear Algebra", "Introduction to Neural Networks").
+Return the output STRICTLY as a JSON array of strings, with no markdown formatting, no code blocks, and no extra text.
+Example output: ["Basic Python", "Data Structures", "Machine Learning Fundamentals"]
+"""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    data = {
+        "contents": [{"parts":[{"text": prompt}]}]
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 404:
+        raise ValueError("API Access Denied (404 Not Found). Please check your API key permissions.")
+    response.raise_for_status()
+    res_json = response.json()
+    try:
+        text_out = res_json['candidates'][0]['content']['parts'][0]['text']
+        text_out = text_out.replace('```json', '').replace('```', '').strip()
+        return json.loads(text_out)
+    except Exception as e:
+        raise ValueError(f"Failed to parse AI response: {str(e)}")

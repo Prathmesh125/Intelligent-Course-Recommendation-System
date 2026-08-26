@@ -600,6 +600,63 @@ def _app_header(title: str, subtitle: str | None = None):
 
 
 
+
+def _render_learning_path(profile: dict):
+    _app_header("Learning Path", "AI-Powered Skill-Gap Analysis")
+    
+    with st.container(border=True):
+        st.markdown("### Tell us your goals")
+        col1, col2 = st.columns(2)
+        with col1:
+            current_skills = st.text_input("Current Skills", placeholder="e.g. Basic Python, High School Math")
+        with col2:
+            target_goal = st.text_input("Target Role / Goal", placeholder="e.g. Machine Learning Engineer")
+            
+        if st.button("Generate Path", type="primary", use_container_width=True):
+            if not current_skills or not target_goal:
+                st.warning("Please enter both current skills and target goal.")
+                return
+                
+            api_key = ""
+            if "GEMINI_API_KEY" in st.secrets:
+                api_key = st.secrets["GEMINI_API_KEY"]
+            elif os.environ.get("GEMINI_API_KEY"):
+                api_key = os.environ.get("GEMINI_API_KEY")
+                
+            if not api_key:
+                st.error("Please provide a Gemini API Key in the settings below to use this feature.")
+                return
+                
+            with st.spinner("Analyzing your skill gap..."):
+                try:
+                    from ai_advisor import generate_learning_path_steps
+                    milestones = generate_learning_path_steps(current_skills, target_goal, api_key)
+                    
+                    st.success(f"Path generated! We identified {len(milestones)} key milestones.")
+                    
+                    for i, milestone in enumerate(milestones):
+                        with st.expander(f"🎯 Step {i+1}: {milestone}", expanded=True):
+                            rec_df = recommend(
+                                user_query=milestone,
+                                top_n=1,
+                                difficulty_filter="All",
+                                min_rating=0.0,
+                                source_filter="All"
+                            )
+                            if not rec_df.empty:
+                                course = rec_df.iloc[0]
+                                st.markdown(f"**Recommended Course:** [{course['title']}]({course['url']})")
+                                st.caption(f"Platform: {course['source']} | Difficulty: {course.get('difficulty', 'Unknown')}")
+                                st.write(str(course.get('description', 'No description'))[:300] + "...")
+                                if st.button(f"Save Course {i+1}", key=f"save_path_{i}"):
+                                    st.session_state.profile = save_course(profile, str(course.get("course_id", "")))
+                                    st.toast("Saved from Learning Path!")
+                            else:
+                                st.info("No perfectly matching course found for this specific milestone.")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+
 def _render_settings_expander(profile: dict, stats: dict):
     with st.expander("👤 Profile & Data Settings", expanded=False):
         c1, c2 = st.columns(2)
@@ -1306,8 +1363,8 @@ stats = get_stats(profile)
 
 page = option_menu(
     menu_title=None,
-    options=["Discover", "AI Advisor", "Saved", "Model comparison", "Performance"],
-    icons=["compass", "robot", "bookmark", "layout-split", "graph-up"],
+    options=["Discover", "AI Advisor", "Learning Path", "Saved", "Model comparison", "Performance"],
+    icons=["compass", "robot", "map", "bookmark", "layout-split", "graph-up"],
     default_index=0,
     orientation="horizontal",
     styles={
