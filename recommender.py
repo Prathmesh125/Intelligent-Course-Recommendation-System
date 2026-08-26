@@ -114,6 +114,13 @@ def recommend(
     if min_rating > 0:
         results = results[results["rating"] >= min_rating]
 
+    # 6b. Apply Similarity Threshold
+    threshold = getattr(config, "SIMILARITY_THRESHOLD", 0.05)
+    results = results[results["similarity_score"] >= threshold]
+    
+    if results.empty:
+        return pd.DataFrame()
+
     # 7. Sort by similarity (desc), then rating (desc) as tie-breaker
     results = results.sort_values(
         by=["similarity_score", "rating"],

@@ -73,7 +73,8 @@ Current Skills: "{current_skills}"
 Target Goal / Role: "{target_goal}"
 
 Identify exactly 3 to 5 sequential learning milestones/topics the user must learn to bridge this gap.
-Make the milestone titles concise, specific, and highly searchable for a course catalog (e.g. "Advanced Python", "Linear Algebra", "Introduction to Neural Networks").
+Make the milestone titles broad, standard, and highly searchable for a typical university course catalog (e.g. "Natural Language Processing", "Deep Learning", "Machine Learning", "Software Engineering").
+AVOID hyper-specific or niche technologies (e.g., use "Deep Learning" instead of "Transformer Architectures and Hugging Face", or "Natural Language Processing" instead of "Fine-Tuning Large Language Models").
 Return the output STRICTLY as a JSON array of strings, with no markdown formatting, no code blocks, and no extra text.
 Example output: ["Basic Python", "Data Structures", "Machine Learning Fundamentals"]
 """

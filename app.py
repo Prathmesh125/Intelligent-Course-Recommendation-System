@@ -653,7 +653,7 @@ def _render_learning_path(profile: dict):
                                     st.session_state.profile = save_course(profile, str(course.get("course_id", "")))
                                     st.toast("Saved from Learning Path!")
                             else:
-                                st.info("No perfectly matching course found for this specific milestone.")
+                                st.warning("No exact course match found in our local database for this specific milestone. We recommend searching for this topic directly on Coursera or edX.")
                 except Exception as e:
                     st.error(f"Error: {e}")
 
