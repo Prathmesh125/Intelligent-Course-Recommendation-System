@@ -23,7 +23,7 @@ st.set_page_config(
     page_title="NLPRec — Course Intelligence",
     page_icon="N",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ── Project imports ───────────────────────────────────────────────────────────
@@ -577,48 +577,33 @@ def _app_header(title: str, subtitle: str | None = None):
         st.markdown(f'<div style="color: #64748B; font-size: 14px; margin-bottom: 24px; font-weight: 500; text-transform: uppercase;">HOME > {title.upper()}</div>', unsafe_allow_html=True)
 
 
-def _render_sidebar() -> tuple[str, dict, dict]:
-    with st.sidebar:
 
+def _render_settings_expander(profile: dict, stats: dict):
+    with st.expander("👤 Profile & Data Settings", expanded=False):
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**Profile**")
+            username = st.text_input("Username", value=st.session_state.profile.get("username", "guest"), key="username_input")
+            if username != st.session_state.profile.get("username"):
+                st.session_state.profile = load_profile(username)
+            st.divider()
+            st.markdown("**Insights**")
+            m1, m2 = st.columns(2)
+            m1.metric("Searches", stats.get("total_searches", 0))
+            m2.metric("Saved", stats.get("saved_courses", 0))
+            if st.button("Clear history", use_container_width=True):
+                st.session_state.profile = clear_history(st.session_state.profile)
+                save_profile(st.session_state.profile)
+                st.rerun()
 
-        page = option_menu(
-            menu_title=None,
-            options=["Discover", "Saved", "Model comparison", "Performance", "AI Advisor"],
-            icons=["compass", "bookmark", "layout-split", "graph-up", "robot"],
-            default_index=0,
-            styles={
-                "container": {"padding": "0!important", "background-color": "transparent"},
-                "icon": {"color": "#7C5CFF", "font-size": "18px"},
-                "nav-link": {"font-size": "15px", "text-align": "left", "margin":"4px 0", "--hover-color": "rgba(255,255,255,0.05)"},
-                "nav-link-selected": {"background-color": "rgba(124,92,255,0.15)", "border": "1px solid rgba(124,92,255,0.3)"},
-            }
-        )
-
-        st.divider()
-        st.markdown("**Profile**")
-        username = st.text_input("Username", value=st.session_state.profile.get("username", "guest"), key="username_input")
-        display_name = (username.strip().capitalize()) or "Guest"
-        if username != st.session_state.profile.get("username"):
-            st.session_state.profile = load_profile(username)
-
-        profile = st.session_state.profile
-        stats = get_stats(profile)
-
-        st.divider()
-        st.markdown("**Data**")
-        scrape_info = get_last_scrape_info()
-        if scrape_info.get("exists"):
-            st.markdown(
-                f'<div style="display:flex; flex-wrap:wrap; gap:8px;">'
-                f'<span class="nlprec-chip accent">{scrape_info.get("count", 0)} indexed</span>'
-                f'<span class="nlprec-chip">Updated {scrape_info.get("last_updated", "")}</span>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-        else:
-            st.caption("No indexed dataset found yet.")
-
-        with st.expander("Scraper", expanded=False):
+        with c2:
+            st.markdown("**Data Scraper**")
+            scrape_info = get_last_scrape_info()
+            if scrape_info.get("exists"):
+                st.markdown(f'*{scrape_info.get("count", 0)} courses indexed. (Updated {scrape_info.get("last_updated", "")})*')
+            else:
+                st.caption("No indexed dataset found yet.")
+            
             coursera_lim = st.slider("Coursera", 50, 300, 100, 50)
             mit_ocw_lim = st.slider("MIT OCW", 20, 200, 80, 20)
             include_fcc = st.checkbox("Include freeCodeCamp", value=True)
@@ -628,7 +613,7 @@ def _render_sidebar() -> tuple[str, dict, dict]:
                 prog_bar = st.progress(0)
                 status_txt = st.empty()
                 log_area = st.empty()
-                scrape_log: list[str] = []
+                scrape_log = []
 
                 def _progress_cb(msg, pct):
                     prog_bar.progress(pct / 100)
@@ -657,31 +642,6 @@ def _render_sidebar() -> tuple[str, dict, dict]:
                             st.rerun()
                     except Exception as e:
                         st.error(f"Scraper error: {e}")
-
-        st.divider()
-        st.markdown("**Insights**")
-        m1, m2 = st.columns(2)
-        m1.metric("Searches", stats.get("total_searches", 0))
-        m2.metric("Saved", stats.get("saved_courses", 0))
-        m3, m4 = st.columns(2)
-        m3.metric("Clicks", stats.get("click_count", 0))
-        m4.metric("Sessions", stats.get("session_count", 0))
-
-        if st.button("Clear history", use_container_width=True):
-            profile = clear_history(profile)
-            save_profile(profile)
-            st.session_state.profile = profile
-            st.rerun()
-
-        st.divider()
-        st.markdown(
-            f'<div class="nlprec-muted" style="text-align:center; padding: 4px 0 2px 0;">'
-            f'NLPRec v2.0 · Phase 8<br>'
-            f'<span style="font-size:11px;">Signed in as <strong>{display_name}</strong></span></div>',
-            unsafe_allow_html=True,
-        )
-
-    return page, profile, stats
 
 
 def _run_live_search(query_text: str, top_n: int, difficulty: str, prog_bar=None, status_txt=None):
@@ -1317,7 +1277,27 @@ def _render_ai_advisor(profile: dict):
                     st.session_state.chat_history.append({"role": "assistant", "content": response})
 
 # ── App entry ───────────────────────────────────────────────────────────────
-page, profile, stats = _render_sidebar()
+if "profile" not in st.session_state:
+    st.session_state.profile = load_profile("guest")
+profile = st.session_state.profile
+stats = get_stats(profile)
+
+page = option_menu(
+    menu_title=None,
+    options=["Discover", "AI Advisor", "Saved", "Model comparison", "Performance"],
+    icons=["compass", "robot", "bookmark", "layout-split", "graph-up"],
+    default_index=0,
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": "transparent"},
+        "icon": {"color": "#F28C74", "font-size": "18px"},
+        "nav-link": {"font-size": "15px", "text-align": "center", "margin":"0px", "--hover-color": "rgba(255,255,255,0.05)"},
+        "nav-link-selected": {"background-color": "rgba(242,140,116,0.15)", "border": "1px solid rgba(242,140,116,0.3)"},
+    }
+)
+
+_render_settings_expander(profile, stats)
+
 
 if page == "Discover":
     _render_discover(profile)
