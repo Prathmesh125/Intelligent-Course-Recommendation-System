@@ -83,10 +83,26 @@ st.markdown(
     max-width: 1400px !important;
   }
 
-  /* Hide Streamlit chrome */
+  /* Hide Streamlit chrome but KEEP toggle visible */
   section[data-testid="stToolbar"], div[data-testid="stToolbar"], .stDeployButton{ display:none !important; }
   header[data-testid="stHeader"]{ background: transparent !important; }
   #MainMenu, footer{ visibility:hidden !important; }
+
+  /* Force sidebar toggle to be extremely visible */
+  [data-testid="collapsedControl"], [data-testid="stSidebarCollapseControl"] {
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      color: #FFFFFF !important;
+      background-color: #F28C74 !important;
+      border-radius: 4px !important;
+      padding: 4px !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+      z-index: 99999 !important;
+  }
+  [data-testid="collapsedControl"]:hover, [data-testid="stSidebarCollapseControl"]:hover {
+      background-color: #D97762 !important;
+  }
 
   /* Sidebar - Dark, Responsive */
   section[data-testid="stSidebar"]{
@@ -1241,6 +1257,9 @@ def _render_performance():
         pq_df = pd.DataFrame(nlp_ev["per_query"])[["query", "precision", "recall", "f1"]]
         pq_df.columns = ["Query", "Precision", "Recall", "F1"]
         st.dataframe(pq_df, use_container_width=True)
+
+
+
 
 
 
